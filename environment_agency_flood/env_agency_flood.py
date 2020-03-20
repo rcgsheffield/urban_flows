@@ -11,6 +11,7 @@ import datetime
 import csv
 import argparse
 import json
+import os
 
 DESCRIPTION = """
 Retrieve data from the Environment Agency real-time flood monitoring API and save it to file in CSV format.
@@ -30,7 +31,7 @@ class FloodSession(requests.Session):
 
         # Build URL
         url = urllib.parse.urljoin(base_url, endpoint)
-
+        
         response = self.get(url, **kwargs)
 
         # HTTP errors
@@ -72,6 +73,7 @@ class FloodHarvestor(object):
         self.distance = distance
         self.update_meta = update_meta
         self.output_meta = output_meta
+        self.create_folder(self.output_meta)
         
         self.logger = logger
         
@@ -147,13 +149,13 @@ class FloodHarvestor(object):
                 self.logger.info("STATION %s: %s", key, value)
 
             endpoint = 'id/stations/{station_id}/readings.csv'.format(station_id=self.get_value(station,"items_stationReference"))
-
+            
             params = dict(
-                date=self.date.strftime("%Y-%m-%d"), #.isoformat(),
+                date=self.date.strftime("%Y-%m-%d"),
                 _limit=10000
             )
             data = self.session.call_iter(self.base_url,endpoint, params=params)
-
+            
             reader = csv.DictReader(data)
 
             # Iterate over data points
@@ -169,7 +171,7 @@ class FloodHarvestor(object):
                     measure = measures[row['measure']]
                 except KeyError:
                     # Get measure if not already retrieved
-                    measure = SESSION.get(row['measure']).json()['items']
+                    measure = self.session.get(row['measure']).json()['items']
                     # Save for re-use
                     measures[measure['@id']] = measure
 
@@ -188,14 +190,14 @@ class FloodHarvestor(object):
         
     def get_value(self, station,path):        
         p = path.split('_')
-        result = station #json.loads(json.dumps(station).replace("\'", '\"')) 
+        result = station 
         for i in range(len(p)):
-            if type(result) == list:
-                print(result)
-                result = result[int(p[i])]
-            else:
-                result = result.get(p[i],'')
+            result = result.get(p[i],'')
         return result
+        
+    def create_folder(self,path):
+        if not os.path.exists(path):
+            os.makedirs(path)
 
     def get_site_mapping(self, station):
         """Generate a metafile for a site"""
@@ -256,14 +258,16 @@ class FloodHarvestor(object):
         """Generate metadata for each station"""
         
         # Site meta output to file
+        self.create_folder("{}/sites".format(self.output_meta))
         site_file = "{}/sites/{}".format(self.output_meta,self.get_value(station,"items_stationReference"))
         with open(site_file, 'w+') as file:
             file.write("begin.asset\n")
-            for key,value in list(self.get_site_mapping(station).items()):
+            for key,value in self.get_site_mapping(station).items():
                 file.write('{k}={v}\n'.format(k=key,v=value if type(value) == str else value[0]))
             file.write("end.asset\n")
 
         # Sensor meta output to file
+        self.create_folder("{}/sensors".format(self.output_meta))
         for sensor in self.get_sensor_mapping(station):
             sensor_file = "{}/sensors/{}".format(self.output_meta,sensor["sensorid"][60:])
             with open(sensor_file, 'w+') as file:
@@ -333,7 +337,7 @@ class FloodHarvestor(object):
         ]
         
         # CSV station meta output to file
-        site_file = "{}/test/stations.csv".format(self.output_meta)
+        site_file = "{}/stations.csv".format(self.output_meta)
         with open(site_file, 'w+') as file:
             file.write('|'.join(fields_stations) + '\n')
             for station in stations:
@@ -342,7 +346,7 @@ class FloodHarvestor(object):
                 file.write('|'.join(fields) + '\n')
 
         # CSV measure meta output to file
-        sensor_file = "{}/test/sensors.csv".format(self.output_meta)
+        sensor_file = "{}/sensors.csv".format(self.output_meta)
         with open(sensor_file, 'w+') as file:
             file.write('|'.join(fields_measures) + '\n')
             for station in stations:
@@ -361,7 +365,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-k', '--distance', type=int, help="Radius distance (km)", default=30)
     parser.add_argument('-um', '--update_meta', type=bool, help="True if update the metadata", default=False)
     parser.add_argument('-om', '--output_meta', type=str, help="Output folder path for metadata files")
-
+    
     args = parser.parse_args()
 
     return args
@@ -369,8 +373,6 @@ def get_args() -> argparse.Namespace:
 def main():
     args = get_args()
     logging.basicConfig(level=logging.INFO)
-    
-    #LOGGER
     
     fh = FloodHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
     
@@ -386,10 +388,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #args = get_args()
-    
-    #fh = FloodHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
-
-    #stations = fh.get_stations()
-    # print(list(stations))
-    #generate_metadata()
