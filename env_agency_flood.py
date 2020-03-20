@@ -191,6 +191,7 @@ class FloodHarvestor(object):
         result = station #json.loads(json.dumps(station).replace("\'", '\"')) 
         for i in range(len(p)):
             if type(result) == list:
+                print(result)
                 result = result[int(p[i])]
             else:
                 result = result.get(p[i],'')
@@ -198,11 +199,11 @@ class FloodHarvestor(object):
 
     def get_site_mapping(self, station):
         """Generate a metafile for a site"""
-
+        
         result = {}
         result["siteid"] =                       self.get_value(station,"items_stationReference"),
-        result["longitude_[deg]"] =              self.get_value(station,"items_lat"),
-        result["latitude_[deg]"] =               self.get_value(station,"items_long"),
+        result["longitude_[deg]"] =              str(self.get_value(station,"items_lat")),
+        result["latitude_[deg]"] =               str(self.get_value(station,"items_long")),
         result["height_above_sea_level_[m]"] =   "",
         result["address"] =                      ", ".join([
                                                             self.get_value(station,"items_label"),
@@ -230,8 +231,8 @@ class FloodHarvestor(object):
             result["serialnumber"] =                 ""
             result["energysupply"] =                 "" 
             result["freqmaintenance"] =              "" 
-            result["sType"] =                        self.get_value(measure,"parameter".format(i))
-            result["family"] =                       self.get_value(measure,"parameterName".format(i))
+            result["sType"] =                        self.get_value(measure,"parameter")
+            result["family"] =                       self.get_value(measure,"parameterName")
             result["data-acquisition-interval[min]"] ="daily"
             result["firstdate"] =                    self.get_value(station,"items_dateOpened")
             result["datoz18-handle"] =               ""
@@ -259,7 +260,7 @@ class FloodHarvestor(object):
         with open(site_file, 'w+') as file:
             file.write("begin.asset\n")
             for key,value in list(self.get_site_mapping(station).items()):
-                file.write('{k}={v}\n'.format(k=key,v=value))
+                file.write('{k}={v}\n'.format(k=key,v=value if type(value) == str else value[0]))
             file.write("end.asset\n")
 
         # Sensor meta output to file
