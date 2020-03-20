@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Response
+    stationId="{station_id}"
+    responseDateTime="{resp_time}" />

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<StationDataList>
+    <StationData stationId="0123456789" name="TestStation" timezone="+01:00">
+        <ChannelData channelId="0010" name="Water level" unit="m">
+            <Values>
+                <VT t="2009-01-01T00:15:00">3.56</VT>
+                <VT t="2009-01-01T00:30:00">3.57</VT>
+                <VT t="2009-01-01T00:45:00">3.57</VT>
+                <VT t="2009-01-01T01:00:00">3.57</VT>
+                <VT t="2009-01-01T01:15:00">3.58</VT>
+                <VT t="2009-01-01T01:30:00">3.58</VT>
+                <VT t="2009-01-01T01:45:00">3.58</VT>
+                <VT t="2009-01-01T02:00:00">3.58</VT>
+            </Values>
+        </ChannelData>
+        <ChannelData channelId="0020" name="Water temperature" unit="Celsius">
+            <Values>
+                <VT t="2009-01-01T00:30:00">6.3</VT>
+                <VT t="2009-01-01T01:00:00">6.3</VT>
+                <VT t="2009-01-01T01:30:00" errorcode="5"
+                    errortext="Line Break">0
+                </VT>
+                <VT t="2009-01-01T02:00:00">6.2</VT>
+            </Values>
+        </ChannelData>
+    </StationData>
+</StationDataList>

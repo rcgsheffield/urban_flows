@@ -1,0 +1,7 @@
+/data_logger_server/data/
+/data_logger_server/logs/
+/data_logger_server/alarms/
+/tranmission_test/username.txt
+/tranmission_test/password.txt
+/.idea/
+__pycache__
