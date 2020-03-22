@@ -18,7 +18,7 @@ The module is run with the following parameters:
 
 The parameters should be define in CONFIG file. The module run by calling pipeline.sh script.
 
-The following example call the module with parameters spedified by inline arguments:
+The following example call the module with parameters spedified by inline arguments:  
 python pipeline.py -d 2020-01-01 -od flood.csv -k 25 -um True -om meta
 
 Please follow the tests suits to see how the module works. You can also find comments in the code describing the logic. 
