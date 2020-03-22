@@ -8,13 +8,13 @@ This module is designed to ingest flood monitoring data from Environment Agency.
 
 The module is run with the following parameters:
 
--d/--date 			(required) ISO UTC date
--od/--output_data 	(required) Output CSV file path
--k/--distance		Radius distance (km)
--um/--update_meta	True if update the metadata
--om/--output_meta	Output folder path for metadata files
--v/--verbose		Debug logging mode
--ad/--assets-dir	Assets directory
+-d/--date 			(required) ISO UTC date  
+-od/--output_data 	(required) Output CSV file path  
+-k/--distance		Radius distance (km)  
+-um/--update_meta	True if update the metadata  
+-om/--output_meta	Output folder path for metadata files  
+-v/--verbose		Debug logging mode  
+-ad/--assets-dir	Assets directory  
 
 The parameters should be define in CONFIG file. The module run by calling pipeline.sh script.
 
