@@ -1,8 +1,8 @@
-# Environment Agency Flood Harvestor
+# DEFRA Sensor Observation Services Harvestor
 
-This is a code source repository for a harvestor module for Environment Agency data source for Urban Flow project (The University of Sheffield) .
+This is a code source repository for a harvestor module for DEFRA Sensor Observation Services data source for Urban Flow project (The University of Sheffield) .
 
-https://environment.data.gov.uk/flood-monitoring/doc/reference
+https://uk-air.defra.gov.uk/data/about_sos
 
 This module is designed to ingest flood monitoring data from Environment Agency. 
 
