@@ -5,9 +5,6 @@ import json
 
 import getpass
 
-BASE_URL = 'https://production.oizom.com/v1/'
-CLIENT_ID = '9252ac5b-211d-4071-8797-9a9bd0993ace'
-
 
 def jprint(obj, indent=2, **kwargs):
     print(json.dumps(obj, indent=indent, **kwargs))
