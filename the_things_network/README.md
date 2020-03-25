@@ -22,6 +22,9 @@ The pipeline is configured using the values specified in `the_things_network.cfg
 
 ## Usage
 
+To get help:
+
 ```bash
-# TODO
+$ python download.py --help
+$ python metadata.py --help
 ```

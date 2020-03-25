@@ -4,6 +4,8 @@ import requests
 import json
 import http
 
+import utils
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -14,11 +16,14 @@ class StorageSession(requests.Session):
     https://www.thethingsnetwork.org/docs/applications/storage/api.html
     """
 
-    def __init__(self, base_url: str, access_key: str):
+    def __init__(self):
         super().__init__()
 
-        self.base_url = base_url
-        self.access_key = access_key
+        config = utils.get_config()
+
+        self.application_id = config['api']['application_id']
+        self.base_url = config['api']['base_url'].format(application_id=self.application_id)
+        self.access_key = utils.get_access_token()
 
         self.headers.update(self.extra_headers)
 
