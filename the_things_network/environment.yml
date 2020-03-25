@@ -1,0 +1,10 @@
+name: ttn
+channels:
+  - defaults
+dependencies:
+  - python>=3.6
+  - requests=2.23.0
+  - pip
+  - pip:
+    - ttn==2.1.5
+    - git+https://github.com/rcgsheffield/urban_flows.git#egg=metadata
