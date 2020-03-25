@@ -12,6 +12,4 @@ def get_config(path: str = DEFAULT_CONFIG_PATH) -> dict:
 
 
 def get_access_token() -> str:
-    # TODO *remove this!!!*
-    return 'ttn-account-v2.1UV9XTVFgokW7OtCdkiseJoKIfJ2WPiJDQ2V6mLkiig'
     return getpass.getpass('Enter access token: ')
