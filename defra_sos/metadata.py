@@ -2,8 +2,8 @@ from utils import get_value
 import assets
 import json
 
-class FloodHarvestorMeta(object):
-    """A class to generate metadata for Environment Agency Flood observations"""
+class DEFRASOSHarvestorMeta(object):
+    """A class to generate metadata for DEFRA SOS observations"""
 
     def __init__(self, output_meta):
         """Initiate the properties"""
