@@ -14,15 +14,15 @@ class StorageSession(requests.Session):
     Thing Things Network Data Storage API HTTP Session
 
     https://www.thethingsnetwork.org/docs/applications/storage/api.html
+
+    To view the documentation, open session.docs_url in a web browser.
     """
 
-    def __init__(self):
+    def __init__(self, application_id, base_url):
         super().__init__()
 
-        config = utils.get_config()
-
-        self.application_id = config['api']['application_id']
-        self.base_url = config['api']['base_url'].format(application_id=self.application_id)
+        self.application_id = application_id
+        self.base_url = base_url.format(application_id=self.application_id)
         self.access_key = utils.get_access_token()
 
         self.headers.update(self.extra_headers)
@@ -33,6 +33,11 @@ class StorageSession(requests.Session):
             'Authorization': "key {access_key}".format(access_key=self.access_key),
         }
 
+    @property
+    def docs_url(self) -> str:
+        """URL to Swagger API documentation"""
+        return urllib.parse.urljoin(self.base_url, '/')
+
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
 
@@ -42,10 +47,14 @@ class StorageSession(requests.Session):
         response.raise_for_status()
         return response
 
-    def call(self, endpoint: str, **kwargs) -> list:
+    def call_raw(self, endpoint: str, **kwargs) -> requests.Response:
+
         url = urllib.parse.urljoin(self.base_url, endpoint)
 
-        response = self.get(url, **kwargs)
+        return self.get(url, **kwargs)
+
+    def call(self, *args, **kwargs) -> list:
+        response = self.call_raw(*args, **kwargs)
 
         try:
             data = response.json()
@@ -58,3 +67,16 @@ class StorageSession(requests.Session):
                 raise
 
         return data
+
+    def query_raw(self, last: str = None):
+        """
+        https://mj-ttgopaxcounter.data.thethingsnetwork.org/#!/query/get_api_v2_query
+
+        :param last: Duration on which we want to get the data (default 1h). Pass 30s for the last 30 seconds, 1h for
+                     the last hour, 2d for the last 48 hours, etc
+        :return: A collection of data points
+        """
+        return self.call_raw('query', params=dict(last=last))
+
+    def query(self, *args, **kwargs) -> list:
+        return self.query_raw(*args, **kwargs).json()

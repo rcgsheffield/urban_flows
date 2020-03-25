@@ -2,9 +2,8 @@ name: ttn
 channels:
   - defaults
 dependencies:
-  - python>=3.6
-  - requests=2.23.0
+  - python=3.8
+  - requests=2.23
   - pip
   - pip:
-    - ttn==2.1.5
-    - git+https://github.com/rcgsheffield/urban_flows.git#egg=metadata
+    - git+https://github.com/Joe-Heffer-Shef/ufmetadata.git

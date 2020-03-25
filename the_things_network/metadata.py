@@ -1,17 +1,20 @@
+"""
+Retrieve metadata
+"""
+
 import logging
 
-import ttn
-
 import utils
-import assets
+import ufmetadata.assets
+import api
 
 LOGGER = logging.getLogger(__name__)
 
 
-def device_to_sensor(device) -> assets.Sensor:
-    sensor = assets.Sensor(
-        sensor_id=device.dev_id,
-        family=device.app_id,
+def device_to_sensor(device, family) -> ufmetadata.assets.Sensor:
+    sensor = ufmetadata.assets.Sensor(
+        sensor_id=device,
+        family=family,
         detectors=[
             dict(name='?', unit='?', epsilon='?'),
         ],
@@ -21,29 +24,14 @@ def device_to_sensor(device) -> assets.Sensor:
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
-    config = utils.get_config()
+    session = utils.get_session()
 
-    app_id = config['api']['application_id']
-    access_key = utils.get_access_token()
+    for device in api.Device.list(session=session):
+        LOGGER.info(device)
 
-    client = ttn.ApplicationClient(app_id=app_id, access_key=access_key)
-
-    handler = ttn.HandlerClient(app_id=app_id, app_access_key=access_key)
-
-    application = handler.application().get()
-
-    LOGGER.info(application)
-    LOGGER.info(application.app_id)
-    LOGGER.info(application.payload_format)
-    LOGGER.info(application.decoder)
-    LOGGER.info(application.encoder)
-
-    for device in client.devices():
-        print(device)
-
-        sensor = device_to_sensor(device)
+        sensor = device_to_sensor(device=device, family=session.application_id)
 
         sensor.save()
 

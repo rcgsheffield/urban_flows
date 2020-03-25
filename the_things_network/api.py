@@ -1,13 +1,6 @@
-class Query:
-    def __call__(self, last: str, session):
-        """
-        https://mj-ttgopaxcounter.data.thethingsnetwork.org/#!/query/get_api_v2_query
-
-        :param last: Duration on which we want to get the data (default 1h). Pass 30s for the last 30 seconds, 1h for
-                     the last hour, 2d for the last 48 hours, etc
-        :return: A collection of data points
-        """
-        return session.call('query', params=dict(last=last))
+"""
+The Things Network Data Storage objects
+"""
 
 
 class Device:
@@ -18,6 +11,10 @@ class Device:
     @classmethod
     def list(cls, session) -> list:
         """
+        List devices identifier strings in the database.
+
+        Warning: devices that haven't sent any data won't appear in this list.
+
         https://mj-ttgopaxcounter.data.thethingsnetwork.org/#/devices
 
         :rtype: list[str]
