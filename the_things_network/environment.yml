@@ -1,0 +1,9 @@
+name: ttn
+channels:
+  - defaults
+dependencies:
+  - python=3.8
+  - requests=2.23
+  - pip
+  - pip:
+    - git+https://github.com/Joe-Heffer-Shef/ufmetadata.git

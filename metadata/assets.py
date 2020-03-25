@@ -13,9 +13,7 @@ class Asset:
     """
     A physical asset registered to the Urban Flows Observatory
     """
-    DIR = 'assets'
-    SUBDIR = ''
-
+    
     def __str__(self):
         """Build asset configuration file"""
 
@@ -38,13 +36,23 @@ class Asset:
         raise NotImplementedError
 
     @property
+    def subdir(self) -> str:
+        parts = ['assets', "{}s".format(self.__class__.__name__.casefold())]
+        
+        subdir = os.path.join(*parts)
+        
+        os.makedirs(subdir, exist_ok=True)
+        
+        return subdir
+
+    @property
+    def filename(self) -> str:
+        return '{}.txt'.format(self.id)
+
+    @property
     def path(self) -> str:
         """File path"""
-
-        subdir = os.path.join(self.DIR, self.SUBDIR)
-        os.makedirs(subdir, exist_ok=True)
-        filename = '{}.txt'.format(self.id)
-        return os.path.join(subdir, filename)
+        return os.path.join(self.subdir, self.filename)
 
     def save(self):
         """Serialise asset configuration file"""
@@ -72,7 +80,7 @@ class Asset:
 
 class Site(Asset):
     """Physical location"""
-
+    
     def __init__(self, site_id, latitude: float, longitude: float, altitude: float, address, city, country, postcode,
                  first_date: datetime.date, operator: dict, desc_url: str):
         """
@@ -125,8 +133,6 @@ class Sensor(Asset):
     """
     A sensor registered to the Urban Flows Observatory
     """
-
-    SUBDIR = 'sensors'
 
     def __init__(self, sensor_id, family, detectors: list, provider: dict = None, serial_number=None,
                  energy_supply=None, freq_maintenance=None, s_type=None, data_acquisition_interval=None,
