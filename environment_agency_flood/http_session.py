@@ -1,4 +1,4 @@
-"""Flood Session"""
+"""DEFRA SOS Session"""
 
 import requests
 import urllib.parse
@@ -6,11 +6,11 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
-class FloodSession(requests.Session):
+class DEFRASOSSession(requests.Session):
     """
-    Environment Agency real-time flood monitoring API HTTP session
+    Defra’s UK-AIR Sensor Observation Service (SOS) API HTTP session
 
-    https://environment.data.gov.uk/flood-monitoring/doc/reference
+    https://uk-air.defra.gov.uk/data/about_sos
     """
 
     def _call(self, base_url, endpoint, **kwargs) -> requests.Response:
