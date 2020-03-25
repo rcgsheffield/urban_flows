@@ -49,11 +49,3 @@ def get_args(description, args=None) -> argparse.Namespace:
 
     return args
 
-
-def get_value(obj: json, path: str):
-    p = path.split('_')
-    result = obj
-    for i in range(len(p)):
-        result = result.get(p[i], '')
-    return result if type(result) != tuple else result[0]
-

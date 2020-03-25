@@ -64,13 +64,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(result, expected, "The returned namespace should be correct'".format(expected))
 
 
-    def test_get_value(self):
-        param1 = json.loads('{"param1":"value1"}')
-        param2 = "param1"
-        result = utils.get_value(param1, param2)
-        expected = "value1"
-        self.assertEqual(result, expected, "The returned value should be '{}'".format(expected))
-
-
 if __name__ == '__main__':
     unittest.main()

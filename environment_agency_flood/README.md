@@ -1,29 +1,57 @@
-# DEFRA Sensor Observation Services Harvestor
+# DEFRA Air Quality data pipeline
 
-This is a code source repository for a harvestor module for DEFRA Sensor Observation Services data source for Urban Flow project (The University of Sheffield) .
+This is a data pipeline to ingest data from the Department for Environment, Food and Rural Affairs (DEFRA)
+[Atom Download Services](https://uk-air.defra.gov.uk/data/atom-dls/) into the
+[Urban Flows Observatory](https://urbanflows.ac.uk/) data warehouse.
 
-https://uk-air.defra.gov.uk/data/about_sos
+## Overview
 
-This module is designed to ingest air pollution measurements from Defra’s UK-AIR Sensor Observation Service (SOS). 
+### Pipeline overview
 
-The module is run with the following parameters:
+These are the steps in the process:
 
--d/--date 			(required) ISO UTC date  
--od/--output_data 	(required) Output CSV file path  
--k/--distance		Radius distance (km)  
--um/--update_meta	True if update the metadata  
--om/--output_meta	Output folder path for metadata files  
--v/--verbose		Debug logging mode  
--ad/--assets-dir	Assets directory  
+1. `download.py`: Automatically download specified DEFRA data for a particular year and save the source data files to disk.
+2. `convert.py`: Extract rows of data from the XML files and convert to CSV format
+3. `clean.py`: Remove bad data and parse data types
+4. `todb.py`: Aggregate and prepare CSV data, ready to be converted into netCDF format 
 
-The parameters should be define in CONFIG file. The module run by calling pipeline.sh script.
+Data files are stored subdirectories within the `data` directory, specified in `settings.py`.
 
-The following example call the module with parameters spedified by inline arguments:  
-`python pipeline.py -d 2020-01-01 -od defra_sos.csv -k 25 -um True -om meta`
+The XML resources found by following a trail of links as follows:
 
-Please follow the tests suits to see how the module works. You can also find comments in the code describing the logic. 
-	
- - tests/tests_utils.py
- - tests/tests_download.py
- - tests/tests_metadata.py
-
+  1. Annual ATOM list of resources i.e. data sets for each location.
+  2. A specific site e.g. "GB Fixed Observations for Barnsley Gawber (BAR3) in 2020" contains several "Observations".
+  3. Data values for that observation for a particular year are stored within an XML document.
+  
+### Auxiliary code
+ 
+The various utilities used within the pipeline are organised as follows:
+ 
+ * `http_session.py`: A HTTP session to communicate with the web server
+ * `parsers`: Module containing XML and ATOM feed parsers to scrape, navigate and extract data
+ * `metadata.py`: Used to generate meta-data from downloaded data only
+ * `assets.py`: Tools to interface with the Urban Observatory meta-data repository
+ * `settings.py`: Configuration parameters, including meta-data options 
+ * `run.py`: Execute the entire pipeline for every year available (for testing)
+ 
+ ## Installation
+ 
+ *TODO*
+ 
+ Edit `settings.py` to change the configuration.
+ 
+ ## Usage
+ 
+ The server provides data in yearly collections.
+ 
+ To run the pipeline, run the four scripts in order:
+ 
+```bash
+$ python download.py --year 2020
+$ python convert.py --year 2020
+$ python clean.py --year 2020
+$ python todb.py --year 2020
+ ```
+ 
+ To generate metadata, run `python metadata.py`.
+ This will only extract metadata from already-downloaded data files.
