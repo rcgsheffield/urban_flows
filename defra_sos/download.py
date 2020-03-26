@@ -1,7 +1,7 @@
 from http_session import DEFRASOSSession
 import csv
 from utils import build_dir
-from utils import get_value
+# from utils import get_value
 import logging
 import http_session
 import urllib.parse
