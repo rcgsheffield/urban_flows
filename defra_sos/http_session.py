@@ -38,8 +38,8 @@ class DEFRASOSSession(requests.Session):
 
         data = response.json()
 
-        for meta, value in data['meta'].items():
-            LOGGER.debug("META %s: %s", meta, value)
+        for meta in data:
+            LOGGER.debug("META %s: %s", meta)
 
         return data
 

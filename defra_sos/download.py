@@ -5,6 +5,8 @@ from utils import build_dir
 import logging
 import http_session
 import urllib.parse
+import json
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,8 +28,8 @@ class DEFRASOSHarvestor(object):
         self.base_url = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
 
         # Station filters
-        self.filters = [dict(near=urllib.parse.quote(
-            """{"center":{"type":"Point","coordinates":[53.379699,-1.469815]},"radius":50}"""))]
+        self.filters = urllib.parse.quote(
+            """{"center":{"type":"Point","coordinates":[53.379699,-1.469815]},"radius":50}""")
 
         # CSV output
         self.columns = [
@@ -50,8 +52,8 @@ class DEFRASOSHarvestor(object):
 
         station_ids = set()
 
-        for query in self.filters:
-            data = self.session.call(self.base_url, 'stations?{}'.format(query))
+        for query in [self.filters]:
+            data = self.session.call(self.base_url, 'stations?near={}'.format(query))
 
             for station in data[0:1]:
                 station_id = station['properties']['id']
@@ -76,6 +78,7 @@ class DEFRASOSHarvestor(object):
 
             endpoint_ts = "timeseries/{}".format(timeseries_id)
             timeseries = self.session.call_iter(self.base_url, endpoint_ts)
+            timeseries = json.loads(list(timeseries)[0])
 
             coordinates = station["geometry"]["coordinates"]
             lat = coordinates[1]
@@ -89,12 +92,12 @@ class DEFRASOSHarvestor(object):
                 timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
                 limit=10000
             )
-            data = self.session.call_iter(self.base_url, endpoint_ts+"/getData", params=params)
-
-            reader = csv.DictReader(data["values"])
+            ep2 = endpoint_ts+"/getData"
+            data = self.session.call(self.base_url, endpoint_ts+"/getData", params=params)
+            rows = data["values"]
 
             # Iterate over data points
-            for row in reader:
+            for row in rows:
 
                 # Insert station info
                 row['lat'] = lat
@@ -110,7 +113,8 @@ class DEFRASOSHarvestor(object):
     def transform(self, row: dict) -> dict:
         """Clean a row of data"""
 
-        row['timestamp'] = row.pop('dateTime')
+        dt = row.pop('timestamp')
+        row['timestamp'] = datetime.datetime.fromtimestamp(dt/1000)
 
         return row
 
