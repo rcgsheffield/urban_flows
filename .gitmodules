@@ -1,0 +1,3 @@
+[submodule "ufmetadata"]
+	path = metadata
+	url = https://github.com/Joe-Heffer-Shef/ufmetadata
