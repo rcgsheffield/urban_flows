@@ -38,9 +38,6 @@ class DEFRASOSSession(requests.Session):
 
         data = response.json()
 
-        for meta, value in data['meta'].items():
-            LOGGER.debug("META %s: %s", meta, value)
-
         return data
 
     def call_iter(self, base_url: str, endpoint: str, **kwargs) -> iter:

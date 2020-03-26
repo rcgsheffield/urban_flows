@@ -5,6 +5,7 @@ from utils import build_dir
 import logging
 import http_session
 import urllib.parse
+import json
 
 LOGGER = logging.getLogger(__name__)
 
@@ -26,8 +27,15 @@ class DEFRASOSHarvestor(object):
         self.base_url = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
 
         # Station filters
-        self.filters = [dict(near=urllib.parse.quote(
-            """{"center":{"type":"Point","coordinates":[53.379699,-1.469815]},"radius":50}"""))]
+        self.filter= dict(
+                near=dict(
+                    center=dict(
+                        type='Point',
+                        coordinates=[53.379699,-1.469815],
+                        radius=50
+                    )
+                )
+            )
 
         # CSV output
         self.columns = [
@@ -41,26 +49,10 @@ class DEFRASOSHarvestor(object):
             'unit',
         ]
 
-    def get_stations(self) -> iter:
-        """
-        Get unique stations
+    def get_stations(self) -> list:
+        return self.session.call(self.base_url, 'stations', json=self.filter)
 
-        :type filters: iter[dict]
-        """
 
-        station_ids = set()
-
-        for query in self.filters:
-            data = self.session.call(self.base_url, 'stations?near={}'.format(query))
-
-            for station in data[0:1]:
-                station_id = station['properties']['id']
-
-                # Skip repeated stations
-                if station_id not in station_ids:
-                    station_ids.add(station_id)
-
-                    yield self.session.call(self.base_url, 'stations/{}'.format(station_id))
 
     def get_data(self, stations) -> iter:
         """Generate rows of data for the specified stations"""
