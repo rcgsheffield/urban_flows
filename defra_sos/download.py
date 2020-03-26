@@ -49,10 +49,12 @@ class DEFRASOSHarvestor(object):
             'unit',
         ]
 
-    def get_stations(self) -> list:
-        return self.session.call(self.base_url, 'stations', json=self.filter)
+    def get_stations(self) -> iter:
+        for station in self.session.call(self.base_url, 'stations', json=self.filter):
+            station_id = station['properties']['id']
+            endpoint = "stations/{station_id}".format(station_id=station_id)
 
-
+            yield self.session.call(self.base_url, endpoint)
 
     def get_data(self, stations) -> iter:
         """Generate rows of data for the specified stations"""
@@ -61,13 +63,12 @@ class DEFRASOSHarvestor(object):
 
         for station in stations:
 
-            for key, value in station.items():
-                self.logger.info("STATION %s: %s", key, value)
+            print(json.dumps(station, indent=2))
 
             timeseries_id = list(station["properties"]["timeseries"].keys())[0]
 
             endpoint_ts = "timeseries/{}".format(timeseries_id)
-            timeseries = self.session.call_iter(self.base_url, endpoint_ts)
+            timeseries = self.session.call(self.base_url, endpoint_ts)
 
             coordinates = station["geometry"]["coordinates"]
             lat = coordinates[1]
@@ -76,17 +77,14 @@ class DEFRASOSHarvestor(object):
             param_name = timeseries["parameters"]["feature"]["label"]
             unit = timeseries["uom"]
 
-
             params = dict(
                 timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
                 limit=10000
             )
-            data = self.session.call_iter(self.base_url, endpoint_ts+"/getData", params=params)
-
-            reader = csv.DictReader(data["values"])
+            data = self.session.call(self.base_url, endpoint_ts+"/getData", params=params)
 
             # Iterate over data points
-            for row in reader:
+            for row in data["values"]:
 
                 # Insert station info
                 row['lat'] = lat
@@ -101,8 +99,6 @@ class DEFRASOSHarvestor(object):
 
     def transform(self, row: dict) -> dict:
         """Clean a row of data"""
-
-        row['timestamp'] = row.pop('dateTime')
 
         return row
 

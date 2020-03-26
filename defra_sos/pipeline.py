@@ -29,7 +29,7 @@ def main():
 
     fh = download.DEFRASOSHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
 
-    stations = list(fh.get_stations())
+    stations = fh.get_stations()
 
     utils.build_dir(args.output_meta)
     md = metadata.DEFRASOSHarvestorMeta(args.output_meta)
@@ -38,6 +38,9 @@ def main():
         for station in stations:
             md.generate_metadata(station)
             md.generate_metadata_csv(stations)
+
+            # TODO remove
+            break
 
     # CSV output to file
     with open(args.output_data, 'w', newline='') as file:
@@ -48,6 +51,9 @@ def main():
         for row in fh.get_data(stations):
             row = fh.transform(row)
             writer.writerow(row)
+
+            # TODO remove
+            break
 
 
 if __name__ == '__main__':
