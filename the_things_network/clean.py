@@ -7,6 +7,8 @@ import argparse
 import csv
 import datetime
 
+import arrow
+
 import utils
 
 LOGGER = logging.getLogger(__name__)
@@ -14,15 +16,6 @@ LOGGER = logging.getLogger(__name__)
 DESCRIPTION = """
 Parse and clean the CSV data
 """
-
-
-def get_args():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-
-    parser.add_argument('-i', '--input', type=str, help="Input CSV file", required=True)
-    parser.add_argument('-o', '--output', type=str, help="Output CSV file", required=True)
-
-    return parser.parse_args()
 
 
 def read_csv(path: str) -> iter:
@@ -39,12 +32,29 @@ def read_csv(path: str) -> iter:
         yield from reader
 
 
-def parse(row: dict, data_types: dict) -> dict:
+def parse(row: dict, data_types: dict) -> iter:
     """Parse input CSV text values into native data types"""
 
-    return {
-        key: data_types[key](value) for key, value in row.items()
-    }
+    # Map each column label to a data type
+    for label, value in row.items():
+        data_type = data_types[label]
+
+        try:
+            value = data_type(value)
+        except ValueError:
+            # Blank values are set to null
+            if not value:
+                value = None
+            else:
+                raise
+
+        yield label, value
+
+
+def parse_timestamp(timestamp: str) -> datetime.datetime:
+    a = arrow.get(timestamp)
+
+    return a.datetime
 
 
 def transform(row: dict) -> dict:
@@ -52,16 +62,14 @@ def transform(row: dict) -> dict:
     row['timestamp'] = row.pop('time')
 
     # Convert to ISO format
-    timestamp = row['timestamp'].replace('Z', '+00:00')
-    timestamp = datetime.datetime.fromisoformat(timestamp)
-    row['timestamp'] = timestamp.isoformat()
+    row['timestamp'] = parse_timestamp(row['timestamp']).isoformat()
 
     return row
 
 
 def clean(rows: iter, data_types: dict) -> iter:
     for row in rows:
-        row = parse(row, data_types)
+        row = dict(parse(row, data_types))
 
         row = transform(row)
 
@@ -69,16 +77,16 @@ def clean(rows: iter, data_types: dict) -> iter:
 
 
 def main():
-    args = get_args()
+    args = utils.get_args(description=DESCRIPTION)
 
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     headers = utils.get_headers()
 
     # Load, clean and save data
     rows = read_csv(args.input)
     rows = clean(rows, data_types=headers)
-    utils.write_csv(args.output, headers=headers, rows=rows)
+    utils.write_csv(args.output, rows=rows)
 
 
 if __name__ == '__main__':

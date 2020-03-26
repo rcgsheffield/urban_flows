@@ -1,11 +1,5 @@
-"""
-Retrieve data
-"""
-
 import logging
-import argparse
 import json
-import csv
 
 import utils
 
@@ -14,15 +8,6 @@ LOGGER = logging.getLogger(__name__)
 DESCRIPTION = """
 Convert data from JSON format to CSV format.
 """
-
-
-def get_args():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
-
-    parser.add_argument('-i', '--input', type=str, help="Input JSON file", required=True)
-    parser.add_argument('-o', '--output', type=str, help="Output CSV file", required=True)
-
-    return parser.parse_args()
 
 
 def read_json(path: str) -> list:
@@ -36,15 +21,13 @@ def read_json(path: str) -> list:
 
 
 def main():
-    args = get_args()
+    args = utils.get_args(description=DESCRIPTION)
 
     logging.basicConfig(level=logging.INFO)
 
-    headers = utils.get_headers()
-
     # Convert from JSON to CSV
     rows = read_json(args.input)
-    utils.write_csv(args.output, headers=headers, rows=rows)
+    utils.write_csv(args.output, rows=rows)
 
 
 if __name__ == '__main__':

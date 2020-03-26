@@ -18,6 +18,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
     parser.add_argument('-o', '--output', type=str, help="Output JSON file", required=True)
+    parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
 
     return parser.parse_args()
 
@@ -25,7 +26,7 @@ def get_args():
 def main():
     args = get_args()
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     session = utils.get_session()
 
