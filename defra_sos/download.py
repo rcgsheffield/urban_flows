@@ -51,7 +51,7 @@ class DEFRASOSHarvestor(object):
         station_ids = set()
 
         for query in self.filters:
-            data = self.session.call(self.base_url, 'stations?near={}'.format(query))
+            data = self.session.call(self.base_url, 'stations?{}'.format(query))
 
             for station in data[0:1]:
                 station_id = station['properties']['id']
