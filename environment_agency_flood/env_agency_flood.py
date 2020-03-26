@@ -66,7 +66,7 @@ class FloodSession(requests.Session):
 class FloodHarvestor(object):
     """A harvestor to get flood observations from Environment Agency"""
     
-    def __init__(self, date, distance, update_meta, output_meta, logger):
+    def __init__(self, date: datetime.date, distance, update_meta, output_meta, logger):
         """Initiate the properties"""
         
         self.date = date
@@ -151,7 +151,7 @@ class FloodHarvestor(object):
             endpoint = 'id/stations/{station_id}/readings.csv'.format(station_id=self.get_value(station,"items_stationReference"))
             
             params = dict(
-                date=self.date.strftime("%Y-%m-%d"),
+                date=self.date.isoformat(),
                 _limit=10000
             )
             data = self.session.call_iter(self.base_url,endpoint, params=params)
@@ -360,7 +360,7 @@ def get_args() -> argparse.Namespace:
     """Command-line arguments"""
 
     parser = argparse.ArgumentParser(description=DESCRIPTION)
-    parser.add_argument('-d', '--date', required=True, type=lambda s: datetime.datetime.strptime(s, '%Y-%m-%d'), help="ISO UTC date")
+    parser.add_argument('-d', '--date', required=True, type=datetime.date.fromisoformat, help="ISO UTC date")
     parser.add_argument('-od', '--output_data', required=True, type=str, help="Output CSV file path")
     parser.add_argument('-k', '--distance', type=int, help="Radius distance (km)", default=30)
     parser.add_argument('-um', '--update_meta', type=bool, help="True if update the metadata", default=False)
