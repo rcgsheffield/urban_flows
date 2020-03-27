@@ -1,3 +1,4 @@
+import argparse
 import logging
 import configparser
 import getpass
@@ -8,6 +9,16 @@ import http_session
 LOGGER = logging.getLogger(__name__)
 
 DEFAULT_CONFIG_PATH = 'the_things_network.cfg'
+
+
+def get_args(*args, **kwargs):
+    parser = argparse.ArgumentParser(*args, **kwargs)
+
+    parser.add_argument('-i', '--input', type=str, help="Input JSON file", required=True)
+    parser.add_argument('-o', '--output', type=str, help="Output CSV file", required=True)
+    parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
+
+    return parser.parse_args()
 
 
 def get_config(path: str = DEFAULT_CONFIG_PATH) -> dict:
@@ -41,11 +52,20 @@ def get_headers():
     return headers
 
 
-def write_csv(path: str, headers: list, rows: iter):
+def write_csv(path: str, rows: iter):
     """Serialise data in CSV format"""
+
+    writer = None
+
     with open(path, 'w', newline='') as file:
-        writer = csv.DictWriter(file, headers)
-        writer.writeheader()
-        writer.writerows(rows)
+
+        for row in rows:
+
+            # Initialise using headers from the first row
+            if not writer:
+                writer = csv.DictWriter(file, row.keys())
+                writer.writeheader()
+
+            writer.writerow(row)
 
         LOGGER.info("Wrote '%s'", file.name)

@@ -6,6 +6,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
+
 class DEFRASOSSession(requests.Session):
     """
     Defra’s UK-AIR Sensor Observation Service (SOS) API HTTP session
@@ -31,15 +32,12 @@ class DEFRASOSSession(requests.Session):
 
         return response
 
-    def call(self, base_url: str, endpoint: str, **kwargs) -> dict:
+    def call(self, base_url: str, endpoint: str, **kwargs):
         """Call JSON endpoint"""
 
         response = self._call(base_url, endpoint, **kwargs)
 
         data = response.json()
-
-        for meta in data:
-            LOGGER.debug("META %s: %s", meta)
 
         return data
 
@@ -49,4 +47,3 @@ class DEFRASOSSession(requests.Session):
         response = self._call(base_url, endpoint, stream=True, **kwargs)
 
         yield from response.iter_lines(decode_unicode=True)
-
