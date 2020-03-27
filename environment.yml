@@ -1,0 +1,7 @@
+# This simulates the environment on the production machines
+
+name: uflo
+channels:
+  - defaults
+dependencies:
+  - python=3.5
