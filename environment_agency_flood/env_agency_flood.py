@@ -139,16 +139,14 @@ class FloodHarvestor(object):
         measures = dict()
         
         stations = list(self.get_stations())
-        
-        [(self.generate_metadata)(station) for station in stations]
-        self.generate_metadata_csv(stations)
 
         for station in stations:
 
             for key, value in station.items():
                 self.logger.info("STATION %s: %s", key, value)
 
-            endpoint = 'id/stations/{station_id}/readings.csv'.format(station_id=self.get_value(station,"items_stationReference"))
+            station_id = station['stationReference']
+            endpoint = 'id/stations/{station_id}/readings.csv'.format(station_id=station_id)
             
             params = dict(
                 date=self.date.strftime("%Y-%m-%d"),
@@ -162,9 +160,9 @@ class FloodHarvestor(object):
             for row in reader:
 
                 # Insert station info
-                row['lat'] = self.get_value(station,"items_lat")
-                row['long'] = self.get_value(station,"items_long")
-                row['station'] = self.get_value(station,"items_@id")
+                row['lat'] = station['lat']
+                row['long'] = station['long']
+                row['station'] = station['@id']
 
                 # Get measure info
                 try:
@@ -187,14 +185,7 @@ class FloodHarvestor(object):
         row['timestamp'] = row.pop('dateTime')
 
         return row
-        
-    def get_value(self, station,path):        
-        p = path.split('_')
-        result = station 
-        for i in range(len(p)):
-            result = result.get(p[i],'')
-        return result
-        
+
     def create_folder(self,path):
         if not os.path.exists(path):
             os.makedirs(path)
@@ -202,41 +193,45 @@ class FloodHarvestor(object):
     def get_site_mapping(self, station):
         """Generate a metafile for a site"""
         
-        result = {}
-        result["siteid"] =                       self.get_value(station,"items_stationReference"),
-        result["longitude_[deg]"] =              str(self.get_value(station,"items_lat")),
-        result["latitude_[deg]"] =               str(self.get_value(station,"items_long")),
-        result["height_above_sea_level_[m]"] =   "",
-        result["address"] =                      ", ".join([
-                                                            self.get_value(station,"items_label"),
-                                                            self.get_value(station,"items_eaAreaName"),
-                                                            self.get_value(station,"items_eaRegionName")
-                                                            ]),
-        result["city"] =                         self.get_value(station,"items_town"), 
-        result["country"] =                      "UK",
-        result["Postal_Code"] =                  "",
-        result["firstdate"] =                    self.get_value(station,"items_dateOpened"),
-        result["operator"] =                     self.get_value(station,"meta_publisher"), 
-        result["desc-url"] =                     self.get_value(station,"meta_documentation")
+        result = dict()
+
+        result["siteid"] =                       station['stationReference']
+        result["longitude_[deg]"] =              station['lat']
+        result["latitude_[deg]"] =               station['long']
+        result["height_above_sea_level_[m]"] =   ""
+        result["address"] =                      ", ".join((
+                                                            station['label'],
+                                                            station.get('eaAreaName', ''),
+                                                            station.get('eaRegionName', ''),
+        ))
+        result["city"] =                         station['town']
+        result["country"] =                      "United Kingdom"
+        result["Postal_Code"] =                  ""
+        result["firstdate"] =                    station['dateOpened']
+        result["operator"] =                     ''
+        result["desc-url"] =                     station['@id']
+
         return result
         
     def get_sensor_mapping(self, station):
         """Generate a metafile for a sensor"""
         
-        sensors = []
-        measures = self.get_value(station,"items_measures")
+        sensors = list()
+        measures = station['measures']
         measures = [measures] if type(measures) == dict else measures
-        for i,measure in enumerate(measures):
-            result = {}
-            result["sensorid"] =                     self.get_value(measure,"@id")
-            result["provider"] =                     self.get_value(station,"meta_publisher")
+
+        for i, measure in enumerate(measures):
+            result = dict()
+
+            result["sensorid"] =                     measure["@id"]
+            result["provider"] =                     ''
             result["serialnumber"] =                 ""
             result["energysupply"] =                 "" 
             result["freqmaintenance"] =              "" 
-            result["sType"] =                        self.get_value(measure,"parameter")
-            result["family"] =                       self.get_value(measure,"parameterName")
+            result["sType"] =                        measure['parameter']
+            result["family"] =                       measure['parameterName']
             result["data-acquisition-interval[min]"] ="daily"
-            result["firstdate"] =                    self.get_value(station,"items_dateOpened")
+            result["firstdate"] =                    station['dateOpened']
             result["datoz18-handle"] =               ""
             result["detector"] =                     ""
             result["desc-url"] =                     "" 
@@ -249,21 +244,24 @@ class FloodHarvestor(object):
             result["iot-export-port"] =              "" 
             result["iot-export-token"] =             "" 
             result["iot-import-usrname"] =           "" 
-            result["iot-import-pwd"] =               ""  
+            result["iot-import-pwd"] =               ""
+
             sensors.append(result)    
         
         return sensors
         
     def generate_metadata(self, station):
         """Generate metadata for each station"""
+
+        LOGGER.debug(json.dumps(station))
         
         # Site meta output to file
         self.create_folder("{}/sites".format(self.output_meta))
-        site_file = "{}/sites/{}".format(self.output_meta,self.get_value(station,"items_stationReference"))
+        site_file = "{}/sites/{}".format(self.output_meta, station['stationReference'])
         with open(site_file, 'w+') as file:
             file.write("begin.asset\n")
-            for key,value in self.get_site_mapping(station).items():
-                file.write('{k}={v}\n'.format(k=key,v=value if type(value) == str else value[0]))
+            for key, value in self.get_site_mapping(station).items():
+                file.write('{k}={v}\n'.format(k=key, v=value))
             file.write("end.asset\n")
 
         # Sensor meta output to file
@@ -276,85 +274,6 @@ class FloodHarvestor(object):
                     file.write('{k}={v}\n'.format(k=key,v=value))
                 file.write("end.asset\n")
 
-    def generate_metadata_csv(self, stations):
-        """Generate a metadata CSV file for stations"""
-
-        fields_stations = [
-            "@id",
-            "RLOIid",
-            "catchmentName",
-            "dateOpened",
-            "datumOffset",
-            "eaAreaName",
-            "eaRegionName",
-            "easting",
-            "label",
-            "lat",
-            "long",        
-            "northing",
-            "notation",
-            "riverName",
-            "stageScale_@id",
-            "stageScale_datum",
-            "stageScale_highestRecent_@id",
-            "stageScale_highestRecent_dateTime",
-            "stageScale_highestRecent_value",
-            "stageScale_maxOnRecord_@id",
-            "stageScale_maxOnRecord_dateTime",
-            "stageScale_maxOnRecord_value",
-            "stageScale_minOnRecord_@id",
-            "stageScale_minOnRecord_dateTime",
-            "stageScale_minOnRecord_value",
-            "stageScale_scaleMax",
-            "stageScale_typicalRangeHigh",
-            "stageScale_typicalRangeLow",
-            "stationReference",
-            "status",
-            "town",
-            "type",
-            "wiskiID"
-            ]
-            
-        fields_measures = [    
-            "@id",
-            "datumType",
-            "label",
-            "latestReading_@id",
-            "latestReading_date",
-            "latestReading_dateTime",
-            "latestReading_value",
-            "notation",
-            "parameter",
-            "parameterName",
-            "period",
-            "qualifier",
-            "station",
-            "stationReference",
-            "type",
-            "unit",
-            "unitName",
-            "valueType"    
-        ]
-        
-        # CSV station meta output to file
-        site_file = "{}/stations.csv".format(self.output_meta)
-        with open(site_file, 'w+') as file:
-            file.write('|'.join(fields_stations) + '\n')
-            for station in stations:
-                station = self.get_value(station,"items")
-                fields = [str(self.get_value(station,key)) for key in fields_stations]
-                file.write('|'.join(fields) + '\n')
-
-        # CSV measure meta output to file
-        sensor_file = "{}/sensors.csv".format(self.output_meta)
-        with open(sensor_file, 'w+') as file:
-            file.write('|'.join(fields_measures) + '\n')
-            for station in stations:
-                measures = self.get_value(station,"items_measures")
-                measures = [measures] if type(measures) == dict else measures
-                for sensor in measures:
-                    fields = [str(self.get_value(sensor,key)) for key in fields_measures]
-                    file.write('|'.join(fields) + '\n')
 
 def get_args() -> argparse.Namespace:
     """Command-line arguments"""
@@ -365,14 +284,15 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-k', '--distance', type=int, help="Radius distance (km)", default=30)
     parser.add_argument('-um', '--update_meta', type=bool, help="True if update the metadata", default=False)
     parser.add_argument('-om', '--output_meta', type=str, help="Output folder path for metadata files")
-    
+    parser.add_argument('-v', '--verbose', action='store_true', help="Enable debug log mode")
+
     args = parser.parse_args()
 
     return args
 
 def main():
     args = get_args()
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
     
     fh = FloodHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
     

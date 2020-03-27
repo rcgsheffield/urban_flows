@@ -6,6 +6,7 @@ import logging
 import http_session
 import urllib.parse
 import json
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 
@@ -69,7 +70,6 @@ class DEFRASOSHarvestor(object):
 
             endpoint_ts = "timeseries/{}".format(timeseries_id)
             timeseries = self.session.call(self.base_url, endpoint_ts)
-
             coordinates = station["geometry"]["coordinates"]
             lat = coordinates[1]
             long = coordinates[0]
