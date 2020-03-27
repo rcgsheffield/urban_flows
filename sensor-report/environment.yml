@@ -2,16 +2,6 @@ name: sensor-report
 channels:
   - defaults
 dependencies:
-  - blas=1.0=mkl
-  - certifi=2019.11.28=py36_1
-  - icc_rt=2019.0.0=h0cc432a_1
-  - intel-openmp=2020.0=166
-  - mkl=2020.0=166
-  - mkl-service=2.3.0=py36hb782905_0
-  - mkl_fft=1.0.15=py36h14836fe_0
-  - mkl_random=1.1.0=py36h675688f_0
-  - numpy=1.18.1=py36h93ca92e_0
-  - numpy-base=1.18.1=py36hc3f5095_1
-  - pandas=1.0.3=py36h47e9c7a_0
-  - pip=20.0.2=py36_1
-  - python=3.6.10=h9f7ef89_1
+  - numpy=1.18
+  - pandas=1.0
+  - python=3.6
