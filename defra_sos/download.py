@@ -10,6 +10,7 @@ import datetime
 
 LOGGER = logging.getLogger(__name__)
 
+
 class DEFRASOSHarvestor(object):
     """A harvestor for DEFRA Sensor Observation Services (SOS) observations"""
 
@@ -28,15 +29,15 @@ class DEFRASOSHarvestor(object):
         self.base_url = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
 
         # Station filters
-        self.filter= dict(
-                near=dict(
-                    center=dict(
-                        type='Point',
-                        coordinates=[53.379699,-1.469815],
-                        radius=50
-                    )
+        self.filter = dict(
+            near=dict(
+                center=dict(
+                    type='Point',
+                    coordinates=[53.379699, -1.469815],
+                    radius=50
                 )
             )
+        )
 
         # CSV output
         self.columns = [
@@ -64,15 +65,10 @@ class DEFRASOSHarvestor(object):
 
         for station in stations:
 
-            print(json.dumps(station, indent=2))
-
             timeseries_id = list(station["properties"]["timeseries"].keys())[0]
 
             endpoint_ts = "timeseries/{}".format(timeseries_id)
             timeseries = self.session.call(self.base_url, endpoint_ts)
-            coordinates = station["geometry"]["coordinates"]
-            lat = coordinates[1]
-            long = coordinates[0]
             station_id = station["properties"]["id"]
             param_name = timeseries["parameters"]["feature"]["label"]
             unit = timeseries["uom"]
@@ -81,14 +77,11 @@ class DEFRASOSHarvestor(object):
                 timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
                 limit=10000
             )
-            data = self.session.call(self.base_url, endpoint_ts+"/getData", params=params)
+            data = self.session.call(self.base_url, endpoint_ts + "/getData", params=params)
 
             # Iterate over data points
             for row in data["values"]:
-
                 # Insert station info
-                row['lat'] = lat
-                row['long'] = long
                 row['station'] = station_id
 
                 # Insert measure info
@@ -101,4 +94,3 @@ class DEFRASOSHarvestor(object):
         """Clean a row of data"""
 
         return row
-
