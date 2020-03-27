@@ -5,8 +5,13 @@ import pandas as pd
 
 from data_service.handler import DataHandler
 
+TEST_DATA_DIR = os.path.join(os.getcwd(), 'tests', 'files')
+OUTPUT_PATH = 'output.csv'
 
-class DataHandlerTests(unittest.TestCase):
+AMBER_THRESHOLD = 0.8
+
+class TestDataHandler(unittest.TestCase):
+
     def assertDataframeEqual(self, a, b):
         try:
             pd.testing.assert_frame_equal(a, b)
@@ -14,14 +19,13 @@ class DataHandlerTests(unittest.TestCase):
             raise self.failureException(str(e)) from e
 
     def test_that_the_rag_calculator_returns_the_correct_string(self):
-        amber_threshold = 0.8
 
-        self.assertEqual(DataHandler.calculate_rag(0.7, amber_threshold), "Red")
-        self.assertEqual(DataHandler.calculate_rag(0.8, amber_threshold), "Amber")
-        self.assertEqual(DataHandler.calculate_rag(1, amber_threshold), "Green")
+        self.assertEqual(DataHandler.calculate_rag(0.7, AMBER_THRESHOLD), "Red")
+        self.assertEqual(DataHandler.calculate_rag(0.8, AMBER_THRESHOLD), "Amber")
+        self.assertEqual(DataHandler.calculate_rag(1, AMBER_THRESHOLD), "Green")
 
     def test_that_report_returns_correct_output(self):
-        handler = DataHandler(os.path.join(os.getcwd(), "files"), "output.csv")
+        handler = DataHandler(TEST_DATA_DIR, OUTPUT_PATH)
         handler.process_input()
 
         columns = ["site_id", "sensor_id", "measure", "uptime", "RAG"]
@@ -40,7 +44,7 @@ class DataHandlerTests(unittest.TestCase):
                  ["S0015", 2003150, "MET_RH", 0.5, "Red"],
                  ["S0015", 2003150, "MET_TEMP", 1.0, "Green"]])
 
-        actual = handler.create_report(False)
+        actual = handler.create_report(serialise=False, amber_threshold=AMBER_THRESHOLD)
         expected = pd.DataFrame(data, columns=columns)
 
         self.assertDataframeEqual(actual, expected)

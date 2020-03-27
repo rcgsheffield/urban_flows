@@ -1,4 +1,4 @@
-# Urban Flows' Sensor Report
+# Urban Flows Observatory Sensor Report
 
 ## Summary
 This repository contains the codebase for the Urban Flows' sensor report. The aim of the report is to provide a RAG status for each sensor measurement based on the CSV data provided to the script.
@@ -16,8 +16,8 @@ CSV data must be provided in UTF-8 format and files must have a .csv extension.
 
 ## Installation
 To install use the following command:
-```
-pip3 install -r requirements.txt
+```bash
+$ pip3 install -r requirements.txt
 ```
 
 We recommend the use of python virtual environments to avoid package dependency issues.
@@ -49,8 +49,8 @@ Not handled:
 ## Tests
 Basic unit tests have been supplied that check the functionality of the RAG status and the expected outcome of the report. To run the tests, use the following command:
 
-```
-python3 ./tests/sensor_report_tests.csv
+```bash
+$ python -m unittest tests.sensor_report_tests
 ```
 
 ## Output ##
