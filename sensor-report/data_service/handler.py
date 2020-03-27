@@ -45,6 +45,9 @@ class DataHandler:
         for file in self.valid_files:
             try:
                 df_temp = pd.read_csv(file)
+                
+                LOGGER.info("Read '%s'", file)
+                
                 self._validate_df(df_temp)
 
                 if self.df is None:

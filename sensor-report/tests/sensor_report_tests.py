@@ -5,7 +5,7 @@ import pandas as pd
 
 from data_service.handler import DataHandler
 
-TEST_DATA_DIR = os.path.join(os.getcwd(), 'tests', 'files')
+TEST_DATA_DIR = os.path.join('tests', 'files')
 OUTPUT_PATH = 'output.csv'
 
 AMBER_THRESHOLD = 0.8
