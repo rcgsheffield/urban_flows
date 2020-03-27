@@ -5,16 +5,16 @@ https://uk-air.defra.gov.uk/data/about_sos
 
 import logging
 import utils
+import csv
 
 import download
-import csv
 import metadata
 
 DESCRIPTION = """
-Defra’s UK-AIR Sensor Observation Service (SOS) API
+DEFRA UK-AIR Sensor Observation Service (SOS) API
 https://uk-air.defra.gov.uk/data/about_sos
 
-Automatically download Defra’s UK-AIR Sensor Observation Service (SOS) data 
+Automatically download DEFRA UK-AIR Sensor Observation Service (SOS) data 
 for a particular date and particular catchment areas 
 and save the source data files to disk.
 

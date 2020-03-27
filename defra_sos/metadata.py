@@ -1,6 +1,7 @@
-# from utils import get_value
-import assets
 import json
+
+import ufmetadata.assets as assets
+
 
 class DEFRASOSHarvestorMeta(object):
     """A class to generate metadata for DEFRA SOS observations"""
@@ -10,7 +11,7 @@ class DEFRASOSHarvestorMeta(object):
 
         self.output_meta = output_meta
 
-    def build_site(self,station: json) -> assets.Site:
+    def build_site(self, station: json) -> assets.Site:
         """Generate a metadata file for a Site asset"""
 
         site = assets.Site(
@@ -110,7 +111,7 @@ class DEFRASOSHarvestorMeta(object):
 
     def generate_metadata_csv_stations(self, stations):
         """Generate a metadata CSV file for stations"""
-        
+
         fields_station = [
             "coordinates",
             "type",
@@ -179,4 +180,3 @@ class DEFRASOSHarvestorMeta(object):
 
         self.generate_metadata_csv_stations(stations)
         self.generate_metadata_csv_timeseries(stations)
-

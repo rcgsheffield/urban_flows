@@ -13,7 +13,7 @@ See `python pipeline.py --help`.
 The following example call the module with parameters specified by inline arguments: 
 
 ```bash
-$ python pipeline.py -d 2020-01-01 -od defra_sos.csv -k 25 -um True -om meta
+$ python pipeline.py -d 2020-01-01 -od test.csv -k 30
 ```
 
 ## Tests
