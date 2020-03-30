@@ -50,9 +50,9 @@ class TestUtils(unittest.TestCase):
 
     def test_get_args(self):
         param1 = "description"
-        args = "-d 2020-03-10 -od flood.csv -k 25 -um True -om meta -v True -ad assets".split(" ")
+        args = "-d 2020-03-10 -od flood.csv -k 25 -um -om meta -v -ad assets".split(" ")
         result = utils.get_args(param1, args)
-        expected = argparse.Namespace(assets_dir='assets', date=datetime.datetime(2020, 3, 10, 0, 0),
+        expected = argparse.Namespace(assets_dir='assets', date=datetime.datetime(2020, 3, 10, 0, 0).date(),
                                       distance=25, output_data='flood.csv', output_meta='meta', update_meta=True,
                                       verbose=True)
 
