@@ -1,5 +1,3 @@
-import json
-
 import ufmetadata.assets as assets
 
 
@@ -11,7 +9,7 @@ class DEFRASOSHarvesterMeta(object):
 
         self.output_meta = output_meta
 
-    def build_site(self, station: json) -> assets.Site:
+    def build_site(self, station: dict) -> assets.Site:
         """Generate a metadata file for a Site asset"""
 
         site = assets.Site(
@@ -21,7 +19,7 @@ class DEFRASOSHarvesterMeta(object):
             altitude=station["geometry"]["coordinates"][2],
             address=station["properties"]["label"],
             city=None,
-            country="UK",
+            country="United Kingdom",
             postcode=None,
             first_date=None,
             operator="DEFRA",
@@ -30,7 +28,7 @@ class DEFRASOSHarvesterMeta(object):
 
         return site
 
-    def build_sensor(self, timeseries) -> assets.Sensor:
+    def build_sensor(self, timeseries: dict) -> assets.Sensor:
         """Generate a metadata for a sensor"""
 
         sensor = assets.Sensor(
@@ -41,7 +39,7 @@ class DEFRASOSHarvesterMeta(object):
             freq_maintenance=None,
             s_type=None,
             family=None,
-            data_acquisition_interval="daily",
+            data_acquisition_interval="daily",  # ??
             first_date=None,
             datoz18_handle=None,
             detectors=[],
