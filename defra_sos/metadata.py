@@ -30,8 +30,8 @@ class DEFRASOSHarvestorMeta(object):
 
         return site
 
-    def build_sensors(self, timeseries):
-        """Generate a metafile for a sensor"""
+    def build_sensor(self, timeseries) -> assets.Sensor:
+        """Generate a metadata for a sensor"""
 
         sensor = assets.Sensor(
             sensor_id=timeseries["id"],
@@ -66,12 +66,13 @@ class DEFRASOSHarvestorMeta(object):
         site = self.build_site(station)
         site.save()
 
-        sensors = self.build_sensors(station)
-        for sensor in sensors:
-            sensor.save()
+        sensor = self.build_sensor(station)
+        sensor.save()
+
+        return site, sensor
 
     def generate_row_station(self, station):
-        row = []
+        row = list()
         row.append(str(station["geometry"]["coordinates"]))
         row.append(str(station["geometry"]["type"]))
         row.append(str(station["properties"]["id"]))
@@ -80,7 +81,7 @@ class DEFRASOSHarvestorMeta(object):
         return row
 
     def generate_row_timeseries(self, timeseries):
-        row = []
+        row = list()
         row.append(str(timeseries["firstValue"]["timestamp"]))
         row.append(str(timeseries["firstValue"]["value"]))
         row.append(str(timeseries["id"]))

@@ -5,28 +5,28 @@ Run the test suite for download
 import logging
 import unittest
 import datetime
+
 import download
 import http_session
 
 LOGGER = logging.getLogger(__name__)
 
+
 class TestDownload(unittest.TestCase):
 
-
     def test_get_stations(self):
-        date = datetime.datetime.strptime("2020-03-10", '%Y-%m-%d')
+        date = datetime.date(2020, 3, 10)
         od = "defra_sos.csv"
         k = 25
         um = True
         om = "meta"
         v = True
         ad = "assets"
-        cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
-        station = next(cls.get_stations()) #.get("items","{}").get("@id","")
-        expected = True
-        result = True if "properties" in station else False
-        self.assertEqual(result, expected, "'properties' should be returned station".format(expected))
 
+        cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
+        station = next(cls.get_stations())  # .get("items","{}").get("@id","")
+
+        self.assertTrue("properties" in station, "station has no 'properties' key")
 
     def test_get_data(self):
         date = datetime.datetime.strptime("2020-03-10", '%Y-%m-%d')
@@ -36,7 +36,7 @@ class TestDownload(unittest.TestCase):
         om = "meta"
         v = True
         ad = "assets"
-        station = http_session.DEFRASOSSession().call("https://uk-air.defra.gov.uk/sos-ukair/api/v1/","stations/1267")
+        station = http_session.DEFRASOSSession().call("https://uk-air.defra.gov.uk/sos-ukair/api/v1/", "stations/1267")
         cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
         row = next(cls.get_data([station]))
         self.assertTrue(str(row["timestamp"])[0:3] == "158", "Date is not correct {}"
@@ -48,7 +48,6 @@ class TestDownload(unittest.TestCase):
         self.assertTrue(len(row["parameter_name"]) > 0, "Parameter name is not correct {}"
                         .format(row["parameter_name"]))
         self.assertTrue(len(row["unit"]) > 0, "Unit is not correct {}".format(row["unit"]))
-
 
     def test_transform(self):
         date = datetime.datetime.strptime("2020-03-10", '%Y-%m-%d')
