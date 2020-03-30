@@ -12,16 +12,18 @@ class DEFRASOSSession(requests.Session):
     https://uk-air.defra.gov.uk/sos-ukair/static/doc/api-doc/
     """
 
+    BASE_URL = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
+
     def __init__(self):
         super().__init__()
 
         self.headers.update({'User-Agent': 'Urban Flows Observatory'})
 
-    def _call(self, base_url, endpoint, **kwargs) -> requests.Response:
+    def _call(self, endpoint, **kwargs) -> requests.Response:
         """Base request"""
 
         # Build URL
-        url = urllib.parse.urljoin(base_url, endpoint)
+        url = urllib.parse.urljoin(self.BASE_URL, endpoint)
 
         response = self.get(url, **kwargs)
 
@@ -37,10 +39,10 @@ class DEFRASOSSession(requests.Session):
 
         return response
 
-    def call(self, base_url: str, endpoint: str, **kwargs):
+    def call(self, endpoint: str, **kwargs):
         """Call JSON endpoint"""
 
-        response = self._call(base_url, endpoint, **kwargs)
+        response = self._call(endpoint, **kwargs)
 
         data = response.json()
 

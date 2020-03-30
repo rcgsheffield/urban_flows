@@ -136,7 +136,7 @@ class DEFRASOSHarvesterMeta(object):
         for station in stations:
             timeseries_id = list(station["properties"]["timeseries"].keys())[0]
             endpoint_ts = "timeseries/{}".format(timeseries_id)
-            timeseries = self.session.call_iter(self.base_url, endpoint_ts)
+            timeseries = self.session.call(endpoint_ts)
             timeseries_list.append(timeseries)
 
         fields_timeseries = [

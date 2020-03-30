@@ -22,7 +22,6 @@ class DEFRASOSHarvester:
         utils.build_dir(self.output_meta)
 
         self.session = http_session.DEFRASOSSession()
-        self.base_url = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
 
         # Station filters
         self.filter = dict(
@@ -58,11 +57,11 @@ class DEFRASOSHarvester:
         # Build query parameters as JSON
         params = {key: json.dumps(value) for key, value in self.filter.items()}
 
-        for _station in self.session.call(self.base_url, 'stations', params=params):
+        for _station in self.session.call('stations', params=params):
             # Get detailed station info
             station_id = _station['properties']['id']
             endpoint = "stations/{station_id}".format(station_id=station_id)
-            station = self.session.call(self.base_url, endpoint)
+            station = self.session.call(endpoint)
 
             yield station
 
@@ -89,7 +88,7 @@ class DEFRASOSHarvester:
                     end=self.date.strftime(constants.DATE_FORMAT),
                 ),
             )
-            data = self.session.call(self.base_url, endpoint, params=params)
+            data = self.session.call(endpoint, params=params)
 
             rows = data['values']
 
