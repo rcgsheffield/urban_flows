@@ -4,7 +4,7 @@ This is a harvester module to ingest air pollution measurements from the [DEFRA 
 
 ## Installation
 
-See `requirements.txt`.
+See `environment.yml`.
 
 ## Usage
 
