@@ -1,15 +1,3 @@
-# Urban Flows
+# Urban Flows Observatory
 
-Urban Flows project (The University of Sheffield).
-
-https://urbanflows.ac.uk/
-
-
-
-
-
-
-
-
-
-
+These are various code projects for the [Urban Flows Observatory](https://urbanflows.ac.uk/) at The University of Sheffield.
