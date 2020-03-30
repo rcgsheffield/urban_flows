@@ -19,7 +19,7 @@ def main():
     args = utils.get_args(DESCRIPTION)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    harvester = download.DEFRASOSHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
+    harvester = download.DEFRASOSHarvestor(args.date, args.distance, args.update_meta, args.output_meta)
 
     meta = metadata.DEFRASOSHarvestorMeta(args.output_meta)
 

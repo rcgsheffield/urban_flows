@@ -11,7 +11,7 @@ LOGGER = logging.getLogger(__name__)
 class DEFRASOSHarvestor(object):
     """A harvestor for DEFRA Sensor Observation Services (SOS) observations"""
 
-    def __init__(self, date, distance: int, update_meta, output_meta, logger):
+    def __init__(self, date, distance: int, update_meta, output_meta):
         """Initiate the properties"""
 
         self.date = date
@@ -20,8 +20,6 @@ class DEFRASOSHarvestor(object):
         self.output_meta = output_meta
 
         utils.build_dir(self.output_meta)
-
-        self.logger = logger
 
         self.session = http_session.DEFRASOSSession()
         self.base_url = 'https://uk-air.defra.gov.uk/sos-ukair/api/v1/'
