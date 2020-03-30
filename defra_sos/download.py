@@ -61,11 +61,9 @@ class DEFRASOSHarvestor(object):
         params = {key: json.dumps(value) for key, value in self.filter.items()}
 
         for _station in self.session.call(self.base_url, 'stations', params=params):
-            # Build station endpoint
+            # Get detailed station info
             station_id = _station['properties']['id']
             endpoint = "stations/{station_id}".format(station_id=station_id)
-
-            # Get detailed station info
             station = self.session.call(self.base_url, endpoint)
 
             yield station

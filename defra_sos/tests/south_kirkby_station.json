@@ -1,0 +1,39 @@
+{
+    "geometry": {
+        "coordinates": [-7.556417752552231, 49.76683115487587, "NaN"],
+        "type": "Point"
+    },
+    "type": "Feature",
+    "properties": {
+        "label": "South Kirkby 1-black_carbon in aerosol",
+        "timeseries": {
+            "3003": {
+                "procedure": {
+                    "label": "2783 - South Kirkby 1-black_carbon in aerosol",
+                    "id": "2783"
+                },
+                "service": {
+                    "label": "My Timeseries Service.",
+                    "id": "1"
+                },
+                "feature": {
+                    "label": "South Kirkby 1-black_carbon in aerosol",
+                    "id": "2783"
+                },
+                "offering": {
+                    "label": "2783 - South Kirkby 1-black_carbon in aerosol",
+                    "id": "2783"
+                },
+                "category": {
+                    "label": "http://dd.eionet.europa.eu/vocabulary/aq/pollutant/391",
+                    "id": "391"
+                },
+                "phenomenon": {
+                    "label": "http://dd.eionet.europa.eu/vocabulary/aq/pollutant/391",
+                    "id": "391"
+                }
+            }
+        },
+        "id": 2783
+    }
+}

@@ -1,0 +1,52 @@
+{
+    "label": "http://dd.eionet.europa.eu/vocabulary/aq/pollutant/391 2783 - South Kirkby 1-black_carbon in aerosol, South Kirkby 1-black_carbon in aerosol",
+    "extras": ["license"],
+    "id": "3003",
+    "station": {
+        "geometry": {
+            "coordinates": [-7.556417752552231, 49.76683115487587, "NaN"],
+            "type": "Point"
+        },
+        "properties": {
+            "label": "South Kirkby 1-black_carbon in aerosol",
+            "id": 2783
+        },
+        "type": "Feature"
+    },
+    "firstValue": {
+        "value": 2.0,
+        "timestamp": 1262304000000
+    },
+    "parameters": {
+        "service": {
+            "label": "My Timeseries Service.",
+            "id": "1"
+        },
+        "procedure": {
+            "label": "2783 - South Kirkby 1-black_carbon in aerosol",
+            "id": "2783"
+        },
+        "phenomenon": {
+            "label": "http://dd.eionet.europa.eu/vocabulary/aq/pollutant/391",
+            "id": "391"
+        },
+        "feature": {
+            "label": "South Kirkby 1-black_carbon in aerosol",
+            "id": "2783"
+        },
+        "category": {
+            "label": "http://dd.eionet.europa.eu/vocabulary/aq/pollutant/391",
+            "id": "391"
+        },
+        "offering": {
+            "label": "2783 - South Kirkby 1-black_carbon in aerosol",
+            "id": "2783"
+        }
+    },
+    "uom": "ug.m-3",
+    "lastValue": {
+        "value": 0.2,
+        "timestamp": 1325372400000
+    },
+    "referenceValues": []
+}
