@@ -1,12 +1,9 @@
-from http_session import DEFRASOSSession
-import csv
-from utils import build_dir
-# from utils import get_value
 import logging
-import http_session
-import urllib.parse
 import json
-import datetime
+
+import utils
+import constants
+import http_session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +18,8 @@ class DEFRASOSHarvestor(object):
         self.distance = distance
         self.update_meta = update_meta
         self.output_meta = output_meta
-        build_dir(self.output_meta)
+
+        utils.build_dir(self.output_meta)
 
         self.logger = logger
 
@@ -63,8 +61,6 @@ class DEFRASOSHarvestor(object):
         params = {key: json.dumps(value) for key, value in self.filter.items()}
 
         for _station in self.session.call(self.base_url, 'stations', params=params):
-            LOGGER.debug(json.dumps(_station))
-
             # Build station endpoint
             station_id = _station['properties']['id']
             endpoint = "stations/{station_id}".format(station_id=station_id)
@@ -72,40 +68,42 @@ class DEFRASOSHarvestor(object):
             # Get detailed station info
             station = self.session.call(self.base_url, endpoint)
 
-            LOGGER.debug(json.dumps(station))
-
             yield station
 
     def get_data(self, station: dict) -> iter:
-        """Generate rows of data for the specified station"""
+        """
+        Generate rows of data for the specified station
 
-        for timeseries_id, _timeseries in station["properties"]["timeseries"].items():
+        Time series getData endpoint:
+        https://uk-air.defra.gov.uk/sos-ukair/static/doc/api-doc/#timeseries
+        """
 
-            LOGGER.debug(json.dumps(_timeseries))
-
-            endpoint = "timeseries/{}".format(timeseries_id)
-
-            timeseries = self.session.call(self.base_url, endpoint)
-
-            LOGGER.debug(json.dumps(timeseries))
+        for timeseries_id, timeseries in station["properties"]["timeseries"].items():
 
             station_id = station["properties"]["id"]
-            param_name = timeseries["parameters"]["feature"]["label"]
-            unit = timeseries["uom"]
+            observed_property = timeseries["phenomenon"]["label"]
+
+            # Get data
+            endpoint = 'timeseries/{timeseries_id}/getData'.format(timeseries_id=timeseries_id)
 
             params = dict(
-                timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
+                timespan="{duration}/{end}".format(
+                    # One-day period
+                    duration='P1D',
+                    end=self.date.strftime(constants.DATE_FORMAT),
+                ),
             )
-            data = self.session.call(self.base_url, endpoint + "/getData", params=params)
+            data = self.session.call(self.base_url, endpoint, params=params)
+
+            rows = data['values']
+
+            LOGGER.info("Station %s, time series %s: Retrieved %s rows", station_id, timeseries_id, len(rows))
 
             # Iterate over data points
-            for row in data["values"]:
-                # Insert station info
-                row['station'] = station_id
-
-                # Insert measure info
-                row['parameter_name'] = param_name
-                row['unit'] = unit
+            for row in rows:
+                # Append metadata
+                row['sensor'] = station_id
+                row['observed_property'] = observed_property
 
                 yield row
 
