@@ -49,10 +49,6 @@ def main():
                 row = harvester.transform(row)
                 writer.writerow(row)
 
-                # TODO remove
-                break
-            break
-
         LOGGER.info("Wrote '%s'", file.name)
 
 

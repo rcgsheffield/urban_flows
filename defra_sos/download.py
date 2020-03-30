@@ -14,7 +14,7 @@ LOGGER = logging.getLogger(__name__)
 class DEFRASOSHarvestor(object):
     """A harvestor for DEFRA Sensor Observation Services (SOS) observations"""
 
-    def __init__(self, date, distance, update_meta, output_meta, logger):
+    def __init__(self, date, distance: int, update_meta, output_meta, logger):
         """Initiate the properties"""
 
         self.date = date
@@ -30,12 +30,13 @@ class DEFRASOSHarvestor(object):
 
         # Station filters
         self.filter = dict(
+            # Radius around a geographic point
             near=dict(
                 center=dict(
                     type='Point',
                     coordinates=[53.379699, -1.469815],
-                    radius=50
-                )
+                ),
+                radius=self.distance,  # km
             )
         )
 
@@ -52,11 +53,25 @@ class DEFRASOSHarvestor(object):
         ]
 
     def get_stations(self) -> iter:
-        for station in self.session.call(self.base_url, 'stations', json=self.filter):
+        """
+        https://uk-air.defra.gov.uk/sos-ukair/static/doc/api-doc/#stations
+        """
+
+        # Build query parameters as JSON
+        params = {key: json.dumps(value) for key, value in self.filter.items()}
+
+        # List stations
+        for station in self.session.call(self.base_url, 'stations', params=params):
+            # Build station endpoint
             station_id = station['properties']['id']
             endpoint = "stations/{station_id}".format(station_id=station_id)
 
-            yield self.session.call(self.base_url, endpoint)
+            # Get detailed station info
+            station = self.session.call(self.base_url, endpoint)
+
+            LOGGER.debug(json.dumps(station))
+
+            yield station
 
     def get_data(self, station: dict) -> iter:
         """Generate rows of data for the specified stations"""
