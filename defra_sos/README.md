@@ -21,3 +21,12 @@ $ python pipeline.py -d 2020-02-15 -od test.csv
 Tests are located in the `tests` module.
 
 To run the tests, execute `python -m unittest tests`.
+
+## Metadata
+
+The metadata objects are:
+
+* Air quality monitoring Stations: A facility with one or more sampling points measuring ambient air quality pollutant concentrations e.g. [Sheffield Devonshire Green ](https://uk-air.defra.gov.uk/data/so/Station_GB1027A)
+	- There are several `station` objects for each geographical location, each contains one measurement e.g. PM10.
+	- The 52deg North REST API doesn't map to the DEFRA [Spatial Objects Register](https://uk-air.defra.gov.uk/data/so/about).
+* Time series

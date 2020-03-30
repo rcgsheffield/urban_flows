@@ -1,8 +1,3 @@
-"""
-EDefra’s UK-AIR Sensor Observation Service (SOS) API
-https://uk-air.defra.gov.uk/data/about_sos
-"""
-
 import logging
 import utils
 import csv
@@ -14,9 +9,7 @@ DESCRIPTION = """
 DEFRA UK-AIR Sensor Observation Service (SOS) API
 https://uk-air.defra.gov.uk/data/about_sos
 
-Automatically download DEFRA UK-AIR Sensor Observation Service (SOS) data 
-for a particular date and particular catchment areas 
-and save the source data files to disk.
+Download DEFRA UK-AIR Sensor Observation Service (SOS) data.
 """
 
 LOGGER = logging.getLogger(__name__)
