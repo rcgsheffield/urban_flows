@@ -23,7 +23,7 @@ class TestDownload(unittest.TestCase):
         v = True
         ad = "assets"
 
-        cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
+        cls = download.DEFRASOSHarvester(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
         station = next(cls.get_stations())  # .get("items","{}").get("@id","")
 
         self.assertTrue("properties" in station, "station has no 'properties' key")
@@ -37,7 +37,7 @@ class TestDownload(unittest.TestCase):
         v = True
         ad = "assets"
         station = http_session.DEFRASOSSession().call("https://uk-air.defra.gov.uk/sos-ukair/api/v1/", "stations/1267")
-        cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
+        cls = download.DEFRASOSHarvester(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
         row = next(cls.get_data([station]))
         self.assertTrue(str(row["timestamp"])[0:3] == "158", "Date is not correct {}"
                         .format(str(row["timestamp"])[0:3]))
@@ -58,7 +58,7 @@ class TestDownload(unittest.TestCase):
         v = True
         ad = "assets"
         station = http_session.DEFRASOSSession().call("https://uk-air.defra.gov.uk/sos-ukair/api/v1/", "stations/1267")
-        cls = download.DEFRASOSHarvestor(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
+        cls = download.DEFRASOSHarvester(date=date, distance=k, update_meta=um, output_meta=om, logger=LOGGER)
         row = next(cls.get_data([station]))
         transformed_row = cls.transform(row)
         self.assertTrue(str(transformed_row["timestamp"]) == "2020-03-09 00:00:00",

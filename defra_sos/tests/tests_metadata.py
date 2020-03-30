@@ -11,7 +11,7 @@ class TestMetadata(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.harvester = metadata.DEFRASOSHarvestorMeta("meta")
+        cls.harvester = metadata.DEFRASOSHarvesterMeta("meta")
 
         with open('tests/south_kirkby_station.json') as file:
             cls.station = json.load(file)

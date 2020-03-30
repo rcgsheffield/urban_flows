@@ -3,7 +3,7 @@ import json
 import ufmetadata.assets as assets
 
 
-class DEFRASOSHarvestorMeta(object):
+class DEFRASOSHarvesterMeta(object):
     """A class to generate metadata for DEFRA SOS observations"""
 
     def __init__(self, output_meta):

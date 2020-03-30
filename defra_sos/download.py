@@ -8,8 +8,8 @@ import http_session
 LOGGER = logging.getLogger(__name__)
 
 
-class DEFRASOSHarvestor(object):
-    """A harvestor for DEFRA Sensor Observation Services (SOS) observations"""
+class DEFRASOSHarvester:
+    """A harvester for DEFRA Sensor Observation Services (SOS) observations"""
 
     def __init__(self, date, distance: int, update_meta, output_meta):
         """Initiate the properties"""
