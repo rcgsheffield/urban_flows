@@ -58,37 +58,33 @@ class DEFRASOSHarvestor(object):
 
             yield self.session.call(self.base_url, endpoint)
 
-    def get_data(self, stations) -> iter:
+    def get_data(self, station: dict) -> iter:
         """Generate rows of data for the specified stations"""
 
-        timeseries = dict()
+        timeseries_id = list(station["properties"]["timeseries"].keys())[0]
 
-        for station in stations:
+        endpoint_ts = "timeseries/{}".format(timeseries_id)
+        timeseries = self.session.call(self.base_url, endpoint_ts)
+        station_id = station["properties"]["id"]
+        param_name = timeseries["parameters"]["feature"]["label"]
+        unit = timeseries["uom"]
 
-            timeseries_id = list(station["properties"]["timeseries"].keys())[0]
+        params = dict(
+            timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
+            limit=10000
+        )
+        data = self.session.call(self.base_url, endpoint_ts + "/getData", params=params)
 
-            endpoint_ts = "timeseries/{}".format(timeseries_id)
-            timeseries = self.session.call(self.base_url, endpoint_ts)
-            station_id = station["properties"]["id"]
-            param_name = timeseries["parameters"]["feature"]["label"]
-            unit = timeseries["uom"]
+        # Iterate over data points
+        for row in data["values"]:
+            # Insert station info
+            row['station'] = station_id
 
-            params = dict(
-                timespan="P1D/{}".format(self.date.strftime("%Y-%m-%d")),
-                limit=10000
-            )
-            data = self.session.call(self.base_url, endpoint_ts + "/getData", params=params)
+            # Insert measure info
+            row['parameter_name'] = param_name
+            row['unit'] = unit
 
-            # Iterate over data points
-            for row in data["values"]:
-                # Insert station info
-                row['station'] = station_id
-
-                # Insert measure info
-                row['parameter_name'] = param_name
-                row['unit'] = unit
-
-                yield row
+            yield row
 
     def transform(self, row: dict) -> dict:
         """Clean a row of data"""
