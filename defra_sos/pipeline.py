@@ -17,7 +17,6 @@ https://uk-air.defra.gov.uk/data/about_sos
 Automatically download DEFRA UK-AIR Sensor Observation Service (SOS) data 
 for a particular date and particular catchment areas 
 and save the source data files to disk.
-
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -38,12 +37,14 @@ def main():
         writer = csv.DictWriter(file, fh.columns)
         writer.writeheader()
 
-        # Generate data
+        # Iterate over stations
         for station in fh.get_stations():
 
+            # Save station metadata
             site = meta.build_site(station)
             site.save()
 
+            # Generate data
             for row in fh.get_data(station):
                 row = fh.transform(row)
                 writer.writerow(row)
