@@ -37,6 +37,8 @@ class DEFRASOSSession(requests.Session):
 
         response = self._call(base_url, endpoint, **kwargs)
 
+        LOGGER.debug(response.text)
+
         data = response.json()
 
         return data
