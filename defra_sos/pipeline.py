@@ -26,7 +26,7 @@ def main():
     args = utils.get_args(DESCRIPTION)
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    fh = download.DEFRASOSHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
+    harvester = download.DEFRASOSHarvestor(args.date, args.distance, args.update_meta, args.output_meta, LOGGER)
 
     meta = metadata.DEFRASOSHarvestorMeta(args.output_meta)
 
@@ -34,19 +34,19 @@ def main():
 
     # CSV output to file
     with open(args.output_data, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fh.columns)
+        writer = csv.DictWriter(file, harvester.columns)
         writer.writeheader()
 
         # Iterate over stations
-        for station in fh.get_stations():
+        for station in harvester.get_stations():
 
             # Save station metadata
             site = meta.build_site(station)
             site.save()
 
             # Generate data
-            for row in fh.get_data(station):
-                row = fh.transform(row)
+            for row in harvester.get_data(station):
+                row = harvester.transform(row)
                 writer.writerow(row)
 
                 # TODO remove
