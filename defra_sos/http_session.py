@@ -1,5 +1,3 @@
-"""DEFRA SOS Session"""
-
 import requests
 import urllib.parse
 import logging
@@ -9,10 +7,15 @@ LOGGER = logging.getLogger(__name__)
 
 class DEFRASOSSession(requests.Session):
     """
-    Defra’s UK-AIR Sensor Observation Service (SOS) API HTTP session
+    DEFRA UK-AIR Sensor Observation Service (SOS) REST API HTTP session
 
-    https://uk-air.defra.gov.uk/data/about_sos
+    https://uk-air.defra.gov.uk/sos-ukair/static/doc/api-doc/
     """
+
+    def __init__(self):
+        super().__init__()
+
+        self.headers.update({'User-Agent': 'Urban Flows Observatory'})
 
     def _call(self, base_url, endpoint, **kwargs) -> requests.Response:
         """Base request"""
@@ -21,6 +24,8 @@ class DEFRASOSSession(requests.Session):
         url = urllib.parse.urljoin(base_url, endpoint)
 
         response = self.get(url, **kwargs)
+
+        LOGGER.debug(response.text)
 
         # HTTP errors
         try:
@@ -37,15 +42,6 @@ class DEFRASOSSession(requests.Session):
 
         response = self._call(base_url, endpoint, **kwargs)
 
-        LOGGER.debug(response.text)
-
         data = response.json()
 
         return data
-
-    def call_iter(self, base_url: str, endpoint: str, **kwargs) -> iter:
-        """Generate lines of data"""
-
-        response = self._call(base_url, endpoint, stream=True, **kwargs)
-
-        yield from response.iter_lines(decode_unicode=True)
