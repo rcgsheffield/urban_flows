@@ -88,7 +88,7 @@ class SensorSession(requests_cache.CachedSession):
         return self.get_observation(params=params)
 
     def get_observation_date(self, date: datetime.date):
-        start = datetime.datetime.combine(date=date, time=datetime.time.min, tzinfo=datetime.timezone.utc)
+        start = datetime.datetime.combine(date=date, time=datetime.time.min).replace(tzinfo=datetime.timezone.utc)
         end = start + datetime.timedelta(days=1)
 
         return self.get_observation_between(
