@@ -64,24 +64,25 @@ def get_args():
     return args
 
 
-def get_data(session, date: datetime.date) -> iter:
-    """
-    :rtype: iter[dict]
-    """
-
+def download_data(session, date: datetime.date):
     data = session.get_observation_date(date=date)
 
-    # Build raw data path
-    directory = os.path.join(DATA_DIR, 'raw', *date.isoformat().split('-'))
-    os.makedirs(directory, exist_ok=True)
-    filename = "{}.xml".format(date.isoformat())
-    path = os.path.join(directory, filename)
+    path = build_path(date=date, ext='xml', sub_dir='raw')
 
     # Serialise
     with open(path, 'w') as file:
         file.write(data)
 
         LOGGER.info("Wrote '%s'", file.name)
+
+    return data
+
+
+def get_data(session, date: datetime.date) -> iter:
+    """
+    :rtype: iter[dict]
+    """
+    data = download_data(session=session, date=date)
 
     parser = parsers.AirQualityParser(data)
 
@@ -135,10 +136,14 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     # Filter selected stations
     df = df[df['station'].isin(STATIONS)].copy()
 
+    # Map to UFO values
     df['unit_of_measurement'] = df['unit_of_measurement'].map(mappings.UNIT_MAP)
     df['observed_property'] = df['observed_property'].map(mappings.OBSERVED_PROPERTY_MAP)
 
+    # Remove unnecessary column
     del df['StartTime']
+
+    # Rename columns
     df = df.rename(columns={'EndTime': 'timestamp'})
     df = df.rename(columns=str.casefold)
 
@@ -158,17 +163,19 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     # Aggregate
     df = df.groupby(['timestamp', 'station', 'observed_property', 'unit_of_measurement'])['value'].sum()
 
+    # One column per metric
     df = df.unstack(['observed_property', 'unit_of_measurement'])
 
+    # Zip headers into a 1D index (not MultiIndex)
     df.columns = df.columns.map('__'.join)
 
     return df
 
 
-def build_output_path(date: datetime.date):
-    output_dir = os.path.join(DATA_DIR, 'clean')
+def build_path(date: datetime.date, sub_dir: str, ext: str):
+    output_dir = os.path.join(DATA_DIR, sub_dir)
     os.makedirs(output_dir, exist_ok=True)
-    filename = "{date}.csv".format(date=date.isoformat())
+    filename = "{date}.{ext}".format(date=date.isoformat(), ext=ext)
     path = os.path.join(output_dir, filename)
 
     return path
@@ -194,7 +201,8 @@ def main():
     # Clean data
     df = transform(df)
 
-    serialise(df, path=build_output_path(date=args.date), sep=sep)
+    path = build_path(date=args.date, ext='csv', sub_dir='todb')
+    serialise(df, path=path, sep=sep)
 
 
 if __name__ == '__main__':
