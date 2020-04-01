@@ -127,7 +127,7 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     df = df[df.apply(validate, axis=1)].copy()
     LOGGER.info("Removed %s invalid/unverified rows", n_rows - len(df.index))
 
-    # Get station ID from station URL
+    # Get station ID from station URL by getting the final item from the URL path (after the last slash)
     # e.g. "http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R" becomes "GB_Station_GB0037R"
     df['station'] = df['station'].apply(lambda s: s.rpartition('/')[2])
 

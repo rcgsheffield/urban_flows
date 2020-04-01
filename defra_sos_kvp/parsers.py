@@ -3,6 +3,8 @@ import io
 import datetime
 import xml.etree.ElementTree
 
+from collections import OrderedDict
+
 import arrow
 
 LOGGER = logging.getLogger(__name__)
@@ -153,7 +155,7 @@ class Observation(AirQualityParser):
             value_urls = (elem.attrib[self.XLINK['href']] for elem in values)
 
             # Build key-value pairs
-            self._parameters = dict(zip(name_urls, value_urls))
+            self._parameters = OrderedDict(zip(name_urls, value_urls))
 
         return self._parameters
 
@@ -210,7 +212,7 @@ class ResultParser(XMLParser):
 
         fields = self._fields
 
-        meta = dict()
+        meta = OrderedDict()
 
         for field in fields:
             name = field.attrib['name']
@@ -261,7 +263,7 @@ class ResultParser(XMLParser):
         for line in lines:
             # Build key-value pairs for each row
             values = line.split(text_encoding['tokenSeparator'])
-            row = dict(zip(headers, values))
+            row = OrderedDict(zip(headers, values))
 
             yield row
 
@@ -285,9 +287,13 @@ class SpatialObject(AirQualityParser):
 
     @property
     def coordinates(self) -> tuple:
-        text = self.find('ef:geometry/gml:Point/gml:pos').text
+        """
+        :returns: longitude, latitude
+        """
+        elem = self.find('ef:geometry/gml:Point/gml:pos')
 
-        return tuple(float(s) for s in text.split())
+        # Reverse order (urn:ogc:def:crs:EPSG::425)
+        return tuple(float(s) for s in reversed(elem.text.split()))
 
     @property
     def _time_period(self):
@@ -339,6 +345,4 @@ class Station(SpatialObject):
 
     @classmethod
     def get(cls, session, url, **kwargs) -> str:
-        response = session.get(url, params=dict(format='application/xml'), **kwargs)
-        response.raise_for_status()
-        return response.text
+        return session.get(url, params=dict(format='application/xml'), **kwargs).text
