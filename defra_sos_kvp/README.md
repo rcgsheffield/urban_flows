@@ -8,7 +8,10 @@ See `settings.py`.
 
 ## Usage
 
-See `python . --help`.
+To see the usage docs, run
 
-To retrieve metadata, run `python metadata.py`
+```bash
+$ python __main__.py --help
+$ python metadata.py --help
+```
 
