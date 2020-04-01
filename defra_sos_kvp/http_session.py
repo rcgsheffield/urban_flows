@@ -3,20 +3,17 @@ import datetime
 import json
 
 import requests
-import requests_cache
 
 LOGGER = logging.getLogger(__name__)
 
-EXPIRE_AFTER = 60 * 60 * 24
 
-
-class SensorSession(requests_cache.CachedSession):
+class SensorSession(requests.Session):
     BASE_URL = 'https://uk-air.defra.gov.uk/sos-ukair/service/'
     SERVICE = 'AQD'
     VERSION = '1.0.0'
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, expire_after=EXPIRE_AFTER, **kwargs)
+    def __init__(self):
+        super().__init__()
 
         self.headers.update({'User-Agent': 'Urban Flows Observatory'})
 
