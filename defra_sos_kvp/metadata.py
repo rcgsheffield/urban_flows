@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
     parser.add_argument('-v', '--verbose', action='store_true')
 
@@ -56,8 +56,11 @@ def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
 def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.assets.Sensor:
     sensor = ufmetadata.assets.Sensor(
         sensor_id=station.id,
-        family='Department for Environment, Food and Rural Affairs',
-        detectors=map(build_detector, sampling_points),
+        family='DEFRA',
+        detectors=list(map(build_detector, sampling_points)),
+        first_date=station.start_time,
+        desc_url=station.info,
+        provider='Department for Environment, Food and Rural Affairs',
     )
 
     return sensor

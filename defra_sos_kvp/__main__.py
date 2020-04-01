@@ -27,7 +27,7 @@ DEFAULT_SEPARATOR = '|'
 
 
 def get_args():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YY-MM-DD")
