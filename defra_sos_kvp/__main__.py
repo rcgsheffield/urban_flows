@@ -2,13 +2,12 @@ import argparse
 import datetime
 import logging
 import os
-import http
 
 import pandas
 
-import requests
 import http_session
 import parsers
+import mappings
 
 DESCRIPTION = """
 TODO
@@ -129,7 +128,10 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     n_rows = len(df.index)
 
     # Filter selected stations
-    df = df[df['station'].isin(STATIONS)]
+    df = df[df['station'].isin(STATIONS)].copy()
+
+    df['unit_of_measurement'] = df['unit_of_measurement'].map(mappings.UNIT_MAP)
+    df['observed_property'] = df['observed_property'].map(mappings.OBSERVED_PROPERTY_MAP)
 
     del df['StartTime']
     df = df.rename(columns={'EndTime': 'timestamp'})
@@ -138,13 +140,22 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     df = parse(df)
 
     # Validate
-    df = df[df.apply(validate, axis=1)]
+    df = df[df.apply(validate, axis=1)].copy()
     LOGGER.info("Removed %s invalid/unverified rows", n_rows - len(df.index))
 
+    # Get station ID from station URL
+    # e.g. "http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R" becomes "GB_Station_GB0037R"
+    df['station'] = df['station'].apply(lambda s: s.rpartition('/')[2])
+
+    # Output timestamp in ISO 8601
+    df['timestamp'] = df['timestamp'].apply(lambda t: t.isoformat())
+
     # Aggregate
-    df = df.groupby(['timestamp', 'sampling_point', 'observed_property', 'unit_of_measurement'])['value'].sum()
+    df = df.groupby(['timestamp', 'station', 'observed_property', 'unit_of_measurement'])['value'].sum()
 
     df = df.unstack(['observed_property', 'unit_of_measurement'])
+
+    df.columns = df.columns.map('__'.join)
 
     return df
 
@@ -159,20 +170,10 @@ def main():
 
     LOGGER.info("Retrieved %s rows", len(df.index))
 
-    print()
-    df.info()
-    print()
-    print(df.sample(5))
-
     df = transform(df)
 
-    print()
-    df.info()
-    print()
-    print(df.sample(5))
-
     df.to_csv(args.output, sep=args.sep)
-    LOGGER.info("Wrote '%s'", args.output)
+    LOGGER.info("Wrote '%s' (%s rows)", args.output, len(df.index))
 
 
 if __name__ == '__main__':
