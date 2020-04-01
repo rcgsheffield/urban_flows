@@ -10,11 +10,13 @@ import parsers
 import mappings
 
 DESCRIPTION = """
-TODO
+This is a harvester to retrieve data from the DEFRA UK-AIR
+[Sensor Observation Service](https://uk-air.defra.gov.uk/data/about_sos) via their API using the key-value pair (KVP)
+binding.
 """
 
 USAGE = """
-TODO
+python . --date 2020-01-01
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -35,6 +37,8 @@ STATIONS = {
     'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1063A',
 }
 
+DATA_DIR = 'data'
+
 
 def within_bounding_box(position: tuple) -> bool:
     latitude, longitude = position
@@ -53,7 +57,6 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-d', '--date', type=parse_date, required=True, help="YY-MM-DD")
-    parser.add_argument('-o', '--output', type=str, required=True, help="Output CSV file path")
     parser.add_argument('-s', '--sep', type=str, default='|', help="Output CSV separator")
 
     args = parser.parse_args()
@@ -68,11 +71,13 @@ def get_data(session, date: datetime.date) -> iter:
 
     data = session.get_observation_date(date=date)
 
-    # Serialise
-    directory = 'data'
+    # Build raw data path
+    directory = os.path.join(DATA_DIR, 'raw', *date.isoformat().split('-'))
     os.makedirs(directory, exist_ok=True)
     filename = "{}.xml".format(date.isoformat())
     path = os.path.join(directory, filename)
+
+    # Serialise
     with open(path, 'w') as file:
         file.write(data)
 
@@ -80,7 +85,7 @@ def get_data(session, date: datetime.date) -> iter:
 
     parser = parsers.AirQualityParser(data)
 
-    LOGGER.info(parser.id)
+    LOGGER.info("Feature Collection ID: %s", parser.id)
 
     # Iterate over observations
     for observation in parser.observations:
@@ -160,20 +165,36 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     return df
 
 
+def build_output_path(date: datetime.date):
+    output_dir = os.path.join(DATA_DIR, 'clean')
+    os.makedirs(output_dir, exist_ok=True)
+    filename = "{date}.csv".format(date=date.isoformat())
+    path = os.path.join(output_dir, filename)
+
+    return path
+
+
+def serialise(df: pandas.DataFrame, path, **kwargs):
+    df.to_csv(path, **kwargs)
+
+    LOGGER.info("Wrote '%s' (%s rows)", path, len(df.index))
+
+
 def main():
     args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
+    # Retrieve raw data
     session = http_session.SensorSession()
     rows = get_data(session, args.date)
     df = pandas.DataFrame.from_dict(rows)
 
     LOGGER.info("Retrieved %s rows", len(df.index))
 
+    # Clean data
     df = transform(df)
 
-    df.to_csv(args.output, sep=args.sep)
-    LOGGER.info("Wrote '%s' (%s rows)", args.output, len(df.index))
+    serialise(df, path=build_output_path(date=args.date), sep=sep)
 
 
 if __name__ == '__main__':
