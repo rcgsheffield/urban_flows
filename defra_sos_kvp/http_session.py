@@ -41,7 +41,7 @@ class SensorSession(requests.Session):
             **params
         )
 
-        LOGGER.debug("PARAMS: %s", json.dumps(params))
+        LOGGER.info("Request parameters: %s", json.dumps(params))
 
         response = self.get(self.BASE_URL, params=params, **kwargs)
 
@@ -111,8 +111,6 @@ class SensorSession(requests.Session):
             UpperCorner latitude, in decimal degrees
             crs URI = “urn:ogc:def:crs:OGC:1.3:CRS84” (optional)
         """
-        # valueReference,minCoordinate1,minCoordinate2,...,minCoordinateN,maxCoordinate1,maxCoordinate2,...,maxCoordinateN,crsURI
-        # om:featureOfInterest/*/sams:shape,22.32,11.2,32.32,22.2,urn:ogc:def:crs:EPSG::4326
 
         # lat, long
         # 53.46, -1.68 (Bradfield)
@@ -122,7 +120,6 @@ class SensorSession(requests.Session):
 
         namespaces = ['xmlns(om,http://www.opengis.net/om/2.0)']
         value_reference = 'om:featureOfInterest/*/sams:shape'
-        # spatial_filter = [str(x) for x in (value_reference, longitude[0], latitude[0], longitude[1], latitude[1])]
         spatial_filter = [str(x) for x in (value_reference, longitude[0], latitude[0], longitude[1], latitude[1])]
         params = dict(
             namespaces=','.join(namespaces),
@@ -130,15 +127,3 @@ class SensorSession(requests.Session):
         )
 
         return self.get_observation(params=params)
-
-    def get_result(self, **kwargs):
-        return self.call('GetResult', **kwargs)
-
-    def get_result_temporal(self):
-        params = dict(
-            offering='http://www.my_namespace.org/thermometer1_observations',
-            observedProperty='http://sweet.jpl.nasa.gov/2.0/atmoThermo.owl#EffectiveTemperature',
-            temporalFilter='om:phenomenonTime,2009-01-10T10:00:00Z/2009-01-10T11:00:00Z'
-        )
-
-        return self.get_result(params=params)
