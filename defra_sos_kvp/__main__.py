@@ -1,13 +1,15 @@
 import argparse
 import datetime
 import logging
-import os
 
 import pandas
 
 import http_session
 import parsers
 import mappings
+import settings
+import utils
+from utils import build_path
 
 DESCRIPTION = """
 This is a harvester to retrieve data from the DEFRA UK-AIR
@@ -21,42 +23,12 @@ python . --date 2020-01-01
 
 LOGGER = logging.getLogger(__name__)
 
-DATE_FORMAT = '%Y-%m-%d'
-
-BOUNDING_BOX = (
-    # Lat, long
-    (53.517, -1.766),
-    (53.238, -1.095),
-)
-
-STATIONS = {
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB0538A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1046A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1027A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1063A',
-}
-
-DATA_DIR = 'data'
-
-
-def within_bounding_box(position: tuple) -> bool:
-    latitude, longitude = position
-
-    return (BOUNDING_BOX[1][0] <= latitude <= BOUNDING_BOX[0][0]) and (
-            BOUNDING_BOX[0][1] <= longitude <= BOUNDING_BOX[1][1])
-
-
-def parse_date(s: str) -> datetime.date:
-    t = datetime.datetime.strptime(s, DATE_FORMAT)
-    return t.date()
-
 
 def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-d', '--date', type=parse_date, required=True, help="YY-MM-DD")
+    parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YY-MM-DD")
     parser.add_argument('-s', '--sep', type=str, default='|', help="Output CSV separator")
 
     args = parser.parse_args()
@@ -134,7 +106,9 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     n_rows = len(df.index)
 
     # Filter selected stations
-    df = df[df['station'].isin(STATIONS)].copy()
+    df = df[df['station'].isin(settings.STATIONS)].copy()
+    LOGGER.info("Removed %s invalid/unverified rows", n_rows - len(df.index))
+    n_rows = len(df.index)
 
     # Map to UFO values
     df['unit_of_measurement'] = df['unit_of_measurement'].map(mappings.UNIT_MAP)
@@ -172,15 +146,6 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     return df
 
 
-def build_path(date: datetime.date, sub_dir: str, ext: str):
-    output_dir = os.path.join(DATA_DIR, sub_dir)
-    os.makedirs(output_dir, exist_ok=True)
-    filename = "{date}.{ext}".format(date=date.isoformat(), ext=ext)
-    path = os.path.join(output_dir, filename)
-
-    return path
-
-
 def serialise(df: pandas.DataFrame, path, **kwargs):
     df.to_csv(path, **kwargs)
 
@@ -202,7 +167,7 @@ def main():
     df = transform(df)
 
     path = build_path(date=args.date, ext='csv', sub_dir='todb')
-    serialise(df, path=path, sep=sep)
+    serialise(df, path=path, sep=args.sep)
 
 
 if __name__ == '__main__':

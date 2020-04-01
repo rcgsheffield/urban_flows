@@ -302,7 +302,7 @@ class SpatialObject(AirQualityParser):
         """
         return tuple((
             # If the cell is empty then that time is undefined e.g. the object remains operational today
-            datetime.datetime.fromisoformat(elem.text.replace('Z', '+00:00')) if elem.text else None
+            arrow.get(elem.text).datetime if elem.text else None
             for elem in self._time_period
         ))
 
@@ -336,3 +336,9 @@ class Station(SpatialObject):
     @property
     def info(self) -> str:
         return self.find('aqd:stationInfo').text.strip()
+
+    @classmethod
+    def get(cls, session, url, **kwargs) -> str:
+        response = session.get(url, params=dict(format='application/xml'), **kwargs)
+        response.raise_for_status()
+        return response.text

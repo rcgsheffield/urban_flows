@@ -3,11 +3,12 @@ import datetime
 import json
 
 import requests
+import requests_cache
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SensorSession(requests.Session):
+class SensorSession(requests_cache.CachedSession):
     BASE_URL = 'https://uk-air.defra.gov.uk/sos-ukair/service/'
     SERVICE = 'AQD'
     VERSION = '1.0.0'
