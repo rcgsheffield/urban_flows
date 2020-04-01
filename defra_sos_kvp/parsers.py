@@ -91,6 +91,9 @@ class AirQualityParser(XMLParser):
         xsi="http://www.w3.org/2001/XMLSchema-instance",
     )
 
+    def __repr__(self):
+        return "{}('{}')".format(self.__class__.__name__, self.id)
+
     @property
     def id(self):
         return self.root.attrib['{http://www.opengis.net/gml/3.2}id']
@@ -108,6 +111,11 @@ class AirQualityParser(XMLParser):
     def stations(self):
         for elem in self.iterfind('gml:featureMember/aqd:AQD_Station'):
             yield Station(elem)
+
+    @property
+    def sampling_points(self):
+        for elem in self.iterfind('gml:featureMember/aqd:AQD_SamplingPoint'):
+            yield SamplingPoint(elem)
 
 
 class Observation(AirQualityParser):
@@ -276,10 +284,21 @@ class ResultParser(XMLParser):
 
 class SpatialObject(AirQualityParser):
     """
-    Defra's Air Quality Spatial Object Register
+    DEFRA Air Quality Spatial Object Register
 
     https://uk-air.defra.gov.uk/data/so/about/
     """
+
+    BASE_URL = 'http://environment.data.gov.uk/air-quality/so/'
+
+    @property
+    def url(self) -> str:
+        return self.BASE_URL + self.id
+
+    @classmethod
+    def get(cls, session, url, **kwargs) -> str:
+        """Utility to retrieve the data for a spatial object over HTTP"""
+        return session.get(url, params=dict(format='application/xml'), **kwargs).text
 
     @property
     def name(self) -> str:
@@ -324,7 +343,7 @@ class SpatialObject(AirQualityParser):
 
 class Station(SpatialObject):
     """
-    Air quality monitoring Stations
+    Air quality monitoring Station
 
     A facility with one or more sampling points measuring ambient air quality pollutant concentrations
 
@@ -343,6 +362,26 @@ class Station(SpatialObject):
     def info(self) -> str:
         return self.find('aqd:stationInfo').text.strip()
 
-    @classmethod
-    def get(cls, session, url, **kwargs) -> str:
-        return session.get(url, params=dict(format='application/xml'), **kwargs).text
+
+class SamplingPoint(SpatialObject):
+    """
+    Air quality monitoring Sampling Point
+
+    An instrument or other device configured to measure an air quality
+
+    https://uk-air.defra.gov.uk/data/so/sampling-points/
+    """
+
+    @property
+    def observed_property(self) -> str:
+        """Observed property URL"""
+        elem = self.find('ef:observingCapability/ef:ObservingCapability/ef:observedProperty')
+        return elem.attrib[self.XLINK['href']]
+
+    @property
+    def broader(self):
+        return self.find('ef:broader').attrib[self.XLINK['href']]
+
+    @property
+    def observed_property(self):
+        return self.find('ef:observingCapability/ef:ObservingCapability/ef:observedProperty').attrib[self.XLINK['href']]

@@ -4,8 +4,11 @@ Utility functions
 
 import datetime
 import os
+import logging
 
 import settings
+
+LOGGER = logging.getLogger(__name__)
 
 
 def within_bounding_box(bounding_box, position: tuple) -> bool:
@@ -14,7 +17,7 @@ def within_bounding_box(bounding_box, position: tuple) -> bool:
     latitude, longitude = position
 
     return (bounding_box[1][0] <= latitude <= bounding_box[0][0]) and (
-                bounding_box[0][1] <= longitude <= bounding_box[1][1])
+            bounding_box[0][1] <= longitude <= bounding_box[1][1])
 
 
 def parse_date(s: str) -> datetime.date:

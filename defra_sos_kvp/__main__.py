@@ -63,7 +63,10 @@ def get_data(session, date: datetime.date) -> iter:
     # Iterate over observations
     for observation in parser.observations:
 
+        LOGGER.debug("Observation ID: %s", observation.id)
+
         for row in observation.result.iter_values():
+            # Append metadata
             row['station'] = observation.station
             row['sampling_point'] = observation.sampling_point
             row['observed_property'] = observation.observed_property
@@ -105,9 +108,9 @@ def parse(df: pandas.DataFrame) -> pandas.DataFrame:
 def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     n_rows = len(df.index)
 
-    # Filter selected stations
-    df = df[df['station'].isin(settings.STATIONS)].copy()
-    LOGGER.info("Removed %s invalid/unverified rows", n_rows - len(df.index))
+    # Filter selected data streams
+    df = df[df['sampling_point'].isin(settings.SAMPLING_POINTS)].copy()
+    LOGGER.info("Data selection: removed %s rows", n_rows - len(df.index))
     n_rows = len(df.index)
 
     # Map to UFO values

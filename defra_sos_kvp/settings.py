@@ -6,12 +6,30 @@ BOUNDING_BOX = (
     (53.238, -1.095),
 )
 
-STATIONS = {
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB0538A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1046A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1027A',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R',
-    'http://environment.data.gov.uk/air-quality/so/GB_Station_GB1063A',
+SAMPLING_POINTS = {
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_75165',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_76206',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_20192',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74532',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74529',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_60',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74533',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_75166',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_61',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_20003',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_76522',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_76205',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_76207',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_62',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74530',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74531',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_75169',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_43',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_20191',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_75163',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_20004',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_75164',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingPoint_74536',
 }
 
 DATA_DIR = 'data'
