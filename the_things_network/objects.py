@@ -23,7 +23,7 @@ class Device:
 
     @classmethod
     def run_query(cls, session, device_id: str, last: str = None):
-        endpoint = f"query/{device_id}"
+        endpoint = "query/{}".format(device_id)
         return session.call(endpoint, params=dict(last=last))
 
     def query(self, session, last: str = None):
