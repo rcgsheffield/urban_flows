@@ -5,6 +5,8 @@ import json
 import requests
 import requests_cache
 
+import settings
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -135,11 +137,8 @@ class SensorSession(requests_cache.CachedSession):
 
         LOGGER.warning("API bug: https://github.com/52North/SOS/issues/793")
 
-        # lat, long
-        # 53.46, -1.68 (Bradfield)
-        # 53.24, -1.24 (Bolsover)
-        latitude = [53.24, 53.46]  # north
-        longitude = [-1.68, -1.24]  # east
+        latitude = (settings.BOUNDING_BOX[0][0], settings.BOUNDING_BOX[1][0])  # south from north pole
+        longitude = (settings.BOUNDING_BOX[0][1], settings.BOUNDING_BOX[1][1])  # east from Greenwich
 
         namespaces = ['xmlns(om,http://www.opengis.net/om/2.0)']
         value_reference = 'om:featureOfInterest/*/sams:shape'
