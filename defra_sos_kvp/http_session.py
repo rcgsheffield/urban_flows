@@ -3,7 +3,6 @@ import datetime
 import json
 
 import requests
-import requests_cache
 
 import settings
 
@@ -16,7 +15,7 @@ class Service:
     SENSOR_OBSERVATION_SERVICE = 'SOS'
 
 
-class SensorSession(requests_cache.CachedSession):
+class SensorSession(requests.Session):
     """
     DEFRA UK-AIR Sensor Observation Service
 
