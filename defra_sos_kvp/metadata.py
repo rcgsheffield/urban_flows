@@ -50,6 +50,8 @@ def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
 def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
     return dict(
         name=mappings.OBSERVED_PROPERTY_MAP[sampling_point.observed_property],
+        unit='?',
+        epsilon='?',
     )
 
 
