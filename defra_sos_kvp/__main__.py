@@ -30,7 +30,7 @@ def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
-    parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YY-MM-DD")
+    parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
     parser.add_argument('-s', '--sep', type=str, default=DEFAULT_SEPARATOR,
                         help="Output CSV separator (default: {})".format(DEFAULT_SEPARATOR))
 
