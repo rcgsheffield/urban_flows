@@ -26,7 +26,7 @@ def parse_date(s: str) -> datetime.date:
 
 
 def build_path(date: datetime.date, sub_dir: str, ext: str):
-    output_dir = os.path.join(settings.DATA_DIR, sub_dir, *map(str, date.isocalendar()))
+    output_dir = os.path.join(settings.DATA_DIR, sub_dir, *date.isoformat().split('-'))
     os.makedirs(output_dir, exist_ok=True)
     filename = "{date}.{ext}".format(date=date.isoformat(), ext=ext)
     path = os.path.join(output_dir, filename)
