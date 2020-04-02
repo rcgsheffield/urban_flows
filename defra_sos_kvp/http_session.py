@@ -3,13 +3,31 @@ import datetime
 import json
 
 import requests
+import requests_cache
 
 LOGGER = logging.getLogger(__name__)
 
 
-class SensorSession(requests.Session):
+class Service:
+    # European Air Quality e-Reporting data model
+    AIR_QUALITY_DATA = 'AQD'
+    SENSOR_OBSERVATION_SERVICE = 'SOS'
+
+
+class SensorSession(requests_cache.CachedSession):
+    """
+    DEFRA UK-AIR Sensor Observation Service
+
+    Key-Value Pair (KVP) encoding of requests via HTTP GET.
+
+    https://uk-air.defra.gov.uk/data/about_sos
+
+        The UK-AIR SOS is built on a 52°North SOS implementation which supports the OGC SOS versions 1.0.0, 2.0.0 and
+        the European Air Quality e-Reporting data model (AQD version 1.0.0)
+    """
+
     BASE_URL = 'https://uk-air.defra.gov.uk/sos-ukair/service/'
-    SERVICE = 'AQD'
+    SERVICE = Service.AIR_QUALITY_DATA
     VERSION = '1.0.0'
 
     def __init__(self):
@@ -97,6 +115,9 @@ class SensorSession(requests.Session):
 
     def get_observation_spatial(self):
         """
+        ***THERE IS A BUG IN THE SERVER SOFTWARE FOR THIS ENDPOINT***
+        See: https://github.com/52North/SOS/issues/793
+
         OGC SOS 12-006 Requirement 116 -- KVP encoding
         http://www.opengis.net/spec/SOS/2.0/req/kvp-core/go-bbox-encoding
 
@@ -111,6 +132,8 @@ class SensorSession(requests.Session):
             UpperCorner latitude, in decimal degrees
             crs URI = “urn:ogc:def:crs:OGC:1.3:CRS84” (optional)
         """
+
+        LOGGER.warning("API bug: https://github.com/52North/SOS/issues/793")
 
         # lat, long
         # 53.46, -1.68 (Bradfield)
