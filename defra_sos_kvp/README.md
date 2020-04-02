@@ -15,3 +15,6 @@ $ python __main__.py --help
 $ python metadata.py --help
 ```
 
+The code works by initializing a HTTP session with the server and running a query to retrieve data using a temporal filter. The response XML is parsed to get a collection of `Observation` objects, each of which has contains data values for a certain physical location (`Station`) and metric (`SamplingPoint` or observed property).
+
+The data are loaded into a Pandas data frame to be cleaned and aggregated ready for output. The output is ready for the UFO script which converts into NetCDF format.
