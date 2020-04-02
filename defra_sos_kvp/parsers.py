@@ -305,14 +305,24 @@ class SpatialObject(AirQualityParser):
         return self.find('ef:name').text
 
     @property
-    def coordinates(self) -> tuple:
+    def position(self) -> tuple:
         """
         :returns: longitude, latitude
         """
         elem = self.find('ef:geometry/gml:Point/gml:pos')
 
-        # Reverse order (urn:ogc:def:crs:EPSG::425)
-        return tuple(float(s) for s in reversed(elem.text.split()))
+        return tuple(float(s) for s in elem.text.split())
+
+    @property
+    def coordinates(self) -> tuple:
+        """
+        ISO 6709 coordinates
+        """
+        return (
+            *self.position,
+            self.altitude['value'],
+            'urn:ogc:def:crs:OGC::CRS84',
+        )
 
     @property
     def _time_period(self):
@@ -332,6 +342,14 @@ class SpatialObject(AirQualityParser):
         ))
 
     @property
+    def altitude(self) -> dict:
+        elem = self.find('aqd:altitude')
+        return dict(
+            unit_of_measurement=elem.attrib['uom'],
+            value=float(elem.text),
+        )
+
+    @property
     def start_time(self) -> datetime.datetime:
         return self.time_period[0]
 
@@ -349,14 +367,6 @@ class Station(SpatialObject):
 
     https://uk-air.defra.gov.uk/data/so/stations/
     """
-
-    @property
-    def altitude(self) -> dict:
-        elem = self.find('aqd:altitude')
-        return dict(
-            unit_of_measurement=elem.attrib['uom'],
-            value=float(elem.text),
-        )
 
     @property
     def info(self) -> str:

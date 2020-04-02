@@ -34,7 +34,7 @@ def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
         site_id=station.id,
         latitude=station.coordinates[0],
         longitude=station.coordinates[1],
-        altitude=station.altitude['value'],
+        altitude=station.coordinates[3],
         address=station.name,
         city=station.name,
         desc_url=station.info,
@@ -50,6 +50,7 @@ def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
 def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
     return dict(
         name=mappings.OBSERVED_PROPERTY_MAP[sampling_point.observed_property],
+        # TODO automate getting units
         unit='?',
         epsilon='?',
     )
@@ -62,7 +63,9 @@ def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.
         detectors=list(map(build_detector, sampling_points)),
         first_date=station.start_time,
         desc_url=station.info,
-        provider='Department for Environment, Food and Rural Affairs',
+        provider=dict(
+            name='Department for Environment, Food and Rural Affairs'
+        ),
     )
 
     return sensor
@@ -109,6 +112,8 @@ def main():
 
     for station_url, station_meta in stations.items():
         station = station_meta['station']
+
+        LOGGER.info("Station: %s %s", station, station.coordinates)
 
         site = build_site(station)
         site.save()
