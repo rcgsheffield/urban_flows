@@ -89,6 +89,8 @@ class SensorSession(requests_cache.CachedSession):
 
     def get_observation_between(self, start: datetime.datetime, end: datetime.datetime = None):
         """
+        Get data with temporal filter
+
         Requirement 117
 
         http://www.opengis.net/spec/SOS/2.0/req/kvp-core/go-temporalFilter-encoding
@@ -107,6 +109,7 @@ class SensorSession(requests_cache.CachedSession):
         return self.get_observation(params=params)
 
     def get_observation_date(self, date: datetime.date):
+        """Retrieve data, filtered by calendar date"""
         start = datetime.datetime.combine(date=date, time=datetime.time.min).replace(tzinfo=datetime.timezone.utc)
         end = start + datetime.timedelta(days=1)
 
