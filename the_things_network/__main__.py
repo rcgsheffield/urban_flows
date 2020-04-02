@@ -67,7 +67,7 @@ def main():
     LOGGER.info("Retrieved %s rows", len(rows))
 
     headers = utils.get_headers(config['fields'])
-    rows = transform.clean(rows, data_types=headers)
+    rows = transform.clean(rows, data_types=headers, date=args.date)
 
     output_path = utils.build_path(root_dir=root_dir, sub_dir=args.output, date=args.date, ext='csv')
     utils.write_csv(path=output_path, rows=rows, header=args.header)

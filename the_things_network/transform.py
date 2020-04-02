@@ -57,7 +57,7 @@ def transform(row: dict) -> dict:
     row['timestamp'] = row.pop('time')
 
     # Convert to ISO format
-    row['timestamp'] = parse_timestamp(row['timestamp']).isoformat()
+    row['timestamp'] = parse_timestamp(row['timestamp'])
 
     return row
 
@@ -75,16 +75,22 @@ def to_db(row: dict) -> dict:
     for key in ('device_id', 'timestamp'):
         row.move_to_end(key, last=False)
 
+    row['timestamp'] = row['timestamp'].isoformat()
+
     LOGGER.debug(row)
 
     return row
 
 
-def clean(rows: iter, data_types: dict) -> iter:
+def clean(rows: iter, data_types: dict, date: datetime.date) -> iter:
     for row in rows:
         row = dict(parse(row, data_types))
 
         row = transform(row)
+
+        # Date filter
+        if row['timestamp'].date() != date:
+            continue
 
         row = to_db(row)
 
