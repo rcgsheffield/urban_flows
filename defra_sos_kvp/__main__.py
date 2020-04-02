@@ -146,6 +146,8 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     # One column per metric
     df = df.unstack(['observed_property', 'unit_of_measurement'])
 
+    LOGGER.info("Aggregated by %s (%s rows)", df.index.names, len(df.index))
+
     # Flatten column headers
     df.columns = df.columns.map(lambda t: t[0])
 
