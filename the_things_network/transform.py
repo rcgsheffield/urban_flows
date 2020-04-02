@@ -1,21 +1,12 @@
-"""
-Clean (transform) data
-"""
-
 import logging
-import argparse
 import csv
 import datetime
 
+from collections import OrderedDict
+
 import arrow
 
-import utils
-
 LOGGER = logging.getLogger(__name__)
-
-DESCRIPTION = """
-Parse and clean the CSV data
-"""
 
 
 def read_csv(path: str) -> iter:
@@ -37,6 +28,10 @@ def parse(row: dict, data_types: dict) -> iter:
 
     # Map each column label to a data type
     for label, value in row.items():
+
+        # case-insensitive
+        label = label.casefold()
+
         data_type = data_types[label]
 
         try:
@@ -67,27 +62,30 @@ def transform(row: dict) -> dict:
     return row
 
 
+def to_db(row: dict) -> dict:
+    """
+    Prepare a row of data to be loaded into the UFO
+    """
+
+    del row['raw']
+
+    row = OrderedDict(row)
+
+    # Re-order columns (timestamp, sensor, metrics...)
+    for key in ('device_id', 'timestamp'):
+        row.move_to_end(key, last=False)
+
+    LOGGER.debug(row)
+
+    return row
+
+
 def clean(rows: iter, data_types: dict) -> iter:
     for row in rows:
         row = dict(parse(row, data_types))
 
         row = transform(row)
 
+        row = to_db(row)
+
         yield row
-
-
-def main():
-    args = utils.get_args(description=DESCRIPTION)
-
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
-
-    headers = utils.get_headers()
-
-    # Load, clean and save data
-    rows = read_csv(args.input)
-    rows = clean(rows, data_types=headers)
-    utils.write_csv(args.output, rows=rows)
-
-
-if __name__ == '__main__':
-    main()

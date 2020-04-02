@@ -1,10 +1,9 @@
+import http
+import json
 import logging
 import urllib.parse
-import requests
-import json
-import http
 
-import utils
+import requests
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,12 +17,14 @@ class StorageSession(requests.Session):
     To view the documentation, open session.docs_url in a web browser.
     """
 
-    def __init__(self, application_id, base_url):
+    BASE_URL_FORMAT = 'https://{application_id}.data.thethingsnetwork.org/api/v2/'
+
+    def __init__(self, application_id, access_key: str):
         super().__init__()
 
         self.application_id = application_id
-        self.base_url = base_url.format(application_id=self.application_id)
-        self.access_key = utils.get_access_token()
+        self.base_url = self.BASE_URL_FORMAT.format(application_id=self.application_id)
+        self.access_key = access_key
 
         self.headers.update(self.extra_headers)
 
