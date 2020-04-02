@@ -33,3 +33,13 @@ SAMPLING_POINTS = {
 }
 
 DATA_DIR = 'data'
+
+OUTPUT_HEADERS = [
+    'AQ_CO',
+    'AQ_NO2',
+    'AQ_NOX',
+    'AQ_O3',
+    'AQ_PM10',
+    'AQ_PM25',
+    'AQ_SO2',
+]

@@ -151,6 +151,9 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     # Flatten column headers
     df.columns = df.columns.map(lambda t: t[0])
 
+    # Ensure consistent data shape
+    df = df.reindex(columns=settings.OUTPUT_HEADERS)
+
     return df
 
 
