@@ -108,13 +108,29 @@ def parse(df: pandas.DataFrame) -> pandas.DataFrame:
     return df
 
 
+def log_metadata(df):
+    """Map unique properties to measurement units"""
+
+    for station in set(df['station']):
+        LOGGER.info("Station: %s", station)
+
+    s = df[['observed_property', 'unit_of_measurement']].drop_duplicates().set_index('observed_property')[
+        'unit_of_measurement']
+
+    for prop, unit in s.iteritems():
+        LOGGER.info("Observed property: %s Unit: %s", prop, unit)
+
+
 def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     n_rows = len(df.index)
 
     # Filter selected data streams
     df = df[df['sampling_point'].isin(settings.SAMPLING_POINTS)].copy()
     LOGGER.info("Data selection: removed %s rows", n_rows - len(df.index))
+
     n_rows = len(df.index)
+
+    log_metadata(df)
 
     # Map to UFO values
     df['unit_of_measurement'] = df['unit_of_measurement'].map(mappings.UNIT_MAP)
@@ -140,19 +156,19 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     # Output timestamp in ISO 8601
     df['timestamp'] = df['timestamp'].apply(lambda t: t.isoformat())
 
-    # Aggregate
-    df = df.groupby(['timestamp', 'station', 'observed_property', 'unit_of_measurement'])['value'].sum()
-
     # One column per metric
-    df = df.unstack(['observed_property', 'unit_of_measurement'])
+    s = df.set_index(['timestamp', 'station', 'observed_property', 'unit_of_measurement'])['value']
+    df = s.unstack(['observed_property', 'unit_of_measurement'])
 
-    LOGGER.info("Aggregated by %s (%s rows)", df.index.names, len(df.index))
+    LOGGER.info("Pivoted: %s (%s rows)", df.index.names, len(df.index))
 
-    # Flatten column headers
+    # Flatten column headers (use only the observed property name)
     df.columns = df.columns.map(lambda t: t[0])
 
     # Ensure consistent data shape
     df = df.reindex(columns=settings.OUTPUT_HEADERS)
+
+    assert not df.index.duplicated().any(), 'Duplicated index values'
 
     return df
 
@@ -178,7 +194,7 @@ def main():
     df = transform(df)
 
     path = build_path(date=args.date, ext='csv', sub_dir='todb')
-    serialise(df, path=path, sep=args.sep)
+    serialise(df, path=path)
 
 
 if __name__ == '__main__':
