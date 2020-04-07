@@ -29,12 +29,36 @@ def get_args():
     return args
 
 
+def get_sampling_points_by_region(region_id):
+    session = http_session.DefraMeta()
+
+    sampling_features = set()
+
+    for group_id, group in session.groups.items():
+
+        LOGGER.info("Group %s: %s", group_id, group[0])
+
+        for site in session.site_processes(region_id, group_id=group_id):
+            LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
+
+            for parameter in site['parameter_ids']:
+                LOGGER.debug(parameter['sampling_point'])
+
+                for sampling_feature in parameter['feature_of_interest']:
+                    sampling_feature_url = sampling_feature['featureOfInterset']
+                    LOGGER.debug(sampling_feature_url)
+
+                    sampling_features.add(sampling_feature_url)
+
+    return sampling_features
+
+
 def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
     site = ufmetadata.assets.Site(
         site_id=station.id,
         latitude=station.coordinates[0],
         longitude=station.coordinates[1],
-        altitude=station.coordinates[3],
+        altitude=station.coordinates[2],
         address=station.name,
         city=station.name,
         desc_url=station.info,
@@ -103,12 +127,9 @@ def get_stations(session, sampling_point_urls: set) -> dict:
     return stations
 
 
-def main():
-    args = get_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
-
+def get_metadata():
     session = http_session.SensorSession()
-    stations = get_stations(session=session, sampling_point_urls=settings.SAMPLING_POINTS)
+    stations = get_stations(session=session, sampling_point_urls=settings.SAMPLING_FEATURES)
 
     for station_url, station_meta in stations.items():
         station = station_meta['station']
@@ -121,6 +142,13 @@ def main():
         sampling_points = station_meta['sampling_points'].values()
         sensor = build_sensor(station, sampling_points)
         sensor.save()
+
+
+def main():
+    args = get_args()
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+
+    print(get_sampling_points_by_region(settings.REGION_OF_INTEREST))
 
 
 if __name__ == '__main__':

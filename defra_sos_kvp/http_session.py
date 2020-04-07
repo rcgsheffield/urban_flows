@@ -1,12 +1,15 @@
 import logging
 import datetime
 import json
+import urllib.parse
 
 import requests
 
 import settings
 
 LOGGER = logging.getLogger(__name__)
+
+USER_AGENT = 'Urban Flows Observatory'
 
 
 class Service:
@@ -34,7 +37,7 @@ class SensorSession(requests.Session):
     def __init__(self):
         super().__init__()
 
-        self.headers.update({'User-Agent': 'Urban Flows Observatory'})
+        self.headers.update({'User-Agent': USER_AGENT})
 
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
@@ -86,7 +89,7 @@ class SensorSession(requests.Session):
         """
         return self.call('GetObservation', **kwargs)
 
-    def get_observation_between(self, start: datetime.datetime, end: datetime.datetime = None):
+    def get_observation_between(self, start: datetime.datetime, end: datetime.datetime = None, params=None, **kwargs):
         """
         Get data with temporal filter
 
@@ -94,6 +97,8 @@ class SensorSession(requests.Session):
 
         http://www.opengis.net/spec/SOS/2.0/req/kvp-core/go-temporalFilter-encoding
         """
+
+        params = params or dict()
 
         if not end:
             end = datetime.datetime.utcnow()
@@ -103,11 +108,12 @@ class SensorSession(requests.Session):
         params = dict(
             # https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
             temporalFilter='{},{}/{}'.format(value_reference, *period),
+            **params
         )
 
-        return self.get_observation(params=params)
+        return self.get_observation(params=params, **kwargs)
 
-    def get_observation_date(self, date: datetime.date):
+    def get_observation_date(self, date: datetime.date, **kwargs):
         """Retrieve data, filtered by calendar date"""
         start = datetime.datetime.combine(date=date, time=datetime.time.min).replace(tzinfo=datetime.timezone.utc)
         end = start + datetime.timedelta(days=1)
@@ -115,6 +121,7 @@ class SensorSession(requests.Session):
         return self.get_observation_between(
             start=start,
             end=end,
+            **kwargs
         )
 
     def get_observation_spatial(self):
@@ -151,3 +158,59 @@ class SensorSession(requests.Session):
         )
 
         return self.get_observation(params=params)
+
+
+class DefraMeta(requests.Session):
+    """
+    Metadata about the DEFRA air quality systems
+    """
+
+    BASE_URL = 'https://uk-air.defra.gov.uk/data/API/'
+
+    def __init__(self):
+        super().__init__()
+        self.headers.update({'User-Agent': USER_AGENT})
+
+    def request(self, *args, **kwargs):
+        response = super().request(*args, **kwargs)
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            LOGGER.error(response.text)
+            raise
+        return response
+
+    def call(self, endpoint: str, **kwargs):
+        url = urllib.parse.urljoin(self.BASE_URL, endpoint)
+        response = self.get(url, **kwargs)
+        return response.json()
+
+    @property
+    def regions(self) -> dict:
+        _regions = self.call('local-authority-region')['government_region']
+
+        regions = dict()
+
+        # Parse data types
+        for key, value in _regions.items():
+            try:
+                key = int(key)
+                value['region_id'] = int(value['region_id'])
+                regions[key] = value
+
+            # Ignore redundant nested values
+            except ValueError:
+                pass
+
+        return regions
+
+    @property
+    def groups(self) -> dict:
+        return self.call('group')
+
+    def site_processes(self, region_id: int, group_id: int) -> list:
+        params = dict(
+            group_id=group_id,
+            region_id=region_id,
+        )
+        return self.call('site-process-featureofinterest-by-region', params=params)

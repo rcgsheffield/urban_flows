@@ -10,6 +10,21 @@ import arrow
 LOGGER = logging.getLogger(__name__)
 
 
+class OWSException(RuntimeError):
+    """
+    https://www.ogc.org/standards/owc
+    """
+    pass
+
+
+class InvalidParameterValueError(OWSException):
+    pass
+
+
+class UnknownQueryError(OWSException):
+    pass
+
+
 class XMLParser:
     NAMESPACES = dict()
     XLINK = dict(
@@ -89,7 +104,12 @@ class AirQualityParser(XMLParser):
         gn="urn:x-inspire:specification:gmlas:GeographicalNames:3.0",
         ad="urn:x-inspire:specification:gmlas:Addresses:3.0",
         xsi="http://www.w3.org/2001/XMLSchema-instance",
+        ows='http://www.opengis.net/ows/1.1',
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.raise_exception()
 
     def __repr__(self):
         return "{}('{}')".format(self.__class__.__name__, self.id)
@@ -117,6 +137,27 @@ class AirQualityParser(XMLParser):
         for elem in self.iterfind('gml:featureMember/aqd:AQD_SamplingPoint'):
             yield SamplingPoint(elem)
 
+    def raise_exception(self):
+        elem = self.find('ows:Exception')
+        try:
+            code = elem.attrib['exceptionCode']
+        except AttributeError:
+            if elem:
+                raise
+            else:
+                return
+
+        text = elem[0].text.strip()
+
+        LOGGER.error("%s: %s", code, text)
+
+        if code == 'InvalidParameterValue':
+            raise InvalidParameterValueError(text)
+        elif code == 'NoApplicableCode':
+            raise UnknownQueryError(text)
+        else:
+            raise RuntimeError(code, text)
+
 
 class Observation(AirQualityParser):
     """
@@ -130,6 +171,7 @@ class Observation(AirQualityParser):
         xlink="http://www.w3.org/1999/xlink",
         xsi="http://www.w3.org/2001/XMLSchema-instance",
         gco="http://www.isotc211.org/2005/gco",
+        ows='http://www.opengis.net/ows/1.1',
     )
 
     def __init__(self, *args, **kwargs):
@@ -187,6 +229,7 @@ class Observation(AirQualityParser):
 class ResultParser(XMLParser):
     NAMESPACES = dict(
         swe='http://www.opengis.net/swe/2.0',
+        ows='http://www.opengis.net/ows/1.1',
     )
 
     @property
@@ -280,6 +323,8 @@ class ResultParser(XMLParser):
         # Validate row count
         if n_rows != expected_rows:
             raise ValueError('Unexpected number of rows')
+
+        LOGGER.info("Generated %s rows of data", n_rows)
 
 
 class SpatialObject(AirQualityParser):

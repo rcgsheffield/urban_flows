@@ -39,10 +39,10 @@ def get_args():
     return args
 
 
-def download_data(session, date: datetime.date):
-    data = session.get_observation_date(date=date)
+def download_data(session, date: datetime.date, sampling_feature: str):
+    data = session.get_observation_date(date=date, params={'featureOfInterest': sampling_feature})
 
-    path = build_path(date=date, ext='xml', sub_dir='raw')
+    path = build_path(date=date, ext='xml', sub_dir='raw', suffix=sampling_feature.rpartition('/')[2])
 
     # Serialise
     with open(path, 'w') as file:
@@ -53,32 +53,42 @@ def download_data(session, date: datetime.date):
     return data
 
 
-def get_data(session, date: datetime.date) -> iter:
+def get_data(session, date: datetime.date, sampling_features: iter) -> iter:
     """
     :rtype: iter[dict]
     """
-    data = download_data(session=session, date=date)
+    for sampling_feature in sampling_features:
+        data = download_data(session=session, date=date, sampling_feature=sampling_feature)
 
-    parser = parsers.AirQualityParser(data)
+        try:
+            parser = parsers.AirQualityParser(data)
+        except parsers.OWSException as exc:
+            LOGGER.warning(exc)
+            LOGGER.warning("Skipping sampling feature")
+            continue
 
-    LOGGER.info("Feature Collection ID: %s", parser.id)
+        LOGGER.info("Feature Collection ID: %s", parser.id)
 
-    # Iterate over observations
-    for observation in parser.observations:
+        # Iterate over observations
+        for observation in parser.observations:
 
-        LOGGER.debug("Observation ID: %s", observation.id)
+            LOGGER.debug("Observation ID: %s", observation.id)
 
-        for row in observation.result.iter_values():
-            # Append metadata
-            row['station'] = observation.station
-            row['sampling_point'] = observation.sampling_point
-            row['observed_property'] = observation.observed_property
-            row['unit_of_measurement'] = observation.result.unit_of_measurement
+            for row in observation.result.iter_values():
+                # Append metadata
+                row['station'] = observation.station
+                row['sampling_point'] = observation.sampling_point
+                row['observed_property'] = observation.observed_property
+                row['unit_of_measurement'] = observation.result.unit_of_measurement
 
-            yield row
+                yield row
 
 
 def validate(row: pandas.Series) -> bool:
+    # Check type
+    if not isinstance(row, pandas.Series):
+        raise TypeError(type(row))
+
     # Verified: http://dd.eionet.europa.eu/vocabulary/aq/observationverification
     if row['verification'] not in {1, 2}:
         return False
@@ -125,7 +135,7 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     n_rows = len(df.index)
 
     # Filter selected data streams
-    df = df[df['sampling_point'].isin(settings.SAMPLING_POINTS)].copy()
+    df = df[df['sampling_point'].isin(settings.SAMPLING_FEATURES)].copy()
     LOGGER.info("Data selection: removed %s rows", n_rows - len(df.index))
 
     n_rows = len(df.index)
@@ -146,7 +156,9 @@ def transform(df: pandas.DataFrame) -> pandas.DataFrame:
     df = parse(df)
 
     # Validate
-    df = df[df.apply(validate, axis=1)].copy()
+    valid_rows = df.apply(validate, axis=1)
+    print(valid_rows)
+    df = df[valid_rows].copy()
     LOGGER.info("Removed %s invalid/unverified rows", n_rows - len(df.index))
 
     # Get station ID from station URL by getting the final item from the URL path (after the last slash)
@@ -185,7 +197,7 @@ def main():
 
     # Retrieve raw data
     session = http_session.SensorSession()
-    rows = get_data(session, args.date)
+    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES)
     df = pandas.DataFrame.from_dict(rows)
 
     LOGGER.info("Retrieved %s rows", len(df.index))
