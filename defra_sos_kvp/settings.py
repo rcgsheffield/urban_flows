@@ -276,7 +276,9 @@ SAMPLING_FEATURES = {
 
 DATA_DIR = 'data'
 
-OUTPUT_HEADERS = [
+OUTPUT_HEADERS = (
+    'timestamp',
+    'sensor',
     'AQ_CO',
     'AQ_NO2',
     'AQ_NOX',
@@ -284,7 +286,7 @@ OUTPUT_HEADERS = [
     'AQ_PM10',
     'AQ_PM25',
     'AQ_SO2',
-]
+)
 
 # South Yorkshire
 REGION_OF_INTEREST = 17

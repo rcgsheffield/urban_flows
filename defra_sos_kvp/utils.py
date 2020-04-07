@@ -6,6 +6,8 @@ import datetime
 import os
 import logging
 
+import arrow
+
 import settings
 
 LOGGER = logging.getLogger(__name__)
@@ -23,6 +25,10 @@ def within_bounding_box(bounding_box, position: tuple) -> bool:
 def parse_date(s: str) -> datetime.date:
     t = datetime.datetime.strptime(s, settings.DATE_FORMAT)
     return t.date()
+
+
+def parse_timestamp(timestamp: str) -> datetime.datetime:
+    return arrow.get(timestamp).datetime
 
 
 def build_path(date: datetime.date, sub_dir: str, ext: str, suffix: str = ''):
