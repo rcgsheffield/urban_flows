@@ -1,0 +1,7 @@
+name: uflo-defra
+channels:
+  - defaults
+dependencies:
+  - python=3.5
+  - requests=2.19
+  - arrow==0.14.0
