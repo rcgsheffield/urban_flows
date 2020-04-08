@@ -275,6 +275,8 @@ SAMPLING_FEATURES = {
 }
 
 DATA_DIR = 'data'
+RAW_SUB_DIR = 'raw'
+OUTPUT_SUB_DIR = 'todb'
 
 OUTPUT_HEADERS = (
     'timestamp',

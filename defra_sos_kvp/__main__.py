@@ -42,7 +42,9 @@ def get_args():
 def download_data(session, date: datetime.date, sampling_feature: str):
     data = session.get_observation_date(date=date, params={'featureOfInterest': sampling_feature})
 
-    path = utils.build_path(date=date, ext='xml', sub_dir='raw', suffix=sampling_feature.rpartition('/')[2])
+    suffix = sampling_feature.rpartition('/')[2]
+    path = utils.build_path(date=date, ext='xml', sub_dir=settings.RAW_SUB_DIR,
+                            suffix=suffix)
 
     # Serialise
     with open(path, 'w') as file:
@@ -242,7 +244,7 @@ def main():
     rows = filter_n(validate, rows)
     rows = pivot(rows)
 
-    path = utils.build_path(date=args.date, ext='csv', sub_dir='todb')
+    path = utils.build_path(date=args.date, ext='csv', sub_dir=settings.OUTPUT_SUB_DIR)
     serialise(rows, path=path)
 
 
