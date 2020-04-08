@@ -208,7 +208,7 @@ def pivot(rows: iter) -> iter:
 def serialise(rows, path, **kwargs):
     """Write to CSV file"""
 
-    fieldnames = settings.OUTPUT_HEADERS,
+    fieldnames = settings.OUTPUT_HEADERS
 
     LOGGER.info("Writing CSV with headers: %s", fieldnames)
 
