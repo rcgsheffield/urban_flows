@@ -3,3 +3,4 @@ __pycache__
 assets/
 test.csv
 .ipynb_checkpoints
+cache.sqlite
