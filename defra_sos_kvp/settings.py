@@ -286,7 +286,10 @@ OUTPUT_HEADERS = (
     'AQ_PM10',
     'AQ_PM25',
     'AQ_SO2',
+    'AQ_NO',
 )
 
 # South Yorkshire
 REGION_OF_INTEREST = 17
+
+NULL = -32768

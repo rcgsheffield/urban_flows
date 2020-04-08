@@ -81,9 +81,12 @@ def get_data(session, date: datetime.date, sampling_features: iter) -> iter:
                 row['station'] = observation.station
                 row['sampling_point'] = observation.sampling_point
                 row['observed_property'] = observation.observed_property
+                row['feature_of_interest'] = observation.feature_of_interest
                 row['unit_of_measurement'] = observation.result.unit_of_measurement
 
                 yield row
+
+                LOGGER.debug(row)
 
                 n += 1
 
@@ -139,8 +142,8 @@ def parse(row: OrderedDict) -> OrderedDict:
 
 def transform_row(row: OrderedDict) -> OrderedDict:
     # Map to UFO values
-    row['unit_of_measurement'] = row['unit_of_measurement'].map(mappings.UNIT_MAP)
-    row['observed_property'] = row['observed_property'].map(mappings.OBSERVED_PROPERTY_MAP)
+    row['unit_of_measurement'] = mappings.UNIT_MAP[row['unit_of_measurement']]
+    row['observed_property'] = mappings.OBSERVED_PROPERTY_MAP[row['observed_property']]
 
     # Remove unnecessary column
     del row['StartTime']
@@ -153,7 +156,7 @@ def transform_row(row: OrderedDict) -> OrderedDict:
 
     # Get station ID from station URL by getting the final item from the URL path (after the last slash)
     # e.g. "http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R" becomes "GB_Station_GB0037R"
-    row['station'] = row['station'].apply(lambda s: s.rpartition('/')[2])
+    row['station'] = row['station'].rpartition('/')[2]
 
     return row
 
@@ -161,7 +164,7 @@ def transform_row(row: OrderedDict) -> OrderedDict:
 def filter_row(row: OrderedDict) -> bool:
     """Filter selected data streams"""
 
-    return row['sampling_point'] in settings.SAMPLING_FEATURES
+    return row['feature_of_interest'] in settings.SAMPLING_FEATURES
 
 
 def transform(rows: iter) -> iter:
@@ -175,14 +178,23 @@ def transform(rows: iter) -> iter:
 def pivot(rows: iter) -> iter:
     _rows = OrderedDict()
 
-    headers = ['timestamp', 'station'] + list(settings.OUTPUT_HEADERS)
-    default = {key: None for key in headers}
+    headers = settings.OUTPUT_HEADERS
+    default = {key: settings.NULL for key in headers}
 
     n0 = 0
     for row in rows:
         key = (row['timestamp'], row['station'])
 
-        _row = _rows.setdefault(key, default.copy())
+        try:
+            _row = _rows[key]
+        except KeyError:
+            # Initialise new row
+            _row = default.copy()
+            _row['timestamp'] = row['timestamp']
+            _row['sensor'] = row['station']
+
+            _rows[key] = _row
+
         _row[row['observed_property']] = row['value']
 
         n0 += 1
@@ -195,12 +207,13 @@ def pivot(rows: iter) -> iter:
 
 def serialise(rows, path, **kwargs):
     """Write to CSV file"""
-    with open(path, 'w') as file:
+    with open(path, 'w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=settings.OUTPUT_HEADERS, **kwargs)
         writer.writeheader()
 
         n = 0
         for row in rows:
+            LOGGER.debug(row)
             # Output timestamp in ISO 8601
             row['timestamp'] = row['timestamp'].isoformat()
 

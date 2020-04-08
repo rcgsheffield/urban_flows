@@ -3,11 +3,9 @@ Map European Environment Agency metrics to Urban Observatory metadata codes
 """
 
 UNIT_MAP = {
-    # Micrograms per cubic metre
     'http://dd.eionet.europa.eu/vocabulary/uom/concentration/ug.m-3': 'ug/m3',
-
-    # Nanograms per cubic metre
     'http://dd.eionet.europa.eu/vocabulary/uom/concentration/ng.m-3': 'ng/m3',
+    'http://dd.eionet.europa.eu/vocabulary/uom/concentration/mg.m-3': 'mg/m3',
 }
 
 OBSERVED_PROPERTY_MAP = {
@@ -29,8 +27,12 @@ OBSERVED_PROPERTY_MAP = {
     # Lead in PM10 (aerosol)
     'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/5012': 'AQ_PB',
 
+    # Nitrogen monoxide (air)
+    'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/38': 'AQ_NO',
+
     # Carbon monoxide
-    'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/38': 'AQ_CO',
+    'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/10': 'AQ_CO',
+
     # Nitrogen dioxide (air)
     'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/8': 'AQ_NO2',
 

@@ -22,17 +22,19 @@ LOGGER = logging.getLogger(__name__)
 def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
-    parser.add_argument('-v', '--verbose', action='store_true')
+    parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
+    parser.add_argument('-s', '--sampling', action='store_true', help='List sampling points')
+    parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
 
     args = parser.parse_args()
 
-    return args
+    return parser, args
 
 
 def get_sampling_points_by_region(region_id):
     session = http_session.DefraMeta()
 
-    sampling_features = set()
+    sampling_points = set()
 
     for group_id, group in session.groups.items():
 
@@ -42,15 +44,10 @@ def get_sampling_points_by_region(region_id):
             LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
 
             for parameter in site['parameter_ids']:
-                LOGGER.debug(parameter['sampling_point'])
+                sampling_point = parameter['sampling_point']
+                sampling_points.add(sampling_point)
 
-                for sampling_feature in parameter['feature_of_interest']:
-                    sampling_feature_url = sampling_feature['featureOfInterset']
-                    LOGGER.debug(sampling_feature_url)
-
-                    sampling_features.add(sampling_feature_url)
-
-    return sampling_features
+    return sampling_points
 
 
 def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
@@ -145,10 +142,15 @@ def get_metadata():
 
 
 def main():
-    args = get_args()
+    parser, args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    print(get_sampling_points_by_region(settings.REGION_OF_INTEREST))
+    if args.sampling:
+        print(get_sampling_points_by_region(settings.REGION_OF_INTEREST))
+    elif args.meta:
+        get_metadata()
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

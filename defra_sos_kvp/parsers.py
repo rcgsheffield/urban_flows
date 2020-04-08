@@ -219,6 +219,14 @@ class Observation(AirQualityParser):
         return self.parameters['http://dd.eionet.europa.eu/vocabulary/aq/processparameter/SamplingPoint']
 
     @property
+    def feature_of_interest(self) -> str:
+        elem = self.find('om:featureOfInterest')
+
+        url = elem.attrib[self.XLINK['href']]
+
+        return url
+
+    @property
     def observed_property(self):
         if self._observed_property is None:
             self._observed_property = self.find('om:observedProperty').attrib[self.XLINK['href']]
