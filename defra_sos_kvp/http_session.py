@@ -63,7 +63,7 @@ class SensorSession(requests.Session):
             **params
         )
 
-        LOGGER.info("Request parameters: %s", json.dumps(params))
+        LOGGER.debug("Request parameters: %s", json.dumps(params))
 
         response = self.get(self.BASE_URL, params=params, **kwargs)
 
