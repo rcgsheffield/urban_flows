@@ -207,9 +207,13 @@ def pivot(rows: iter) -> iter:
 
 def serialise(rows, path, **kwargs):
     """Write to CSV file"""
+
+    fieldnames = settings.OUTPUT_HEADERS,
+
+    LOGGER.info("Writing CSV with headers: %s", fieldnames)
+
     with open(path, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=settings.OUTPUT_HEADERS, **kwargs)
-        writer.writeheader()
+        writer = csv.DictWriter(file, fieldnames=fieldnames, **kwargs)
 
         n = 0
         for row in rows:
