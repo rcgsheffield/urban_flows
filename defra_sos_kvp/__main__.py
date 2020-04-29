@@ -23,28 +23,28 @@ python . --date 2020-01-01
 
 LOGGER = logging.getLogger(__name__)
 
-DEFAULT_SEPARATOR = '|'
-
 
 def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
-    parser.add_argument('-s', '--sep', type=str, default=DEFAULT_SEPARATOR,
-                        help="Output CSV separator (default: {})".format(DEFAULT_SEPARATOR))
+    parser.add_argument('-s', '--sep', type=str, default=settings.DEFAULT_SEPARATOR,
+                        help="Output CSV separator (default: {})".format(settings.DEFAULT_SEPARATOR))
+    parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
+    parser.add_argument('-o', '--output', help="Output (clean) data storage directory",
+                        default=settings.DEFAULT_OUTPUT_DIR)
 
     args = parser.parse_args()
 
     return args
 
 
-def download_data(session, date: datetime.date, sampling_feature: str):
+def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
     data = session.get_observation_date(date=date, params={'featureOfInterest': sampling_feature})
 
     suffix = sampling_feature.rpartition('/')[2]
-    path = utils.build_path(date=date, ext='xml', sub_dir=settings.RAW_SUB_DIR,
-                            suffix=suffix)
+    path = utils.build_path(date=date, ext='xml', directory=directory, suffix=suffix)
 
     # Serialise
     with open(path, 'w') as file:
@@ -55,14 +55,14 @@ def download_data(session, date: datetime.date, sampling_feature: str):
     return data
 
 
-def get_data(session, date: datetime.date, sampling_features: iter) -> iter:
+def get_data(session, date: datetime.date, sampling_features: iter, directory: str) -> iter:
     """
     :rtype: iter[OrderedDict]
     """
     n = 0
 
     for sampling_feature in sampling_features:
-        data = download_data(session=session, date=date, sampling_feature=sampling_feature)
+        data = download_data(session=session, date=date, sampling_feature=sampling_feature, directory=directory)
 
         try:
             parser = parsers.AirQualityParser(data)
@@ -154,7 +154,7 @@ def transform_row(row: OrderedDict) -> OrderedDict:
     row['timestamp'] = row.pop('EndTime')
 
     # Lower case keys
-    row = {key.casefold(): value for key, value in row.items()}
+    row = OrderedDict(((key.casefold(), value) for key, value in row.items()))
 
     # Get station ID from station URL by getting the final item from the URL path (after the last slash)
     # e.g. "http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R" becomes "GB_Station_GB0037R"
@@ -207,6 +207,10 @@ def pivot(rows: iter) -> iter:
     return _rows.values()
 
 
+def sort(rows: iter, key='timestamp') -> iter:
+    yield from sorted(rows, key=lambda row: row[key])
+
+
 def serialise(rows, path, **kwargs):
     """Write to CSV file"""
 
@@ -236,15 +240,16 @@ def main():
 
     # Retrieve raw data
     session = http_session.SensorSession()
-    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES)
+    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
 
     # Clean data
     rows = filter_n(filter_row, rows)
     rows = transform(rows)
     rows = filter_n(validate, rows)
     rows = pivot(rows)
+    rows = sort(rows)
 
-    path = utils.build_path(date=args.date, ext='csv', sub_dir=settings.OUTPUT_SUB_DIR)
+    path = utils.build_path(date=args.date, ext='csv', directory=args.output)
     serialise(rows, path=path)
 
 

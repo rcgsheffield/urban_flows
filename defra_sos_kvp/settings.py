@@ -1,10 +1,6 @@
-DATE_FORMAT = '%Y-%m-%d'
+import os.path
 
-BOUNDING_BOX = (
-    # Lat, long
-    (53.517, -1.766),
-    (53.238, -1.095),
-)
+DATE_FORMAT = '%Y-%m-%d'
 
 # List generated using metadata utility script
 SAMPLING_FEATURES = {
@@ -191,7 +187,7 @@ SAMPLING_FEATURES = {
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_944',
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_2211',
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_785836',
-    'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_943', 'missingFOI',
+    'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_943',
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_983',
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_2158',
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_1841',
@@ -274,9 +270,10 @@ SAMPLING_FEATURES = {
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_2201',
 }
 
-DATA_DIR = 'data'
-RAW_SUB_DIR = 'raw'
-OUTPUT_SUB_DIR = 'todb'
+# Build default serialisation directories
+DEFAULT_DATA_DIR = 'data'
+DEFAULT_RAW_DIR = os.path.join(DEFAULT_DATA_DIR, 'raw')
+DEFAULT_OUTPUT_DIR = os.path.join(DEFAULT_DATA_DIR, 'todb')
 
 OUTPUT_HEADERS = (
     'timestamp',
@@ -295,3 +292,4 @@ OUTPUT_HEADERS = (
 REGION_OF_INTEREST = 17
 
 NULL = -32768
+DEFAULT_SEPARATOR = '|'

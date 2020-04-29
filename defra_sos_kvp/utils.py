@@ -31,8 +31,9 @@ def parse_timestamp(timestamp: str) -> datetime.datetime:
     return arrow.get(timestamp).datetime
 
 
-def build_path(date: datetime.date, sub_dir: str, ext: str, suffix: str = ''):
-    output_dir = os.path.join(settings.DATA_DIR, sub_dir, *date.isoformat().split('-'))
+def build_path(date: datetime.date, directory: str, ext: str, suffix: str = ''):
+    # Convert 2000-01-01 to 2000/01/01
+    output_dir = os.path.join(directory, *date.isoformat().split('-'))
     os.makedirs(output_dir, exist_ok=True)
 
     if suffix:
