@@ -8,6 +8,7 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
+
 class Asset:
     """
     A physical asset registered to the Urban Flows Observatory

@@ -1,6 +1,6 @@
 from http_session import FloodSession
 import csv
-from utils import build_dir
+from utils import make_dir
 import logging
 import http_session
 
@@ -16,7 +16,7 @@ class FloodHarvestor(object):
         self.distance = distance
         self.update_meta = update_meta
         self.output_meta = output_meta
-        build_dir(self.output_meta)
+        make_dir(self.output_meta)
 
         self.logger = logger
 

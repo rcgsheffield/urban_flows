@@ -1,51 +1,61 @@
 """
-Random utility functions
+Utility functions
 """
 
-import os
-import argparse
-from datetime import datetime
-import json
+import datetime
+import os.path
+import statistics
+
+import arrow
+
+DATE_FORMAT = '%Y-%m-%d'
+
+STATIONS_FILE = 'stations.txt'
+MEASURES_FILE = 'measures.txt'
 
 
-def build_dir(path):
+def date(s: str) -> datetime.date:
+    return datetime.datetime.strptime(s, DATE_FORMAT).date()
+
+
+def make_dir(path: str):
     """Build directories for a given path"""
-    os.makedirs(path, exist_ok=True)
+    directory = os.path.dirname(path)
+
+    if directory:
+        os.makedirs(directory, exist_ok=True)
 
 
-def build_output_dir_for_meta(root_output_dir, folder_name):
-    """Prepare output directory for meta"""
-
-    output_dir = "{}/{}".format(root_output_dir, folder_name)
-    os.makedirs(output_dir, exist_ok=True)
-    return output_dir
-
-
-def build_output_dir_for_data(root_output_dir, date: str) -> str:
-    """Prepare output directory for each date"""
-
-    output_dir = os.path.join(root_output_dir, *date.split('-'))
-    os.makedirs(output_dir, exist_ok=True)
-    return output_dir
+def load_lines(path: str) -> iter:
+    """Load line from a text file"""
+    with open(path) as file:
+        # Strip whitespace
+        yield from map(str.strip, file.readlines())
 
 
-def get_args(description, args=None) -> argparse.Namespace:
-    """Command-line arguments"""
+def get_stations(path: str = STATIONS_FILE) -> iter:
+    return load_lines(path)
 
-    parser = argparse.ArgumentParser(description=description)
-    parser.add_argument('-d', '--date', required=True, type=lambda s: datetime.strptime(s, '%Y-%m-%d'),
-                        help="ISO UTC date")
-    parser.add_argument('-od', '--output_data', required=True, type=str, help="Output CSV file path")
-    parser.add_argument('-k', '--distance', type=int, help="Radius distance (km)", default=30)
-    parser.add_argument('-um', '--update_meta', type=lambda x: (str(x).lower() == 'true'),
-                                                          help="True if update the metadata", default=False)
-    parser.add_argument('-om', '--output_meta', type=str, help="Output folder path for metadata files",
-                        default="meta")
-    parser.add_argument('-v', '--verbose', type=lambda x: (str(x).lower() == 'true'),
-                        help="Debug logging mode", default=False)
-    parser.add_argument('-ad', '--assets-dir', type=str, help="Assets directory",default="assets")
 
-    args = parser.parse_args(args=args)
+def get_measures(path: str = MEASURES_FILE) -> iter:
+    return load_lines(path)
 
-    return args
 
+def parse_timestamp(timestamp: str) -> str:
+    return arrow.get(timestamp).datetime.isoformat()
+
+
+def parse_value(value: str) -> float:
+    try:
+        return float(value)
+    except ValueError:
+        return parse_multiple_values(value)
+
+
+def parse_multiple_values(values: str, sep: str = '|') -> float:
+    """Some values look like '0.121|0.130|0.017|-0.033|0.053|0.116|3.390|0.015' for some reason"""
+    # Parse all values
+    values = map(float, values.split(sep))
+
+    # Take the mean average
+    return statistics.mean(values)

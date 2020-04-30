@@ -1,10 +1,9 @@
-"""Flood Session"""
-
-import requests
-import urllib.parse
 import logging
+import urllib.parse
+import requests
 
 LOGGER = logging.getLogger(__name__)
+
 
 class FloodSession(requests.Session):
     """
@@ -13,13 +12,10 @@ class FloodSession(requests.Session):
     https://environment.data.gov.uk/flood-monitoring/doc/reference
     """
 
-    def _call(self, base_url, endpoint, **kwargs) -> requests.Response:
-        """Base request"""
+    BASE_URL = 'https://environment.data.gov.uk/flood-monitoring/id/'
 
-        # Build URL
-        url = urllib.parse.urljoin(base_url, endpoint)
-
-        response = self.get(url, **kwargs)
+    def request(self, *args, **kwargs):
+        response = super().request(*args, **kwargs)
 
         # HTTP errors
         try:
@@ -31,22 +27,36 @@ class FloodSession(requests.Session):
 
         return response
 
-    def call(self, base_url: str, endpoint: str, **kwargs) -> dict:
+    @classmethod
+    def build_url(cls, endpoint: str) -> str:
+        return urllib.parse.urljoin(cls.BASE_URL, endpoint)
+
+    def _call(self, endpoint, **kwargs) -> requests.Response:
+        """Base request"""
+
+        url = self.build_url(endpoint)
+
+        return self.get(url=url, **kwargs)
+
+    def call(self, endpoint: str, **kwargs) -> dict:
         """Call JSON endpoint"""
 
-        response = self._call(base_url, endpoint, **kwargs)
+        response = self._call(endpoint=endpoint, **kwargs)
 
         data = response.json()
 
+        LOGGER.debug("Context: %s", data['@context'])
         for meta, value in data['meta'].items():
-            LOGGER.debug("META %s: %s", meta, value)
+            LOGGER.debug("Meta: %s: %s", meta, value)
 
         return data
 
-    def call_iter(self, base_url: str, endpoint: str, **kwargs) -> iter:
+    def call_iter(self, endpoint: str, **kwargs) -> iter:
         """Generate lines of data"""
 
-        response = self._call(base_url, endpoint, stream=True, **kwargs)
+        response = self._call(endpoint=endpoint, stream=True, **kwargs)
+
+        if response.encoding is None:
+            response.encoding = 'utf-8'
 
         yield from response.iter_lines(decode_unicode=True)
-

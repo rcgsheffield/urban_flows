@@ -1,7 +1,0 @@
-requests
-json
-pandas
-requests
-argparse
-csv
-http_session
