@@ -12,9 +12,10 @@ import utils
 from collections import OrderedDict
 
 DESCRIPTION = """
-This is a harvester to retrieve data from the DEFRA UK-AIR
-[Sensor Observation Service](https://uk-air.defra.gov.uk/data/about_sos) via their API using the key-value pair (KVP)
-binding.
+This is a harvester to retrieve data from the DEFRA UK-AIR Sensor Observation Service via their API using the key-value
+pair (KVP) binding.
+
+https://uk-air.defra.gov.uk/data/about_sos
 """
 
 USAGE = """
@@ -24,13 +25,16 @@ python . --date 2020-01-01
 LOGGER = logging.getLogger(__name__)
 
 
+class UrbanDialect(csv.excel):
+    """CSV output format for the Urban Flows Observatory"""
+    delimiter = settings.DEFAULT_SEPARATOR
+
+
 def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
-    parser.add_argument('-s', '--sep', type=str, default=settings.DEFAULT_SEPARATOR,
-                        help="Output CSV separator (default: {})".format(settings.DEFAULT_SEPARATOR))
     parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
     parser.add_argument('-o', '--output', help="Output (clean) data storage directory",
                         default=settings.DEFAULT_OUTPUT_DIR)
@@ -219,7 +223,7 @@ def serialise(rows, path, **kwargs):
     LOGGER.info("Writing CSV with headers: %s", fieldnames)
 
     with open(path, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames, **kwargs)
+        writer = csv.DictWriter(file, fieldnames=fieldnames, dialect=UrbanDialect, **kwargs)
 
         n = 0
         for row in rows:
