@@ -6,6 +6,20 @@ This script retrieves data from the [Environment Agency Real Time flood-monitori
 
 # Usage
 
+To get help:
+
+```bash
+$ python . --help
+$ python metadata.py --help
+```
+
+The configure the pipeline, the files `sites.txt` and `measures.txt` are required. These files contain a list of the URIs for the resources that should be accessed. To generate these files, run the `metadata.py` script as shown below:
+
+```bash
+$ python metadata.py --stations > stations.txt
+$ python metadata.py --measures > measures.txt
+```
+
 To run the pipeline, specify the date and the output file.
 
 ```bash
