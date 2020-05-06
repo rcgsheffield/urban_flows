@@ -69,8 +69,9 @@ class Asset:
 class Site(Asset):
     """Physical location"""
 
-    def __init__(self, site_id, latitude: float, longitude: float, altitude: float, address, city, country, postcode,
-                 first_date: datetime.date, operator: dict, desc_url: str):
+    def __init__(self, site_id, latitude: float, longitude: float, altitude: float = None, address=None, city=None,
+                 country=None, postcode=None, first_date: datetime.date = None, operator: dict = None,
+                 desc_url: str = None):
         """
         Sensor site (physical location) registered to the Urban Flows Observatory
 
@@ -129,6 +130,9 @@ class Sensor(Asset):
                  first_date=None, datoz18_handle=None, desc_url=None, iot_import_ip=None, iot_import_port=None,
                  iot_import_token=None, iot_import_username=None, iot_import_password=None, iot_export_ip=None,
                  iot_export_port=None, iot_export_token=None, iot_export_username=None, iot_export_password=None):
+        """
+        detectors = dict(name:xxx|unit:xxx|epsilon:xxx)
+        """
         self.id = sensor_id
         self._provider = provider
         self.serial_number = serial_number
