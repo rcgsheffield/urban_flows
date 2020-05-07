@@ -11,6 +11,8 @@ $ python metadata.py --help
 
 # Usage
 
+By default, the scripts will attempt to load a configuration file named `earthsense.cfg` in the user's home directory. A sample configuration file is provided in this repository named `earthsense.sample.cfg`.
+
 To download data:
 
 ```bash
