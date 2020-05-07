@@ -7,6 +7,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class ZephyrSession(requests.Session):
+    """
+    EarthSense Zephyr API HTTP session
+    """
+
     BASE_URL = "https://data.earthsense.co.uk/"
     # UTC time YYYYMMDDhhmm
     TIME_FORMAT = "%Y%m%d%H%M"
@@ -51,11 +55,15 @@ class ZephyrSession(requests.Session):
         except KeyError:
             pass
 
+        for key, value in data.items():
+            LOGGER.debug("RESPONSE %s: %s", key, value)
+
         return data
 
     @property
     def version(self) -> dict:
-        return self.call('APIVersion').json()
+        """API version"""
+        return self.call('APIVersion')
 
     def iter_data(self, device_id: int, slot: str, start_time: datetime.datetime, end_time: datetime.datetime) -> iter:
         """Stream instrument data"""
