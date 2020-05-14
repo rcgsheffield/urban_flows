@@ -15,7 +15,7 @@ The data are transformed into a format appropriate for the [Urban Flows Observat
 To create a virtual environment with the required packages, create an Conda environment as follows:
 
 ```bash
-conda create --name <my_environment> --file requirements.txt
+conda create --name <my_environment> --file environment.yml
 ```
 
 The pipeline is configured using the values specified in `the_things_network.cfg`.
