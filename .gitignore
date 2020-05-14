@@ -1,6 +1,5 @@
-.idea
 __pycache__
-assets/
+.idea
+cache.sqlite
 test.csv
 .ipynb_checkpoints
-cache.sqlite
