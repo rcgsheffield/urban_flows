@@ -25,6 +25,6 @@ The pipeline is configured using the values specified in `the_things_network.cfg
 To get help:
 
 ```bash
-$ python download.py --help
-$ python metadata.py --help
+$ python ufttn --help
+$ python ufttn.metadata --help
 ```
