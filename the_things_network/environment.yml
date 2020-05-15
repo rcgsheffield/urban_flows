@@ -6,4 +6,4 @@ dependencies:
   - requests=2.23
   - pip
   - pip:
-    - git+https://github.com/Joe-Heffer-Shef/ufmetadata.git
+    - ufmetadata
