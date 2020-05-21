@@ -51,6 +51,12 @@ class Object:
     def delete(self, session):
         return session.delete(self.url)
 
+    def load(self, session):
+        """Retrieve object data and set attributes"""
+        obj = self.get(session)
+        for name, value in obj.items():
+            setattr(self, name, value)
+
 
 class Location(Object):
     """A location represents a collection on sensors at set of co-ordinates."""
@@ -72,20 +78,6 @@ class Location(Object):
         url = self.urljoin('sensors')
         return session.get(url)
 
-    @classmethod
-    def update(cls, session, name, **kwargs):
-        return super().update(session=session, json=dict(name=name), **kwargs)
-
-
-class Reading(Object):
-    """A reading represents a measurement taken by a Sensor/Device at a point in time."""
-
-    @staticmethod
-    def interval(interval: datetime.timedelta) -> str:
-        """Convert time difference into a portal time interval"""
-        minutes = int(interval.total_seconds() / 60)
-        return '{}m'.format(minutes)
-
 
 class Sensor(Object):
     """A Sensor represents a device which takes measurements/readings"""
@@ -101,6 +93,46 @@ class Sensor(Object):
         return session.post(url, json=dict(sensor_category_id=sensor_category_id))
 
 
+class ReadingCategory(Object):
+    """A Reading Category is a way of categorising Reading Types which will allow users to filter their results.
+    E.g. Weather, Traffic."""
+    pass
+
+
+class ReadingType(Object):
+    """A Reading Type represent a type of measurement, E.g. co2, NO,"""
+
+    def add_reading_category(self, session, reading_category_id: int):
+        """Add a Reading Type to a Reading Category"""
+        url = self.urljoin('add-reading-category')
+        return session.post(url, json=dict(reading_category_id=reading_category_id))
+
+    def remove_reading_category(self, session, reading_category_id: int):
+        """Remove a Reading Type from a Reading Category"""
+        url = self.urljoin('remove-reading-category')
+        return session.post(url, json=dict(reading_category_id=reading_category_id))
+
+
 class SensorType(Object):
     """A Sensor Type represents a type of device. This could be based on model number, brand etc."""
     pass
+
+
+class SensorCategory(Object):
+    pass
+
+
+class Reading(Object):
+    """A reading represents a measurement taken by a Sensor/Device at a point in time."""
+
+    @staticmethod
+    def interval(interval: datetime.timedelta) -> str:
+        """Convert time difference into a portal time interval"""
+        minutes = int(interval.total_seconds() / 60)
+        return '{}m'.format(minutes)
+
+    @classmethod
+    def store_bulk(cls, session, readings):
+        """Bulk Store up to 100 Readings"""
+        url = cls.build_url('bulk')
+        return session.post(url, json=dict(readings=readings))
