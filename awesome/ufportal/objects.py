@@ -15,6 +15,9 @@ class AwesomeObject:
     def __init__(self, identifier):
         self.identifier = identifier
 
+    def __repr__(self):
+        return '{}({})'.format(self.__class__.__name__, self.identifier)
+
     @classmethod
     def build_url(cls, *args, **kwargs) -> str:
         return urllib.parse.urljoin(cls.BASE_URL, *args, **kwargs)
@@ -27,13 +30,13 @@ class AwesomeObject:
         return self.build_url(self.build_endpoint(self.identifier))
 
     @classmethod
+    def build_endpoint(cls, identifier) -> str:
+        return '{}/{}'.format(cls.edge, identifier)
+
+    @classmethod
     def list(cls, session):
         url = cls.build_url(cls.edge)
         yield from session.get_iter(url=url)
-
-    @classmethod
-    def build_endpoint(cls, identifier) -> str:
-        return '{}/{}'.format(cls.edge, identifier)
 
     @classmethod
     def show(cls, session, identifier):
@@ -70,7 +73,7 @@ class AwesomeObject:
 
 class Location(AwesomeObject):
     """A location represents a collection on sensors at set of co-ordinates."""
-    edge = 'locations/'
+    edge = 'locations'
 
     def readings(self, session, start: datetime.datetime, end: datetime.datetime, interval: datetime.timedelta):
         url = self.urljoin('readings')
@@ -91,6 +94,7 @@ class Location(AwesomeObject):
 
 class Sensor(AwesomeObject):
     """A Sensor represents a device which takes measurements/readings"""
+    edge = 'sensors'
 
     def add_sensor_category(self, session, sensor_category_id: int):
         """Add a Sensor to a Sensor Category"""
@@ -139,7 +143,7 @@ class Reading(AwesomeObject):
 
     @staticmethod
     def interval(interval: datetime.timedelta) -> str:
-        """Convert time difference into a portal time interval"""
+        """Convert time difference into a portal time interval e.g. '5m'"""
         minutes = int(interval.total_seconds() / 60)
         return '{}m'.format(minutes)
 
