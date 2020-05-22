@@ -146,3 +146,4 @@ class Reading(Object):
         """Bulk Store up to 100 Readings"""
         url = cls.build_url('bulk')
         return session.post(url, json=dict(readings=readings))
+

@@ -1,9 +1,14 @@
 import logging
 import argparse
-import datetime
+import random
+
+from pprint import pprint
 
 import ufportal.http_session
-from ufportal.objects import Location
+import ufportal.assets
+import ufportal.maps
+import ufportal.awesome_utils
+import ufportal.objects
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,40 +23,27 @@ def get_args():
     return parser.parse_args()
 
 
-def print_locations(session):
-    for location in Location.list(session):
-        print(location)
+def add_location(site, session):
+    location = ufportal.maps.site_to_location(site)
+
+    ufportal.objects.Location.store(session, **location)
 
 
-def add_location(session):
-    data = {
-        "name": "My location",
-        "lat": 52.505897,
-        "lon": -1.300277,
-        "elevation": 100
-    }
+def add_locations(metadata, session):
+    for site in random.sample(list(metadata['sites'].values()), k=3):
+        pprint(site)
 
-    print(Location.store(session, obj=data))
-
-
-def print_location_readings(session, location_id: int):
-    loc = Location(location_id)
-
-    start = datetime.datetime(2020, 1, 1)
-    end = datetime.datetime(2020, 1, 1)
-    interval = datetime.timedelta(minutes=60)
-
-    for reading in loc.readings(session, start, end, interval):
-        print(reading)
+        add_location(site, session)
 
 
 def main():
     args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    session = ufportal.http_session.PortalSession()
+    # metadata = ufportal.assets.get_metadata()
 
-    print_location_readings(session, 963)
+    with ufportal.http_session.PortalSession() as session:
+        ufportal.awesome_utils.print_locations(session)
 
 
 if __name__ == '__main__':
