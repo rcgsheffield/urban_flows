@@ -1,8 +1,14 @@
 import urllib.parse
 import datetime
+import json
 
 
 class Object:
+    """
+    An object on the Awesome platform
+    
+    API documentation: https://ufapidocs.clients.builtonawesomeness.co.uk/
+    """
     BASE_URL = 'https://ufportal.clients.builtonawesomeness.co.uk/api/'
     edge = None
 
@@ -38,10 +44,14 @@ class Object:
         return self.show(session, self.identifier)
 
     @classmethod
-    def store(cls, session, **json):
+    def store(cls, session, **obj):
         url = cls.build_url(cls.edge)
-        # TODO fix this error 500
-        return session.post(url, json=json)
+        try:
+            return session.post(url, json=obj)
+
+        # This POST request redirects to the HTML home page, so just return empty
+        except json.JSONDecodeError:
+            return dict()
 
     @classmethod
     def update(cls, session, **kwargs):
