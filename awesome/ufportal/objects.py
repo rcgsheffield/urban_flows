@@ -3,7 +3,7 @@ import datetime
 import json
 
 
-class Object:
+class AwesomeObject:
     """
     An object on the Awesome platform
     
@@ -68,7 +68,7 @@ class Object:
             setattr(self, name, value)
 
 
-class Location(Object):
+class Location(AwesomeObject):
     """A location represents a collection on sensors at set of co-ordinates."""
     edge = 'locations/'
 
@@ -89,7 +89,7 @@ class Location(Object):
         return session.get(url)
 
 
-class Sensor(Object):
+class Sensor(AwesomeObject):
     """A Sensor represents a device which takes measurements/readings"""
 
     def add_sensor_category(self, session, sensor_category_id: int):
@@ -103,13 +103,13 @@ class Sensor(Object):
         return session.post(url, json=dict(sensor_category_id=sensor_category_id))
 
 
-class ReadingCategory(Object):
+class ReadingCategory(AwesomeObject):
     """A Reading Category is a way of categorising Reading Types which will allow users to filter their results.
     E.g. Weather, Traffic."""
     pass
 
 
-class ReadingType(Object):
+class ReadingType(AwesomeObject):
     """A Reading Type represent a type of measurement, E.g. co2, NO,"""
 
     def add_reading_category(self, session, reading_category_id: int):
@@ -123,16 +123,16 @@ class ReadingType(Object):
         return session.post(url, json=dict(reading_category_id=reading_category_id))
 
 
-class SensorType(Object):
+class SensorType(AwesomeObject):
     """A Sensor Type represents a type of device. This could be based on model number, brand etc."""
     pass
 
 
-class SensorCategory(Object):
+class SensorCategory(AwesomeObject):
     pass
 
 
-class Reading(Object):
+class Reading(AwesomeObject):
     """A reading represents a measurement taken by a Sensor/Device at a point in time."""
 
     @staticmethod
@@ -146,4 +146,3 @@ class Reading(Object):
         """Bulk Store up to 100 Readings"""
         url = cls.build_url('bulk')
         return session.post(url, json=dict(readings=readings))
-
