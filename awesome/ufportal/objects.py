@@ -106,11 +106,12 @@ class Sensor(AwesomeObject):
 class ReadingCategory(AwesomeObject):
     """A Reading Category is a way of categorising Reading Types which will allow users to filter their results.
     E.g. Weather, Traffic."""
-    pass
+    edge = 'reading-categories'
 
 
 class ReadingType(AwesomeObject):
     """A Reading Type represent a type of measurement, E.g. co2, NO,"""
+    edge = 'reading-types'
 
     def add_reading_category(self, session, reading_category_id: int):
         """Add a Reading Type to a Reading Category"""
@@ -125,15 +126,16 @@ class ReadingType(AwesomeObject):
 
 class SensorType(AwesomeObject):
     """A Sensor Type represents a type of device. This could be based on model number, brand etc."""
-    pass
+    edge = 'sensor-types'
 
 
 class SensorCategory(AwesomeObject):
-    pass
+    edge = 'sensor-categories'
 
 
 class Reading(AwesomeObject):
     """A reading represents a measurement taken by a Sensor/Device at a point in time."""
+    edge = 'readings'
 
     @staticmethod
     def interval(interval: datetime.timedelta) -> str:
