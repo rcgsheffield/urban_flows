@@ -167,7 +167,7 @@ class ReadingCategory(AwesomeObject):
 
 
 class ReadingType(AwesomeObject):
-    """A Reading Type represent a type of measurement, E.g. co2, NO,"""
+    """A Reading Type represent a type of measurement, E.g. CO2, NO,"""
     edge = 'reading-types'
 
     def add_reading_category(self, session, reading_category_id: int):

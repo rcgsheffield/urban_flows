@@ -23,16 +23,6 @@ def print_location_readings(session, location_id: int):
         print(reading)
 
 
-def build_location_index(session) -> iter:
-    """
-    Map key-value pairs to map location name to location identifier
-
-    Usage: locations = dict(ufportal.awesome_utils.build_location_index(session))
-    """
-    for loc in Location.list(session):
-        yield loc['name'], loc['id']
-
-
 def print_reading_categories(session):
     for cat in ReadingCategory.list(session):
         print(cat)

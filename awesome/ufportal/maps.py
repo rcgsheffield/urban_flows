@@ -41,15 +41,24 @@ def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
     )
 
 
-def row_to_readings(row: dict) -> iter:
+def detector_to_reading_type(detector: dict) -> dict:
+    return ufportal.objects.ReadingType.new(
+        name=detector['name'],
+        unit=detector['u'].casefold(),
+        min_value=None,
+        max_value=None,
+    )
+
+
+def row_to_readings(row: dict, sensors, reading_types) -> iter:
     time = row.pop('time')
     sensor = row.pop('sensor')
-    site_id = row.pop('site_id')
+    del row['site_id']
 
     for key, value in row.items():
         yield ufportal.objects.Reading.new(
+            sensor_id=sensors[sensor],
+            reading_type_id=reading_types[key],
             value=value,
             created=time,
-            reading_type_id=None,
-            sensor_id=None,
         )
