@@ -28,6 +28,6 @@ def get_metadata() -> dict:
         response.raise_for_status()
         metadata = response.json()
 
-        validate(metadata)
+    validate(metadata)
 
-        return metadata
+    return metadata

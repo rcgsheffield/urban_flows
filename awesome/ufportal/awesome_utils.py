@@ -4,23 +4,12 @@ Utility functions (or examples) for working with the Awesome portal API
 
 import datetime
 
-from ufportal.objects import Location
+from ufportal.objects import Location, ReadingCategory
 
 
 def print_locations(session):
     for location in Location.list(session):
         print(location)
-
-
-def add_location(session):
-    data = {
-        "name": "My location",
-        "lat": 52.505897,
-        "lon": -1.300277,
-        "elevation": 100
-    }
-
-    print(Location.store(session, obj=data))
 
 
 def print_location_readings(session, location_id: int):
@@ -42,3 +31,8 @@ def build_location_index(session) -> iter:
     """
     for loc in Location.list(session):
         yield loc['name'], loc['id']
+
+
+def print_reading_categories(session):
+    for cat in ReadingCategory.list(session):
+        print(cat)

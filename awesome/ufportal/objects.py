@@ -1,6 +1,9 @@
+import logging
 import urllib.parse
 import datetime
 import json
+
+LOGGER = logging.getLogger(__name__)
 
 
 class AwesomeObject:
@@ -34,41 +37,66 @@ class AwesomeObject:
         return '{}/{}'.format(cls.edge, identifier)
 
     @classmethod
-    def list(cls, session):
+    def list(cls, session, **kwargs) -> list:
         url = cls.build_url(cls.edge)
-        yield from session.get_iter(url=url)
+        body = session.get(url=url, **kwargs)
+
+        # Make sure this isn't a paginated response
+        if 'links' in body:
+            raise ValueError('Unexpected pagination metadata, use list_iter instead')
+
+        return body['data']
 
     @classmethod
-    def show(cls, session, identifier):
+    def list_iter(cls, session, **kwargs) -> iter:
+        url = cls.build_url(cls.edge)
+        yield from session.get_iter(url=url, **kwargs)
+
+    @classmethod
+    def show(cls, session, identifier, **kwargs):
         url = cls.build_url(cls.build_endpoint(identifier))
-        return session.get(url)
+        return session.get(url, **kwargs)
 
     def get(self, session):
         return self.show(session, self.identifier)
 
     @classmethod
-    def store(cls, session, **obj):
+    def store(cls, session, obj: dict, **kwargs) -> dict:
+
+        LOGGER.debug("Storing %s: %s", cls.__name__, obj)
+
         url = cls.build_url(cls.edge)
         try:
-            return session.post(url, json=obj)
+            return session.post(url, json=obj, **kwargs)
 
         # This POST request redirects to the HTML home page, so just return empty
         except json.JSONDecodeError:
             return dict()
 
     @classmethod
-    def update(cls, session, **kwargs):
+    def update(cls, session, obj, **kwargs):
         url = cls.build_url(cls.edge)
-        return session.patch(url, **kwargs)
+        return session.patch(url, json=obj, **kwargs)
 
-    def delete(self, session):
-        return session.delete(self.url)
+    def delete(self, session, **kwargs):
+        return session.delete(self.url, **kwargs)
 
     def load(self, session):
         """Retrieve object data and set attributes"""
         obj = self.get(session)
         for name, value in obj.items():
             setattr(self, name, value)
+
+    @classmethod
+    def add(cls, session, obj, **kwargs):
+        """Create a new object in the database"""
+        _obj = cls.new(**obj)
+        return cls.store(session, _obj, **kwargs)
+
+    @staticmethod
+    def new(**kwargs) -> dict:
+        """Create a new dictionary  to represent this object"""
+        raise NotImplementedError
 
 
 class Location(AwesomeObject):
@@ -91,6 +119,15 @@ class Location(AwesomeObject):
         url = self.urljoin('sensors')
         return session.get(url)
 
+    @staticmethod
+    def new(name: str, lat: float, lon: float, elevation: int):
+        return dict(
+            name=name,
+            lat=lat,
+            lon=lon,
+            elevation=elevation,
+        )
+
 
 class Sensor(AwesomeObject):
     """A Sensor represents a device which takes measurements/readings"""
@@ -106,11 +143,27 @@ class Sensor(AwesomeObject):
         url = self.urljoin('remove-sensor-category')
         return session.post(url, json=dict(sensor_category_id=sensor_category_id))
 
+    @staticmethod
+    def new(name: str, location_id: int, sensor_type_id: int, active: bool):
+        return dict(
+            name=name,
+            location_id=location_id,
+            sensor_type_id=sensor_type_id,
+            active=active,
+        )
+
 
 class ReadingCategory(AwesomeObject):
     """A Reading Category is a way of categorising Reading Types which will allow users to filter their results.
     E.g. Weather, Traffic."""
     edge = 'reading-categories'
+
+    @staticmethod
+    def new(name: str, icon_name: str):
+        return dict(
+            name=name,
+            icon_name=icon_name,
+        )
 
 
 class ReadingType(AwesomeObject):
@@ -127,14 +180,38 @@ class ReadingType(AwesomeObject):
         url = self.urljoin('remove-reading-category')
         return session.post(url, json=dict(reading_category_id=reading_category_id))
 
+    @staticmethod
+    def new(name: str, min_value: float, max_value: float, unit: str):
+        return dict(
+            name=name,
+            min_value=min_value,
+            max_value=max_value,
+            unit=unit,
+        )
+
 
 class SensorType(AwesomeObject):
     """A Sensor Type represents a type of device. This could be based on model number, brand etc."""
     edge = 'sensor-types'
 
+    @staticmethod
+    def new(name: str, manufacturer: str, rating: int):
+        return dict(
+            name=name,
+            manufacturer=manufacturer,
+            rating=rating,
+        )
+
 
 class SensorCategory(AwesomeObject):
     edge = 'sensor-categories'
+
+    @staticmethod
+    def new(name: str, icon_name: str):
+        return dict(
+            name=name,
+            icon_name=icon_name,
+        )
 
 
 class Reading(AwesomeObject):
@@ -152,3 +229,12 @@ class Reading(AwesomeObject):
         """Bulk Store up to 100 Readings"""
         url = cls.build_url('bulk')
         return session.post(url, json=dict(readings=readings))
+
+    @classmethod
+    def new(cls, value: float, created: str, reading_type_id: int, sensor_id: int) -> dict:
+        return dict(
+            value=value,
+            created=created,
+            reading_type_id=reading_type_id,
+            sensor_id=sensor_id,
+        )

@@ -29,6 +29,13 @@ class PortalSession(requests.Session):
     def request(self, *args, **kwargs) -> dict:
         response = super().request(*args, **kwargs)
 
+        # Log payload
+        for key in ('data', 'json', 'params'):
+            try:
+                LOGGER.debug("%s %s", key.upper(), kwargs[key])
+            except KeyError:
+                pass
+
         # Log HTTP headers
         for header, value in response.headers.items():
             LOGGER.debug("RESPONSE %s: %s", header, value)
