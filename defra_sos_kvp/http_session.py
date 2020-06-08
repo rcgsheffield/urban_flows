@@ -209,8 +209,33 @@ class DefraMeta(requests.Session):
         return self.call('group')
 
     def site_processes(self, region_id: int, group_id: int) -> list:
-        params = dict(
-            group_id=group_id,
-            region_id=region_id,
-        )
+        params = dict(group_id=group_id, region_id=region_id)
         return self.call('site-process-featureofinterest-by-region', params=params)
+
+    def get_sites_by_region(self, region_id: int) -> iter:
+        for group_id, group in self.groups.items():
+            LOGGER.info("Group %s: %s", group_id, group[0])
+
+            for site in self.site_processes(region_id, group_id=group_id):
+                LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
+                yield site
+
+    def get_sampling_points_by_region(self, region_id: int) -> set:
+        sampling_points = set()
+
+        for site in self.get_sites_by_region(region_id=region_id):
+
+            for parameter in site['parameter_ids']:
+                sampling_points.add(parameter['sampling_point'])
+
+        return sampling_points
+
+    def get_features_of_interest_by_region(self, region_id: int) -> set:
+        sampling_features = set()
+
+        for site in self.get_sites_by_region(region_id=region_id):
+            for parameter in site['parameter_ids']:
+                for feature_of_interest in parameter['feature_of_interest']:
+                    sampling_features.add(feature_of_interest['featureOfInterset'])
+
+        return sampling_features

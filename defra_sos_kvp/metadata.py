@@ -24,35 +24,24 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
     parser.add_argument('-s', '--sampling', action='store_true', help='List sampling points')
+    parser.add_argument('-f', '--features', action='store_true', help='List features of interest')
     parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
+    parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST,
+                        help='Region of interest https://uk-air.defra.gov.uk/data/API/local-authority-region')
 
     args = parser.parse_args()
 
     return parser, args
 
 
-def get_sampling_points_by_region(region_id):
-    session = http_session.DefraMeta()
-
-    sampling_points = set()
-
-    for group_id, group in session.groups.items():
-
-        LOGGER.info("Group %s: %s", group_id, group[0])
-
-        for site in session.site_processes(region_id, group_id=group_id):
-            LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
-
-            for parameter in site['parameter_ids']:
-                sampling_point = parameter['sampling_point']
-                sampling_points.add(sampling_point)
-
-    return sampling_points
+def clean_station_id(station_id: str) -> str:
+    """Remove redundant part of station identifier string"""
+    return station_id.partition('Station_GB')[2]
 
 
 def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
     site = ufmetadata.assets.Site(
-        site_id=station.id,
+        site_id=clean_station_id(station.id),
         latitude=station.coordinates[0],
         longitude=station.coordinates[1],
         altitude=station.coordinates[2],
@@ -79,7 +68,7 @@ def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
 
 def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.assets.Sensor:
     sensor = ufmetadata.assets.Sensor(
-        sensor_id=station.id,
+        sensor_id=clean_station_id(station.id),
         family='DEFRA',
         detectors=list(map(build_detector, sampling_points)),
         first_date=station.start_time,
@@ -93,9 +82,14 @@ def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.
 
 
 def get_stations(session, sampling_point_urls: set) -> dict:
+    """Get unique stations by iterating over sampling points"""
+
+    LOGGER.info("Retrieving station information...")
+
     stations = dict()
 
     for sampling_point_url in sampling_point_urls:
+        LOGGER.debug("Sampling point %s", sampling_point_url)
 
         data = parsers.SpatialObject.get(session=session, url=sampling_point_url)
 
@@ -124,18 +118,19 @@ def get_stations(session, sampling_point_urls: set) -> dict:
     return stations
 
 
-def get_metadata():
-    session = http_session.SensorSession()
-    stations = get_stations(session=session, sampling_point_urls=settings.SAMPLING_FEATURES)
+def get_metadata(session, sampling_point_urls: set):
+    stations = get_stations(session=session, sampling_point_urls=sampling_point_urls)
 
     for station_url, station_meta in stations.items():
         station = station_meta['station']
 
         LOGGER.info("Station: %s %s", station, station.coordinates)
 
+        # Site
         site = build_site(station)
         site.save()
 
+        # Sensor
         sampling_points = station_meta['sampling_points'].values()
         sensor = build_sensor(station, sampling_points)
         sensor.save()
@@ -145,10 +140,16 @@ def main():
     parser, args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    if args.sampling:
-        print(get_sampling_points_by_region(settings.REGION_OF_INTEREST))
+    if args.sampling or args.features:
+        session = http_session.DefraMeta()
+        if args.sampling:
+            print(session.get_sampling_points_by_region(args.region))
+        elif args.features:
+            print(session.get_features_of_interest_by_region(args.region))
     elif args.meta:
-        get_metadata()
+        session = http_session.SensorSession()
+        sampling_point_urls = http_session.DefraMeta().get_sampling_points_by_region(region_id=args.region)
+        get_metadata(session=session, sampling_point_urls=sampling_point_urls)
     else:
         parser.print_help()
 

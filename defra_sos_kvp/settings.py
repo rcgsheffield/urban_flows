@@ -271,9 +271,7 @@ SAMPLING_FEATURES = {
 }
 
 # Build default serialisation directories
-DEFAULT_DATA_DIR = 'data'
-DEFAULT_RAW_DIR = os.path.join(DEFAULT_DATA_DIR, 'raw')
-DEFAULT_OUTPUT_DIR = os.path.join(DEFAULT_DATA_DIR, 'todb')
+DEFAULT_RAW_DIR = os.path.join('data', 'raw')
 
 OUTPUT_HEADERS = (
     'timestamp',
@@ -291,5 +289,6 @@ OUTPUT_HEADERS = (
 # South Yorkshire
 REGION_OF_INTEREST = 17
 
+# CSV options
 NULL = -32768
 DEFAULT_SEPARATOR = '|'

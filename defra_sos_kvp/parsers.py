@@ -332,7 +332,7 @@ class ResultParser(XMLParser):
         if n_rows != expected_rows:
             raise ValueError('Unexpected number of rows')
 
-        LOGGER.info("Generated %s rows of data", n_rows)
+        LOGGER.debug("Generated %s rows of data", n_rows)
 
 
 class SpatialObject(AirQualityParser):

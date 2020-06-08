@@ -8,6 +8,7 @@ import parsers
 import mappings
 import settings
 import utils
+import metadata
 
 from collections import OrderedDict
 
@@ -36,8 +37,7 @@ def get_args():
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
     parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
-    parser.add_argument('-o', '--output', help="Output (clean) data storage directory",
-                        default=settings.DEFAULT_OUTPUT_DIR)
+    parser.add_argument('-o', '--output', help="Output (clean) data file path")
 
     args = parser.parse_args()
 
@@ -54,7 +54,7 @@ def download_data(session, date: datetime.date, sampling_feature: str, directory
     with open(path, 'w') as file:
         file.write(data)
 
-        LOGGER.info("Wrote '%s'", file.name)
+        LOGGER.debug("Wrote '%s'", file.name)
 
     return data
 
@@ -160,9 +160,7 @@ def transform_row(row: OrderedDict) -> OrderedDict:
     # Lower case keys
     row = OrderedDict(((key.casefold(), value) for key, value in row.items()))
 
-    # Get station ID from station URL by getting the final item from the URL path (after the last slash)
-    # e.g. "http://environment.data.gov.uk/air-quality/so/GB_Station_GB0037R" becomes "GB_Station_GB0037R"
-    row['station'] = row['station'].rpartition('/')[2]
+    row['station'] = metadata.clean_station_id(row['station'])
 
     return row
 
@@ -253,8 +251,7 @@ def main():
     rows = pivot(rows)
     rows = sort(rows)
 
-    path = utils.build_path(date=args.date, ext='csv', directory=args.output)
-    serialise(rows, path=path)
+    serialise(rows, path=args.output)
 
 
 if __name__ == '__main__':
