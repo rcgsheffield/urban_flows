@@ -13,10 +13,13 @@ Build metadata for the Urban Flows Observatory asset registry.
 """
 
 USAGE = """
-python metadata.py
+python metadata.py --meta
 """
 
 LOGGER = logging.getLogger(__name__)
+
+COUNTRY = 'United Kingdom'
+FAMILY = 'DEFRA'
 
 
 def get_args():
@@ -48,7 +51,7 @@ def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
         address=station.name,
         city=station.name,
         desc_url=station.info,
-        country='United Kingdom',
+        country=COUNTRY,
         postcode=None,
         first_date=station.start_time,
         operator=dict(url=station.belongs_to),
@@ -69,7 +72,7 @@ def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
 def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.assets.Sensor:
     sensor = ufmetadata.assets.Sensor(
         sensor_id=clean_station_id(station.id),
-        family='DEFRA',
+        family=FAMILY,
         detectors=list(map(build_detector, sampling_points)),
         first_date=station.start_time,
         desc_url=station.info,
@@ -110,17 +113,13 @@ def get_stations(session, sampling_point_urls: set) -> dict:
                 except KeyError:
                     stations[station_url] = dict(
                         station=station,
-                        sampling_points={
-                            sampling_point_url: sampling_point,
-                        }
+                        sampling_points={sampling_point_url: sampling_point}
                     )
 
     return stations
 
 
-def get_metadata(session, sampling_point_urls: set):
-    stations = get_stations(session=session, sampling_point_urls=sampling_point_urls)
-
+def get_metadata(stations):
     for station_url, station_meta in stations.items():
         station = station_meta['station']
 
@@ -141,15 +140,20 @@ def main():
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     if args.sampling or args.features:
-        session = http_session.DefraMeta()
-        if args.sampling:
-            print(session.get_sampling_points_by_region(args.region))
-        elif args.features:
-            print(session.get_features_of_interest_by_region(args.region))
+        with http_session.DefraMeta() as session:
+            if args.sampling:
+                print(session.get_sampling_points_by_region(args.region))
+            elif args.features:
+                print(session.get_features_of_interest_by_region(args.region))
+
     elif args.meta:
-        session = http_session.SensorSession()
-        sampling_point_urls = http_session.DefraMeta().get_sampling_points_by_region(region_id=args.region)
-        get_metadata(session=session, sampling_point_urls=sampling_point_urls)
+
+        with http_session.DefraMeta() as meta_session:
+            sampling_point_urls = meta_session.get_sampling_points_by_region(region_id=args.region)
+
+        with http_session.SensorSession() as session:
+            stations = get_stations(session=session, sampling_point_urls=sampling_point_urls)
+            get_metadata(stations=stations)
     else:
         parser.print_help()
 
