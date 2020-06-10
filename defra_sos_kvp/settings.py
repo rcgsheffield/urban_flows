@@ -286,8 +286,12 @@ OUTPUT_HEADERS = (
     'AQ_NO',
 )
 
-# South Yorkshire
-REGION_OF_INTEREST = 17
+# Metadata
+COUNTRY = 'United Kingdom'
+FAMILY = 'DEFRA'
+
+# Local authority region https://uk-air.defra.gov.uk/data/API/local-authority-region
+REGION_OF_INTEREST = 17  # South Yorkshire
 
 # CSV options
 NULL = -32768
