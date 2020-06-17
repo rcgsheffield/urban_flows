@@ -294,5 +294,4 @@ FAMILY = 'DEFRA'
 REGION_OF_INTEREST = 17  # South Yorkshire
 
 # CSV options
-NULL = -32768
 DEFAULT_SEPARATOR = '|'

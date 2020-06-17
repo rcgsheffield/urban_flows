@@ -37,7 +37,7 @@ def get_args():
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
     parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
-    parser.add_argument('-o', '--output', help="Output (clean) data file path")
+    parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
 
     args = parser.parse_args()
 
@@ -183,7 +183,7 @@ def pivot(rows: iter) -> iter:
     _rows = OrderedDict()
 
     headers = settings.OUTPUT_HEADERS
-    default = {key: settings.NULL for key in headers}
+    default = {key: None for key in headers}
 
     n0 = 0
     for row in rows:

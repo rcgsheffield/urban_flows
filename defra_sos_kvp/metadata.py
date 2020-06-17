@@ -1,9 +1,11 @@
 import argparse
 import logging
-
-import ufmetadata.assets
+import requests
+import csv
+import io
 
 import settings
+import assets
 import http_session
 import parsers
 import mappings
@@ -22,6 +24,30 @@ LOGGER = logging.getLogger(__name__)
 class MissingConceptError(KeyError):
     """This item doesn't exist in the concept mapping"""
     pass
+
+
+def get_pollutant_info(session) -> iter:
+    """
+    Get EIONET Data Dictionary Air quality pollutant vocabulary
+
+
+    http://dd.eionet.europa.eu/vocabulary/aq/pollutant/view
+    """
+
+    # Download file
+    url = 'http://dd.eionet.europa.eu/vocabulary/aq/pollutant/rdf'
+    response = session.get(url)
+    response.raise_for_status()
+
+    ns = parsers.XMLParser.get_namespaces(response.text)
+    print(ns)
+    return parsers.CodelistParser(data=response.content)
+
+
+def build_unit_map(session) -> iter:
+    parser = get_pollutant_info(session)
+    for concept in parser.concepts:
+        yield concept.id, concept.recommended_unit
 
 
 def get_args():
@@ -43,8 +69,8 @@ def clean_station_id(station_id: str) -> str:
     return station_id.partition('Station_GB')[2]
 
 
-def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
-    return ufmetadata.assets.Site(
+def build_site(station: parsers.Station) -> assets.Site:
+    return assets.Site(
         site_id=clean_station_id(station.id),
         latitude=station.coordinates[0],
         longitude=station.coordinates[1],
@@ -59,10 +85,9 @@ def build_site(station: parsers.Station) -> ufmetadata.assets.Site:
     )
 
 
-def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
-    LOGGER.debug(sampling_point.url)
+def map_observed_property(observed_property: str) -> str:
+    """Map an Observed Property to a column name in the Urban Flows system"""
 
-    observed_property = sampling_point.observed_property
     try:
         name = mappings.OBSERVED_PROPERTY_MAP[observed_property]
     except KeyError:
@@ -72,19 +97,46 @@ def build_detector(sampling_point: parsers.SamplingPoint) -> dict:
         else:
             raise MissingConceptError(observed_property)
 
+    return name
+
+
+def map_unit(observed_property, unit_map) -> str:
+    """Map an Observed Property to a unit in the Urban Flows system"""
+    try:
+        unit_uri = unit_map[observed_property]
+    except KeyError:
+        polluant_id = int(observed_property.rpartition('/')[2])
+        if polluant_id >= 10000000:
+            return ''
+        else:
+            raise
+
+    unit = mappings.UNIT_MAP[unit_uri]
+
+    return unit
+
+
+def build_detector(sampling_point: parsers.SamplingPoint, unit_map) -> dict:
+    observed_property = sampling_point.observed_property
+
+    name = map_observed_property(observed_property)
+
     return dict(
         name=name,
-        # TODO automate getting units
-        unit='?',
-        epsilon='?',
+        unit=map_unit(observed_property, unit_map=unit_map),
     )
 
 
-def build_sensor(station: parsers.Station, sampling_points: iter) -> ufmetadata.assets.Sensor:
-    return ufmetadata.assets.Sensor(
+def build_sensor(station: parsers.Station, sampling_points: iter, unit_map: dict) -> assets.Sensor:
+    detectors = [build_detector(sp, unit_map) for sp in sampling_points]
+
+    # Remove unknown detectors
+    detectors = [det for det in detectors if det['name'] != mappings.MISSING]
+
+    return assets.Sensor(
         sensor_id=clean_station_id(station.id),
         family=settings.FAMILY,
-        detectors=[build_detector(sp) for sp in sampling_points],
+        detectors=detectors,
         first_date=station.start_time,
         desc_url=station.info,
         provider=dict(name='Department for Environment, Food and Rural Affairs'),
@@ -120,12 +172,12 @@ def get_stations(session, sampling_point_urls: set) -> dict:
     return stations
 
 
-def get_metadata(stations):
+def get_metadata(stations: iter, unit_map: dict):
     """Make asset configuration files"""
     # Iterate over stations
     for station_url, station_meta in stations.items():
         station = station_meta['station']
-        LOGGER.info("Station: %s %s", station, station.coordinates)
+        LOGGER.debug("Station: %s %s", station, station.coordinates)
 
         # Site
         site = build_site(station)
@@ -133,7 +185,7 @@ def get_metadata(stations):
 
         # Sensor
         sampling_points = station_meta['sampling_points'].values()
-        sensor = build_sensor(station, sampling_points)
+        sensor = build_sensor(station, sampling_points, unit_map)
         sensor.save()
 
 
@@ -150,12 +202,17 @@ def main():
 
     elif args.meta:
 
+        # Get units of measurement
+        with requests.Session() as session:
+            unit_map = dict(build_unit_map(session=session))
+
+        # Get a list of all the chosen sampling points
         with http_session.DefraMeta() as meta_session:
             sampling_point_urls = meta_session.get_sampling_points_by_region(region_id=args.region)
 
         with http_session.SensorSession() as session:
             stations = get_stations(session=session, sampling_point_urls=sampling_point_urls)
-            get_metadata(stations=stations)
+            get_metadata(stations=stations, unit_map=unit_map)
     else:
         parser.print_help()
 

@@ -49,6 +49,11 @@ class XMLParser:
     def __getitem__(self, item):
         return self.root[item]
 
+    def build_attrib_key(self, namespace: str, key: str) -> str:
+        """Build the key for an XML tag attribute dictionary"""
+        ns = self.NAMESPACES[namespace]
+        return "{{{ns}}}{key}".format(ns=ns, key=key)
+
     @staticmethod
     def get_namespaces(data: str) -> dict:
         """Build namespace map"""
@@ -448,3 +453,45 @@ class SamplingPoint(SpatialObject):
     @property
     def observed_property(self):
         return self.find('ef:observingCapability/ef:ObservingCapability/ef:observedProperty').attrib[self.XLINK['href']]
+
+
+class CodelistParser(XMLParser):
+    """EIONET Data Dictionary - INSPIRE code list format"""
+    NAMESPACES = {
+        'default': 'http://dd.eionet.europa.eu/property/',
+        'adms': 'http://www.w3.org/ns/adms#',
+        'skos': 'http://www.w3.org/2004/02/skos/core#',
+        'owl': 'http://www.w3.org/2002/07/owl#',
+        'dcterms': 'http://purl.org/dc/terms/',
+        'rdfs': 'http://www.w3.org/2000/01/rdf-schema#',
+        'dctype': 'http://purl.org/dc/dcmitype/',
+        'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+    }
+
+    @property
+    def concepts(self):
+        for elem in self.iterfind('skos:Concept'):
+            yield Concept(elem)
+
+
+class Concept(CodelistParser):
+    @property
+    def id(self) -> str:
+        key = self.build_attrib_key('rdf', 'about')
+        return self.root.attrib[key]
+
+    @property
+    def _recommended_unit(self):
+        """Get the first recommended unit property"""
+        return self.find('default:recommendedUnit')
+
+    @property
+    def recommended_unit(self):
+        elem = self._recommended_unit
+        try:
+            key = self.build_attrib_key('rdf', 'resource')
+            return elem.attrib[key]
+        # Ignore if there is no recommended unit
+        except AttributeError:
+            if elem:
+                raise
