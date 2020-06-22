@@ -9,8 +9,6 @@ import settings
 
 LOGGER = logging.getLogger(__name__)
 
-USER_AGENT = 'Urban Flows Observatory'
-
 
 class Service:
     # European Air Quality e-Reporting data model
@@ -37,7 +35,7 @@ class SensorSession(requests.Session):
     def __init__(self):
         super().__init__()
 
-        self.headers.update({'User-Agent': USER_AGENT})
+        self.headers.update({'User-Agent': settings.USER_AGENT})
 
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
@@ -169,7 +167,7 @@ class DefraMeta(requests.Session):
 
     def __init__(self):
         super().__init__()
-        self.headers.update({'User-Agent': USER_AGENT})
+        self.headers.update({'User-Agent': settings.USER_AGENT})
 
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
@@ -220,15 +218,45 @@ class DefraMeta(requests.Session):
                 LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
                 yield site
 
-    def get_sampling_points_by_region(self, region_id: int) -> set:
-        sampling_points = set()
+    @staticmethod
+    def point_within_bbox(point: tuple, bbox: list) -> bool:
+        """Check if a point is within a bounding box (GeoJSON format)"""
+        longitude, latitude = point
 
+        # Unpack GeoJSON format
+        bbox = bbox[0]
+
+        # Validate shape
+        if bbox[0] != bbox[4]:
+            raise ValueError("Bounding box is not a closed polygon")
+
+        # Get corners of rectangle
+        bottom_left, _, top_right, _, _ = bbox
+
+        return bottom_left[0] <= longitude <= top_right[0] and bottom_left[1] <= latitude <= top_right[1]
+
+    @classmethod
+    def spatial_filter(cls, sites: iter, bounding_box: list) -> iter:
+        """
+        Filter sites using a longitude-latitude bounding box
+
+        :param sites: A collection of sensor stations
+        :param bounding_box: GeoJSON bounding box
+        """
+        for site in sites:
+            point = float(site['longitude']), float(site['latitude'])
+            if DefraMeta.point_within_bbox(point, bounding_box):
+                yield site
+
+    def get_sampling_points_by_region(self, region_id: int) -> iter:
         for site in self.get_sites_by_region(region_id=region_id):
+            yield from self.get_site_sampling_points(site)
 
-            for parameter in site['parameter_ids']:
-                sampling_points.add(parameter['sampling_point'])
-
-        return sampling_points
+    @classmethod
+    def get_site_sampling_points(cls, site: dict) -> iter:
+        """Get all the sampling points from a site"""
+        for parameter in site['parameter_ids']:
+            yield parameter['sampling_point']
 
     def get_features_of_interest_by_region(self, region_id: int) -> set:
         sampling_features = set()

@@ -1,8 +1,6 @@
 import argparse
 import logging
 import requests
-import csv
-import io
 
 import settings
 import assets
@@ -58,6 +56,7 @@ def get_args():
     parser.add_argument('-f', '--features', action='store_true', help='List features of interest')
     parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
     parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST, help='Region of interest')
+    parser.add_argument('-b', '--box', default=settings.BOUNDING_BOX, help='Bounding box GeoJSON file')
 
     args = parser.parse_args()
 
@@ -189,6 +188,15 @@ def get_metadata(stations: iter, unit_map: dict):
         sensor.save()
 
 
+def get_bbox(path: str) -> list:
+    import json
+    # Load GeoJSON bounding box
+    with open(path) as file:
+        box = json.load(file)
+
+    return box
+
+
 def main():
     parser, args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
@@ -196,7 +204,14 @@ def main():
     if args.sampling or args.features:
         with http_session.DefraMeta() as session:
             if args.sampling:
-                print(session.get_sampling_points_by_region(args.region))
+                bbox = get_bbox(args.box)
+                sites = session.get_sites_by_region(region_id=args.region)
+                LOGGER.info("Spatial filter: %s", bbox)
+                sites = session.spatial_filter(sites=sites, bounding_box=bbox)
+                sampling_points = set()
+                for site in sites:
+                    sampling_points.update(session.get_site_sampling_points(site))
+                print(sampling_points)
             elif args.features:
                 print(session.get_features_of_interest_by_region(args.region))
 
