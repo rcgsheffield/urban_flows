@@ -44,9 +44,7 @@ def get_args():
     return args
 
 
-def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
-    data = session.get_observation_date(date=date, params={'featureOfInterest': sampling_feature})
-
+def store_raw_data(sampling_feature, date, directory, data):
     suffix = sampling_feature.rpartition('/')[2]
     path = utils.build_path(date=date, ext='xml', directory=directory, suffix=suffix)
 
@@ -55,6 +53,11 @@ def download_data(session, date: datetime.date, sampling_feature: str, directory
         file.write(data)
 
         LOGGER.debug("Wrote '%s'", file.name)
+
+
+def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
+    data = session.get_observation_by_date(date=date, params={'featureOfInterest': sampling_feature})
+    store_raw_data(sampling_feature=sampling_feature, date=date, directory=directory, data=data)
 
     return data
 
@@ -242,6 +245,7 @@ def main():
 
     # Retrieve raw data
     session = http_session.SensorSession()
+    LOGGER.info('Retrieving raw data and storing in %s', args.raw)
     rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
 
     # Clean data

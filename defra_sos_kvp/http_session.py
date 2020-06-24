@@ -111,7 +111,7 @@ class SensorSession(requests.Session):
 
         return self.get_observation(params=params, **kwargs)
 
-    def get_observation_date(self, date: datetime.date, **kwargs):
+    def get_observation_by_date(self, date: datetime.date, **kwargs):
         """Retrieve data, filtered by calendar date"""
         start = datetime.datetime.combine(date=date, time=datetime.time.min).replace(tzinfo=datetime.timezone.utc)
         end = start + datetime.timedelta(days=1)
