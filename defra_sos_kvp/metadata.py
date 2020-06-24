@@ -1,6 +1,9 @@
 import argparse
 import logging
 import requests
+import json
+
+from pprint import pprint
 
 import settings
 import assets
@@ -24,10 +27,9 @@ class MissingConceptError(KeyError):
     pass
 
 
-def get_pollutant_info(session) -> iter:
+def get_pollutant_info(session):
     """
     Get EIONET Data Dictionary Air quality pollutant vocabulary
-
 
     http://dd.eionet.europa.eu/vocabulary/aq/pollutant/view
     """
@@ -37,8 +39,7 @@ def get_pollutant_info(session) -> iter:
     response = session.get(url)
     response.raise_for_status()
 
-    ns = parsers.XMLParser.get_namespaces(response.text)
-    print(ns)
+    # Parse XML
     return parsers.CodelistParser(data=response.content)
 
 
@@ -104,8 +105,10 @@ def map_unit(observed_property, unit_map) -> str:
     try:
         unit_uri = unit_map[observed_property]
     except KeyError:
-        polluant_id = int(observed_property.rpartition('/')[2])
-        if polluant_id >= 10000000:
+        pollutant_id = int(observed_property.rpartition('/')[2])
+
+        # Null value
+        if pollutant_id >= 10000000:
             return ''
         else:
             raise
@@ -123,6 +126,7 @@ def build_detector(sampling_point: parsers.SamplingPoint, unit_map) -> dict:
     return dict(
         name=name,
         unit=map_unit(observed_property, unit_map=unit_map),
+        id=sampling_point.id,
     )
 
 
@@ -159,7 +163,6 @@ def get_stations(session, sampling_point_urls: set) -> dict:
             parser = parsers.AirQualityParser(data)
 
             for station in parser.stations:
-                LOGGER.debug("Station ID: %s", station.id)
                 try:
                     stations[station_url]['sampling_points'][sampling_point_url] = sampling_point
                 except KeyError:
@@ -189,7 +192,6 @@ def get_metadata(stations: iter, unit_map: dict):
 
 
 def get_bbox(path: str) -> list:
-    import json
     # Load GeoJSON bounding box
     with open(path) as file:
         box = json.load(file)
@@ -197,23 +199,36 @@ def get_bbox(path: str) -> list:
     return box
 
 
+def get_sites(session, region_id, bbox):
+    # Get sites by location
+    sites = session.get_sites_by_region(region_id=region_id)
+    LOGGER.info("Spatial filter: %s", bbox)
+    yield from session.spatial_filter(sites=sites, bounding_box=bbox)
+
+
+def get_sampling_points(session, region_id: int, bbox) -> iter:
+    for site in get_sites(session, region_id=region_id, bbox=bbox):
+        yield from session.get_site_sampling_points(site)
+
+
+def get_sampling_features(session, region_id: int, bbox) -> iter:
+    for site in get_sites(session, region_id=region_id, bbox=bbox):
+        yield from session.get_site_sampling_features(site)
+
+
 def main():
     parser, args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     if args.sampling or args.features:
+        bbox = get_bbox(args.box)
         with http_session.DefraMeta() as session:
             if args.sampling:
-                bbox = get_bbox(args.box)
-                sites = session.get_sites_by_region(region_id=args.region)
-                LOGGER.info("Spatial filter: %s", bbox)
-                sites = session.spatial_filter(sites=sites, bounding_box=bbox)
-                sampling_points = set()
-                for site in sites:
-                    sampling_points.update(session.get_site_sampling_points(site))
-                print(sampling_points)
+                sampling_points = set(get_sampling_points(session, region_id=args.region, bbox=bbox))
+                pprint(sampling_points)
             elif args.features:
-                print(session.get_features_of_interest_by_region(args.region))
+                sampling_features = set(get_sampling_features(session, region_id=args.region, bbox=bbox))
+                pprint(sampling_features)
 
     elif args.meta:
 
@@ -222,11 +237,12 @@ def main():
             unit_map = dict(build_unit_map(session=session))
 
         # Get a list of all the chosen sampling points
-        with http_session.DefraMeta() as meta_session:
-            sampling_point_urls = meta_session.get_sampling_points_by_region(region_id=args.region)
+        with http_session.DefraMeta() as session:
+            bbox = get_bbox(args.box)
+            sampling_points = get_sampling_points(session, region_id=args.region, bbox=bbox)
 
         with http_session.SensorSession() as session:
-            stations = get_stations(session=session, sampling_point_urls=sampling_point_urls)
+            stations = get_stations(session=session, sampling_point_urls=sampling_points)
             get_metadata(stations=stations, unit_map=unit_map)
     else:
         parser.print_help()

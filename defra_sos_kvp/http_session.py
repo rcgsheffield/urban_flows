@@ -215,7 +215,7 @@ class DefraMeta(requests.Session):
             LOGGER.info("Group %s: %s", group_id, group[0])
 
             for site in self.site_processes(region_id, group_id=group_id):
-                LOGGER.debug("%s: %s", site['site_name'], site['station_identifier'])
+                LOGGER.debug("Site %s %s", site['site_name'], site['station_identifier'])
                 yield site
 
     @staticmethod
@@ -244,6 +244,7 @@ class DefraMeta(requests.Session):
         :param bounding_box: GeoJSON bounding box
         """
         for site in sites:
+
             point = float(site['longitude']), float(site['latitude'])
             if DefraMeta.point_within_bbox(point, bounding_box):
                 yield site
@@ -258,12 +259,17 @@ class DefraMeta(requests.Session):
         for parameter in site['parameter_ids']:
             yield parameter['sampling_point']
 
+    @classmethod
+    def get_site_sampling_features(cls, site: dict) -> iter:
+        """Get all the sampling features from a site"""
+        for parameter in site['parameter_ids']:
+            for feature_of_interest in parameter['feature_of_interest']:
+                yield feature_of_interest['featureOfInterset']
+
     def get_features_of_interest_by_region(self, region_id: int) -> set:
         sampling_features = set()
 
         for site in self.get_sites_by_region(region_id=region_id):
-            for parameter in site['parameter_ids']:
-                for feature_of_interest in parameter['feature_of_interest']:
-                    sampling_features.add(feature_of_interest['featureOfInterset'])
+            sampling_features.update(self.get_site_sampling_features(site))
 
         return sampling_features
