@@ -31,7 +31,11 @@ Data are retrieved from a fixed list of stations/detectors as defined in `settin
 
 ### Retrieving metadata
 
-By running `python metadata.py --met` the code will iterate over the sampling points specified in `settings.SAMPLING_FEATURES` and download the metadata for all the relevant stations. Asset configuration files will be generated in the `assets/` directory.
+By running `python metadata.py --meta` the code will iterate over the sampling points using a geographical filter and download the metadata for all the relevant stations. Asset configuration files will be generated in the `assets/` directory.
+
+### Spatial filtering
+
+The bounding box used for spatial filtering is defined using a GeoJSON file specified in `settings.BOUNDING_BOX`. This file should contain a GeoJSON polygon definition for a rectangle covering the region of interest.
 
 ## Issues
 
