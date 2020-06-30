@@ -10,6 +10,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 class Object:
+    """
+    Environment Agency Real Time flood-monitoring API Objects
+    https://environment.data.gov.uk/flood-monitoring/doc/reference
+    """
     edge = ''
 
     def __init__(self, object_id: str):
@@ -46,26 +50,35 @@ class Station(Object):
     """
     edge = 'stations'
 
-    def measures(self, session, **params) -> list:
-        endpoint = "{}/measures".format(self.endpoint)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.measures = dict()
 
+    def list_measures(self, session, **params) -> list:
+        """
+        Get the measures available for this station.
+        """
+        endpoint = "{}/measures".format(self.endpoint)
         return session.call(endpoint, params=params)['items']
 
-    def readings(self, session, **params) -> list:
+    def readings(self, session, **params) -> iter:
+        """
+        Stream CSV data as rows (one dictionary per row)
+        """
         endpoint = "{endpoint}/readings.csv".format(endpoint=self.endpoint)
-
         stream = session.call_iter(endpoint, params=params)
-
+        # First row
         headers = next(csv.reader(stream))
         for row in csv.DictReader(stream, fieldnames=headers):
             # Parse
             try:
-                yield OrderedDict(
+                row = OrderedDict(
                     station=self.object_id,
                     measure=row['measure'],
                     timestamp=utils.parse_timestamp(row['dateTime']),
                     value=utils.parse_value(row['value'])
                 )
+                yield row
             except ValueError:
                 LOGGER.error(row)
                 raise
@@ -99,13 +112,23 @@ class Reading(Object):
     edge = 'data/readings'
 
     @classmethod
-    def get_archive(cls, session, date):
+    def _get_archive(cls, session, date):
         endpoint = "../archive/readings-full-{date}.csv".format(date=date)
 
         lines = session.call_iter(endpoint)
         headers = next(csv.reader(lines))
 
-        for row in csv.DictReader(lines, fieldnames=headers):
+        return csv.DictReader(lines, fieldnames=headers)
+
+    @classmethod
+    def get_archive(cls, session, date):
+        """
+        Historic Readings. The measurement readings are archived daily as dump files in CSV format.
+
+        https://environment.data.gov.uk/flood-monitoring/doc/reference#historic-readings
+        """
+        for row in cls._get_archive(session=session, date=date):
+            # Rename columns
             yield OrderedDict(
                 timestamp=utils.parse_timestamp(row['dateTime']),
                 station=row['station'],

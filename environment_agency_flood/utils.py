@@ -2,16 +2,16 @@
 Utility functions
 """
 
+import logging
 import datetime
 import os.path
 import statistics
 
 import arrow
 
-DATE_FORMAT = '%Y-%m-%d'
+from settings import DATE_FORMAT, DEFAULT_STATIONS_FILE, DEFAULT_MEASURES_FILE
 
-STATIONS_FILE = 'stations.txt'
-MEASURES_FILE = 'measures.txt'
+LOGGER = logging.getLogger(__name__)
 
 
 def date(s: str) -> datetime.date:
@@ -29,15 +29,15 @@ def make_dir(path: str):
 def load_lines(path: str) -> iter:
     """Load line from a text file"""
     with open(path) as file:
+        LOGGER.info("Opened '%s'", file.name)
+
         # Strip whitespace
-        yield from map(str.strip, file.readlines())
+        for line in file:
+            yield line.strip()
 
 
-def get_stations(path: str = STATIONS_FILE) -> iter:
-    return load_lines(path)
-
-
-def get_measures(path: str = MEASURES_FILE) -> iter:
+def get_stations(path: str = None) -> iter:
+    path = path or DEFAULT_STATIONS_FILE
     return load_lines(path)
 
 
