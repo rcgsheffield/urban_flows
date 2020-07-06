@@ -2,8 +2,18 @@ import logging
 import urllib.parse
 import requests
 import datetime
+import enum
 
 LOGGER = logging.getLogger(__name__)
+
+
+class Averaging(enum.Enum):
+    """Data averaging method (see docs section 4)"""
+    NONE = 0
+    HOURLY = 1
+    DAILY = 2
+    QUARTER_HOUR = 3
+    HOURLY_AND_NONE = 4
 
 
 class ZephyrSession(requests.Session):
@@ -74,8 +84,7 @@ class ZephyrSession(requests.Session):
             end_time=end_time.strftime(self.TIME_FORMAT),
             slots=slot,
             view='def',
-            # Unaveraged
-            avg=0,
+            avg=Averaging.NONE.value,
             format='csv',
             target='api',
         )

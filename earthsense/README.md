@@ -1,5 +1,7 @@
 # EarthSense data harvester
 
+This is a Python script to harvest data from EarthSense Zepyhr. It works by iterating over all the devices available on the EarthSense portal using their API.
+
 * [EarthSense Zephyr devices](https://www.earthsense.co.uk/zephyr) (the API docs are linked from this page)
 * [MyAir portal](https://portal.earthsense.co.uk/)
 
