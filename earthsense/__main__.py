@@ -48,11 +48,11 @@ def parse_csv(lines: iter) -> iter:
     yield from csv.DictReader(lines, fieldnames=headers)
 
 
-def remove_empty_strings(row: dict, null=settings.NULL) -> dict:
+def remove_empty_strings(row: dict, null=None) -> dict:
     return {key: value if value.strip() else null for key, value in row.items()}
 
 
-def remove_nulls(row: dict, null=settings.NULL) -> dict:
+def remove_nulls(row: dict, null=None) -> dict:
     return {key: null if value == 'None' else value for key, value in row.items()}
 
 

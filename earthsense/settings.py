@@ -1,9 +1,10 @@
-import os.path
+import pathlib
 from collections import OrderedDict
 
-DEFAULT_CONFIG_PATH = os.path.join(os.path.expanduser('~'), 'earthsense.cfg')
+DEFAULT_CONFIG_PATH = pathlib.Path.home().joinpath('earthsense.cfg')
 
 # Map EarthSense fields to Urban Flows Observatory structure
+# The order of the items determines that of the columns in the output CSV file.
 FIELD_MAP = OrderedDict(
     (
         ('Timestamp', 'timestamp'),
@@ -21,5 +22,3 @@ FIELD_MAP = OrderedDict(
         ('PM1', 'AQ_PM1'),
     )
 )
-
-NULL = -32768
