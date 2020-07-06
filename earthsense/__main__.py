@@ -14,13 +14,15 @@ import http_session
 import settings
 import utils
 
-LOGGER = logging.getLogger(__name__)
-
-ISO_DATE = '%Y-%m-%d'
 DESCRIPTION = """
 Download EarthSense Zephyr data within a time range for all devices associated with a user account and write it to a
 CSV file.
 """
+
+LOGGER = logging.getLogger(__name__)
+
+ISO_DATE = '%Y-%m-%d'
+SLOTS = ('A', 'B')
 
 
 def parse_csv(lines: iter) -> iter:
@@ -78,12 +80,13 @@ def sort(rows: iter) -> iter:
 
 
 def get_data(session, start_time, end_time):
+    # Iterate over all devices (and all slots on those devices)
     for internal_device_id, device in session.devices.items():
         device_id = device['zNumber']
 
         LOGGER.info("Device info: %s", device)
 
-        for slot in ('A', 'B'):
+        for slot in SLOTS:
             LOGGER.info("Device %s slot %s", device_id, slot)
 
             lines = session.iter_data(device_id=device_id, slot=slot, start_time=start_time, end_time=end_time)

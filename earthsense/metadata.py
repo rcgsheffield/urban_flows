@@ -27,7 +27,6 @@ def get_args():
 
 
 def device_to_site(device: dict) -> assets.Site:
-    print(device)
     return assets.Site(
         site_id=device['zNumber'],
         latitude=device['location']['lat'],
