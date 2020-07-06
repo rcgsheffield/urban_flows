@@ -1,6 +1,7 @@
 # EarthSense data harvester
 
 * [EarthSense Zephyr devices](https://www.earthsense.co.uk/zephyr) (the API docs are linked from this page)
+* [MyAir portal](https://portal.earthsense.co.uk/)
 
 # Documentation
 

@@ -22,3 +22,19 @@ FIELD_MAP = OrderedDict(
         ('PM1', 'AQ_PM1'),
     )
 )
+
+UNITS = {
+    'NO2': 'ug/m3',
+    'PM10': 'ug/m3',
+    'PM2.5': 'ug/m3',
+    'Temp': 'C',
+    'Longitude': 'degrees',
+    'Ambient temp': 'C',
+    'NO': 'ug/m3',
+    'PM1': 'ug/m3',
+    'Humidity': '%RH',
+    'Latitude': 'degrees',
+    'O3': 'ug/m3',
+    'Ambient pressure': 'Pa',
+    'Ambient humidity': '%RH'
+}

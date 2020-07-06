@@ -27,6 +27,7 @@ def get_args():
 
 
 def device_to_site(device: dict) -> assets.Site:
+    LOGGER.debug(device)
     return assets.Site(
         site_id=device['zNumber'],
         latitude=device['location']['lat'],
@@ -37,12 +38,14 @@ def device_to_site(device: dict) -> assets.Site:
 
 
 def device_to_sensor(device: dict, slot: str) -> assets.Sensor:
+    # Append slot code to device identifier
     sensor_id = str(device['zNumber']) + slot
     return assets.Sensor(
         sensor_id=sensor_id,
         family='Zephyr',
         detectors=list(
-            dict(name=new) for _, new in settings.FIELD_MAP.items() if new not in {'timestamp', 'sensor'}
+            dict(name=new, unit=settings.UNITS[old])
+            for old, new in settings.FIELD_MAP.items() if new not in {'timestamp', 'sensor'}
         ),
         first_date=device['location']['since'][:10],
     )

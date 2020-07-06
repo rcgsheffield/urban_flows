@@ -25,6 +25,11 @@ ISO_DATE = '%Y-%m-%d'
 SLOTS = ('A', 'B')
 
 
+class UrbanDialect(csv.excel):
+    """CSV output format"""
+    delimiter = '|'
+
+
 def parse_csv(lines: iter) -> iter:
     reader = csv.reader(lines)
 
@@ -107,8 +112,7 @@ def write_csv(path, rows):
                 headers = tuple(row.keys())
                 LOGGER.info("CSV headers: %s", headers)
 
-                writer = csv.DictWriter(file, fieldnames=headers)
-                writer.writeheader()
+                writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
 
             writer.writerow(row)
 
