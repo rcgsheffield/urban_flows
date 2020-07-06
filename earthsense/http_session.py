@@ -34,7 +34,8 @@ class ZephyrSession(requests.Session):
         # Make HTTP request
         response = self.get(url, **kwargs)
 
-        LOGGER.debug(response.content)
+        for header, value in response.headers.items():
+            LOGGER.debug("RESPONSE %s: %s", header, value)
 
         # HTTP errors
         try:
@@ -54,9 +55,6 @@ class ZephyrSession(requests.Session):
             raise RuntimeError(data['error'])
         except KeyError:
             pass
-
-        for key, value in data.items():
-            LOGGER.debug("RESPONSE %s: %s", key, value)
 
         return data
 
