@@ -1,4 +1,4 @@
-# AirSonde data pipline
+# AirSonde data pipeline
 
 This is a data pipeline to ingest sensor data from a collection of Environmental Monitoring Solutions (EMS)
 [AirSonde](https://www.em-solutions.co.uk/airsonde/) devices.
@@ -14,4 +14,8 @@ Configure the pipeline using `settings.cfg`.
 
 ## Usage
 
-TODO
+```
+$ python -m ufoizom --help
+$ python -m ufoizom.metadata --help
+```
+
