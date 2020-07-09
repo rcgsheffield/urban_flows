@@ -1,0 +1,14 @@
+begin.asset
+siteid=EM02P0002
+longitude_[deg]=-1.478028
+latitude_[deg]=53.382003
+height_above_sea_level_[m]=
+address=Badger Lane, Sheffield, S1 4AT
+city=Sheffield
+country=United Kingdom
+Postal_Code=
+firstdate=
+operator=
+desc-url=https://terminal.oizom.com/#/u/devices/info
+end.asset
+

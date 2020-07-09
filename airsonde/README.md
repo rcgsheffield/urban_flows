@@ -14,8 +14,23 @@ Configure the pipeline using a file like `oizom.sample.cfg`. By default, the cod
 
 ## Usage
 
-```
+```bash
 $ python -m ufoizom --help
 $ python -m ufoizom.metadata --help
+```
+
+### Examples
+
+To retrieve data for a specific day:
+
+```bash
+$ python -m ufoizom --date 2020-07-01 --config ~/my_settings.cfg
+```
+
+To get metadata information:
+
+```bash
+$ python -m ufoizom.metadata --sites > sites.txt
+$ python -m ufoizom.metadata --sensors > sensors.txt
 ```
 

@@ -22,7 +22,9 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-c', '--config', help='Configuration file', default=ufoizom.settings.DEFAULT_CONFIG_FILE)
-    parser.add_argument('-s', '--status', action='store_true', help='Show status of all devices')
+    parser.add_argument('-s', '--sites', action='store_true', help='Print site (location) information')
+    parser.add_argument('-n', '--sensors', action='store_true', help='Print sensor (pod) information')
+    parser.add_argument('-i', '--status', action='store_true', help='Show status of all devices')
     return parser.parse_args()
 
 
@@ -50,20 +52,28 @@ def map_device_to_sensor(device, row) -> Sensor:
     )
 
 
-def print_assets(session):
-    """Show asset metadata"""
+def print_sites(session):
+    """Show site asset metadata"""
+
     devices = Device.list(session)
 
     # Get site info
     for device in devices:
         LOGGER.info("Device '%s'", device['deviceId'])
-        LOGGER.debug(device)
 
         site = map_device_to_site(device)
         print(site)
 
+
+def print_sensors(session):
+    """Show sensor asset metadata"""
+
+    devices = Device.list(session)
+
     # Get sensor info
     for device in devices:
+        LOGGER.info("Device '%s'", device['deviceId'])
+
         # Get latest data to get metric names
         row = Data.current_for_device(session, device['deviceId'])
         LOGGER.debug(row)
@@ -85,8 +95,10 @@ def main():
 
     if args.status:
         print_status(session)
+    elif args.sensors:
+        print_sensors(session)
     else:
-        print_assets(session)
+        print_sites(session)
 
 
 if __name__ == '__main__':
