@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Air Quality",
+    "icon_name": "aq_marker.png",
+    "reading_types": [
+      "PM10",
+      "PM2.5",
+      "PM1"
+    ]
+  },
+  {
+    "name": "Atmosphere",
+    "icon_name": "atmos_marker.png",
+    "reading_types": [
+      "AIRTEMP",
+      "RELHUM",
+      "ATMPRESS"
+    ]
+  }
+]

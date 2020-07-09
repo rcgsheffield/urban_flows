@@ -4,8 +4,8 @@ Retrieve data from the Urban Flows Observatory data warehouse via the Urban Flow
 Usage:
     query = dict(
         time_period=[
-            datetime.datetime(2020, 3, 2, tzinfo=datetime.timezone.utc),
-            datetime.datetime(2020, 3, 2, tzinfo=datetime.timezone.utc),
+            datetime.datetime(2020, 3, 2),
+            datetime.datetime(2020, 3, 3),
         ],
         metrics={
             'AQ_NO',
@@ -24,6 +24,8 @@ Usage:
 import logging
 import requests
 import datetime
+
+from collections import OrderedDict
 
 URL = 'https://sheffield-portal.urbanflows.ac.uk/uflobin/ufdex'
 
@@ -93,6 +95,8 @@ def parse(query: dict) -> iter:
                 site_id = line.split()[-1]
 
             elif line.startswith('# End CSV table'):
+
+                # Check row count
                 if n_rows != number_of_points:
                     raise ValueError('Unexpected row count, expected %s but got %s' % number_of_points, n_rows)
 
@@ -103,7 +107,13 @@ def parse(query: dict) -> iter:
                 continue
 
             # Build dictionary
-            row = dict(zip(headers, line.split(',')))
+            values = line.split(',')
+
+            # Check column count
+            if len(values) != len(headers):
+                raise ValueError('Unexpected number of data values')
+
+            row = OrderedDict(zip(headers, values))
 
             row['site_id'] = site_id
 

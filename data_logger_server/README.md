@@ -93,6 +93,8 @@ $ uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 ```bash
 $ systemctl restart nginx
 $ tail /var/log/nginx/error.log
+# View access logs live
+$ tail -f /var/log/nginx/access.log
 ```
 
 ## Testing
