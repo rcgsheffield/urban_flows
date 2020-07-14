@@ -57,11 +57,20 @@ def transform(row: dict) -> dict:
 def write_csv(path: pathlib.Path, rows):
     headers = tuple(ufoizom.settings.METRICS.values())
     LOGGER.info('CSV headers %s', headers)
-    with path.open('w') as file:
+    with path.open('w', newline='\n') as file:
         writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
         writer.writerows(rows)
 
         LOGGER.info("Wrote '%s'", file.name)
+
+
+def get_data(session, start, end, average) -> iter:
+    for device in Device.list(session):
+        LOGGER.info("DEVICE %s", device)
+        for data in Data.analytics(session, device['deviceId'], start, end, average):
+            row = data['payload']['d']
+
+            yield row
 
 
 def main():
@@ -74,18 +83,9 @@ def main():
     end = datetime.datetime.combine(args.date + datetime.timedelta(days=1), datetime.time.min)
     average = datetime.timedelta(seconds=60)
 
-    current = Data.current(session)
-    row = current.pop('payload').pop('d')
-    LOGGER.info(current)
-    row = transform(row)
-
-    write_csv(args.output, rows=[row])
-
-    exit()
-    for device in Device.list(session):
-        LOGGER.info("DEVICE %s", device)
-        for data in Data.analytics(session, device['deviceId'], start, end, average):
-            print(data)
+    # Run query
+    rows = (transform(row) for row in get_data(session, start, end, average))
+    write_csv(args.output, rows=rows)
 
 
 if __name__ == '__main__':
