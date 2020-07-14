@@ -18,7 +18,7 @@ AirSonde devices.
 """
 
 USAGE = """
-python . TODO
+python -m ufoizom -d 2020-02-19 -o test.csv
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -39,13 +39,15 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-c', '--config', help='Configuration file', default=ufoizom.settings.DEFAULT_CONFIG_FILE)
     parser.add_argument('-d', '--date', type=parse_date, required=True, help='YYYY-MM-DD')
     parser.add_argument('-o', '--output', help='Path of output file', required=True, type=pathlib.Path)
+    parser.add_argument('-a', '--averaging', help='Time frequency in seconds', type=int,
+                        default=ufoizom.settings.DEFAULT_AVERAGING_TIME)
     return parser.parse_args()
 
 
 def transform(row: dict) -> dict:
     """Clean a row of data"""
     # Rename metrics
-    row = {new: row[old] for old, new in ufoizom.settings.METRICS.items()}
+    row = {ufoizom.settings.METRICS[key]: value for key, value in row.items()}
 
     # Parse Unix timestamp
     row['timestamp'] = datetime.datetime.fromtimestamp(row['timestamp'], tz=datetime.timezone.utc).isoformat()
@@ -55,7 +57,7 @@ def transform(row: dict) -> dict:
 
 
 def write_csv(path: pathlib.Path, rows):
-    headers = tuple(ufoizom.settings.METRICS.values())
+    headers = ufoizom.settings.OUTPUT_COLUMNS
     LOGGER.info('CSV headers %s', headers)
     with path.open('w', newline='\n') as file:
         writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
@@ -65,10 +67,16 @@ def write_csv(path: pathlib.Path, rows):
 
 
 def get_data(session, start, end, average) -> iter:
+    # Iterate over all available devices
     for device in Device.list(session):
         LOGGER.info("DEVICE %s", device)
+
+        # Run query against this device
         for data in Data.analytics(session, device['deviceId'], start, end, average):
-            row = data['payload']['d']
+            # Build a data row
+            row = data['payload']['d'].copy()
+
+            row['sensor'] = device['deviceId']
 
             yield row
 
@@ -81,10 +89,18 @@ def main():
     # Time parameters
     start = datetime.datetime.combine(args.date, datetime.time.min)
     end = datetime.datetime.combine(args.date + datetime.timedelta(days=1), datetime.time.min)
-    average = datetime.timedelta(seconds=60)
+    average = datetime.timedelta(seconds=5 * 60)
 
     # Run query
-    rows = (transform(row) for row in get_data(session, start, end, average))
+    rows = get_data(session, start, end, average)
+
+    # Clean up
+    rows = (transform(row) for row in rows)
+
+    # Sort chronologically
+    rows = sorted(rows, key=lambda row: row['timestamp'])
+
+    # Save output file
     write_csv(args.output, rows=rows)
 
 
