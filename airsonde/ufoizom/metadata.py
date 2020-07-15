@@ -12,7 +12,8 @@ Retrieve asset metadata from the Oizom API.
 """
 
 USAGE = """
-TODO
+python -m ufoizom.metadata --sites
+python -m ufoizom.metadata --sensors
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ def map_device_to_sensor(device, row) -> Sensor:
         sensor_id=device['deviceId'],
         family=ufoizom.settings.FAMILY,
         s_type=device['deviceType'],
-        detectors=[dict(name=ufoizom.settings.METRICS[s]) for s in row['payload']['d'].keys()],
+        detectors=[dict(name=ufoizom.settings.METRICS[s], unit=ufoizom.settings.UNITS[s])
+                   for s in row['payload']['d'].keys() if s != 't'],
         desc_url=ufoizom.settings.DESC_URL,
     )
 

@@ -24,7 +24,7 @@ $ python -m ufoizom.metadata --help
 To retrieve data for a specific day:
 
 ```bash
-$ python -m ufoizom --date 2020-07-01 --config ~/my_settings.cfg
+$ python -m ufoizom --date 2020-07-01 --config ~/my_settings.cfg --output test.csv
 ```
 
 To get metadata information:
