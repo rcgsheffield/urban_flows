@@ -44,13 +44,19 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def parse_timestamp(timestamp: int) -> str:
+    """Convert Unix timestamp to ISO 8601"""
+    t = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+    return t.isoformat()
+
+
 def transform(row: dict) -> dict:
     """Clean a row of data"""
     # Rename metrics
     row = {ufoizom.settings.METRICS[key]: value for key, value in row.items()}
 
-    # Parse Unix timestamp
-    row['timestamp'] = datetime.datetime.fromtimestamp(row['timestamp'], tz=datetime.timezone.utc).isoformat()
+    # Leave timestamp in Unix format
+    # row['timestamp'] = parse_timestamp(row['timestamp'])
 
     # Preserve column order
     return OrderedDict(row)
