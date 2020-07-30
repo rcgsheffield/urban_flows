@@ -1,12 +1,11 @@
 import pathlib
 
-from collections import OrderedDict
-
 DATE_FORMAT = '%Y-%m-%d'
 DEFAULT_CONFIG_FILE = str(pathlib.Path.home().joinpath('oizom.cfg'))
 FAMILY = 'EMS_AirSonde'
 DESC_URL = 'https://terminal.oizom.com/#/u/devices/info'
-DEFAULT_AVERAGING_TIME = 5 * 60  # seconds
+# This appears to have a maximum value of about 240 seconds
+DEFAULT_AVERAGING_TIME = 60  # seconds
 
 # Map data labels to the Urban Flows metric names
 # See table in docs/Polludrone SMART Parameters Table.pdf

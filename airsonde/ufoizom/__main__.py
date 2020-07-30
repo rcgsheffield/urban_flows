@@ -39,7 +39,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-c', '--config', help='Configuration file', default=ufoizom.settings.DEFAULT_CONFIG_FILE)
     parser.add_argument('-d', '--date', type=parse_date, required=True, help='YYYY-MM-DD')
     parser.add_argument('-o', '--output', help='Path of output file', required=True, type=pathlib.Path)
-    parser.add_argument('-a', '--averaging', help='Time frequency in seconds', type=int,
+    parser.add_argument('-a', '--average', help='Time frequency in seconds', type=int,
                         default=ufoizom.settings.DEFAULT_AVERAGING_TIME)
     return parser.parse_args()
 
@@ -87,17 +87,29 @@ def get_data(session, start, end, average) -> iter:
             yield row
 
 
+def get_time_range(date: datetime.date) -> tuple:
+    """
+    Build a time range
+    """
+
+    start = datetime.datetime.combine(date, datetime.time.min)
+
+    # Next day
+    end = datetime.datetime.combine(date + datetime.timedelta(days=1), datetime.time.min)
+
+    return start, end
+
+
 def main():
     args = get_args()
     ufoizom.utils.configure_logging(args.verbose)
     session = ufoizom.utils.get_session(args.config)
 
-    # Time parameters
-    start = datetime.datetime.combine(args.date, datetime.time.min)
-    end = datetime.datetime.combine(args.date + datetime.timedelta(days=1), datetime.time.min)
-    average = datetime.timedelta(seconds=5 * 60)
+    # Time parameters:
+    average = datetime.timedelta(seconds=args.average)
 
     # Run query
+    start, end = get_time_range(args.date)
     rows = get_data(session, start, end, average)
 
     # Clean up

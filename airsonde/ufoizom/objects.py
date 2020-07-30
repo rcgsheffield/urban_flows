@@ -2,6 +2,11 @@ from datetime import datetime, timedelta
 
 
 class OizomObject:
+    """
+    Oizom API object
+
+    https://production.oizom.com/documentation/
+    """
     EDGE = ''
 
     @classmethod
