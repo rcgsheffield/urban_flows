@@ -88,7 +88,7 @@ def get_data(session, start, end, average) -> iter:
 
             yield row
 
-    LOGGER.info("Retrieved %s rows", row_count)
+        LOGGER.info("Retrieved %s rows", row_count)
 
 
 def get_time_range(date: datetime.date) -> tuple:
