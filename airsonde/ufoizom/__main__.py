@@ -78,13 +78,17 @@ def get_data(session, start, end, average) -> iter:
         LOGGER.info("DEVICE %s", device)
 
         # Run query against this device
+        row_count = 0
         for data in Data.analytics(session, device['deviceId'], start, end, average):
+            row_count += 1
             # Build a data row
             row = data['payload']['d'].copy()
 
             row['sensor'] = device['deviceId']
 
             yield row
+
+    LOGGER.info("Retrieved %s rows", row_count)
 
 
 def get_time_range(date: datetime.date) -> tuple:
