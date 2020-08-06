@@ -1,0 +1,12 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    # listen 443 ssl;
+    # listen [::]:443 ssl;
+
+    # Forward to node.js
+    location / {
+        proxy_pass http://localhost:3000;
+    }
+}
