@@ -1,7 +1,9 @@
+# https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-18-04
 server {
     listen 80;
     listen [::]:80;
 
+	# TODO install encryption certificate
     # listen 443 ssl;
     # listen [::]:443 ssl;
 
