@@ -1,6 +1,6 @@
-import logging
 import datetime
 import json
+import logging
 import urllib.parse
 
 import requests
@@ -36,6 +36,7 @@ class SensorSession(requests.Session):
         super().__init__()
 
         self.headers.update({'User-Agent': settings.USER_AGENT})
+        self._bounding_box = None
 
     def request(self, *args, **kwargs):
         response = super().request(*args, **kwargs)
@@ -122,10 +123,28 @@ class SensorSession(requests.Session):
             **kwargs
         )
 
+    @property
+    def bounding_box(self) -> list:
+        """GeoJSON bounding box"""
+        if not self._bounding_box:
+            with open(settings.BOUNDING_BOX) as file:
+                geo_json_bbox = json.load(file)
+                # Get the first item in the nested list
+                self._bounding_box = geo_json_bbox[0]
+        return self._bounding_box
+
+    @property
+    def bounding_box_corners(self) -> tuple:
+        """The lower corner and upper corner of the bounding box. Decimal degrees."""
+        lower_corner = self.bounding_box[0]
+        upper_corner = self.bounding_box[2]
+        return lower_corner, upper_corner
+
     def get_observation_spatial(self):
         """
         ***THERE IS A BUG IN THE SERVER SOFTWARE FOR THIS ENDPOINT***
         See: https://github.com/52North/SOS/issues/793
+        See: docs/DEFRA UK-AIR SOS spatial filter issue.eml
 
         OGC SOS 12-006 Requirement 116 -- KVP encoding
         http://www.opengis.net/spec/SOS/2.0/req/kvp-core/go-bbox-encoding
@@ -144,12 +163,12 @@ class SensorSession(requests.Session):
 
         LOGGER.warning("API bug: https://github.com/52North/SOS/issues/793")
 
-        latitude = (settings.BOUNDING_BOX[0][0], settings.BOUNDING_BOX[1][0])  # south from north pole
-        longitude = (settings.BOUNDING_BOX[0][1], settings.BOUNDING_BOX[1][1])  # east from Greenwich
+        lower_corner, upper_corner = self.bounding_box_corners
 
         namespaces = ['xmlns(om,http://www.opengis.net/om/2.0)']
         value_reference = 'om:featureOfInterest/*/sams:shape'
-        spatial_filter = [str(x) for x in (value_reference, longitude[0], latitude[0], longitude[1], latitude[1])]
+        # OGC 12-006 Requirement 116
+        spatial_filter = [str(x) for x in (value_reference, *lower_corner, *upper_corner)]
         params = dict(
             namespaces=','.join(namespaces),
             spatialFilter=','.join(spatial_filter),

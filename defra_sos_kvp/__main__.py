@@ -235,12 +235,20 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: str = N
         root_logger.handlers.append(handler)
 
 
+def get_data_spatial(session):
+    # This doesn't work
+    data = session.get_observation_spatial()
+
+    return parsers.AirQualityParser(data)
+
+
 def main():
     args = get_args()
     configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
 
     # Retrieve raw data
     session = http_session.SensorSession()
+
     LOGGER.info('Retrieving raw data and storing in %s', args.raw)
     rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
 
