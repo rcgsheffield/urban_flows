@@ -3,3 +3,4 @@ __pycache__
 cache.sqlite
 test*.csv
 .ipynb_checkpoints
+*.log

@@ -4,6 +4,7 @@ DATE_FORMAT = '%Y-%m-%d'
 USER_AGENT = 'Urban Flows Observatory'
 BOUNDING_BOX = 'sheffield_bounding_box_geojson.json'
 
+# TODO use spatial filter rather than fixed list
 # List generated using metadata utility script
 SAMPLING_FEATURES = {
     'http://environment.data.gov.uk/air-quality/so/GB_SamplingFeature_1108',
@@ -262,3 +263,13 @@ REGION_OF_INTEREST = 17  # South Yorkshire
 
 # CSV options
 DEFAULT_SEPARATOR = '|'
+
+# Logging
+LOGGING = dict(
+    # https://docs.python.org/3.8/library/logging.html#logrecord-attributes
+    format='%(asctime)s %(filename)s:%(lineno)s %(levelname)s %(message)s',
+)
+ERROR_HANDLER = dict(
+    # Rotate error log file daily
+    when='D',
+)

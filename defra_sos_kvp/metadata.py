@@ -10,6 +10,7 @@ import assets
 import http_session
 import parsers
 import mappings
+import output
 
 DESCRIPTION = """
 Build metadata for the Urban Flows Observatory asset registry.
@@ -58,6 +59,7 @@ def get_args():
     parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
     parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST, help='Region of interest')
     parser.add_argument('-b', '--box', default=settings.BOUNDING_BOX, help='Bounding box GeoJSON file')
+    parser.add_argument('-c', '--csv', action='store_true', help='Show CSV headers')
 
     args = parser.parse_args()
 
@@ -229,6 +231,9 @@ def main():
             elif args.features:
                 sampling_features = set(get_sampling_features(session, region_id=args.region, bbox=bbox))
                 pprint(sampling_features)
+
+    elif args.csv:
+        output.print_csv_headers()
 
     elif args.meta:
 

@@ -1,7 +1,6 @@
 import argparse
 import datetime
-import logging
-import csv
+import logging.handlers
 
 import http_session
 import parsers
@@ -9,6 +8,7 @@ import mappings
 import settings
 import utils
 import metadata
+import output
 
 from collections import OrderedDict
 
@@ -26,11 +26,6 @@ python . --date 2020-01-01
 LOGGER = logging.getLogger(__name__)
 
 
-class UrbanDialect(csv.excel):
-    """CSV output format for the Urban Flows Observatory"""
-    delimiter = settings.DEFAULT_SEPARATOR
-
-
 def get_args():
     parser = argparse.ArgumentParser(description=DESCRIPTION, usage=USAGE)
 
@@ -38,6 +33,8 @@ def get_args():
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
     parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
     parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
+    parser.add_argument('-e', '--error', help='Error log file (optional)')
+    parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
 
     args = parser.parse_args()
 
@@ -214,31 +211,33 @@ def sort(rows: iter, key='timestamp') -> iter:
     yield from sorted(rows, key=lambda row: row[key])
 
 
-def serialise(rows, path, **kwargs):
-    """Write to CSV file"""
+def configure_logging(verbose: bool = False, debug: bool = False, error: str = None):
+    """
+    Configure logging
 
-    fieldnames = settings.OUTPUT_HEADERS
+    :param verbose: Show extra information in logging stream
+    :param debug: Debug logging level
+    :param error: Error log file path
+    """
 
-    LOGGER.info("Writing CSV with headers: %s", fieldnames)
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING,
+                        **settings.LOGGING)
 
-    with open(path, 'w', newline='') as file:
-        writer = csv.DictWriter(file, fieldnames=fieldnames, dialect=UrbanDialect, **kwargs)
+    if error:
+        # Daily error log files
+        handler = logging.handlers.TimedRotatingFileHandler(filename=error, **settings.ERROR_HANDLER)
+        formatter = logging.Formatter(settings.LOGGING.get('format'))
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.ERROR)
 
-        n = 0
-        for row in rows:
-            # Output timestamp in ISO 8601
-            row['timestamp'] = row['timestamp'].isoformat()
-
-            writer.writerow(row)
-
-            n += 1
-
-        LOGGER.info("Wrote %s rows to '%s'", n, file.name)
+        # Capture message on all loggers
+        root_logger = logging.getLogger()
+        root_logger.handlers.append(handler)
 
 
 def main():
     args = get_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
 
     # Retrieve raw data
     session = http_session.SensorSession()
@@ -252,7 +251,7 @@ def main():
     rows = pivot(rows)
     rows = sort(rows)
 
-    serialise(rows, path=args.output)
+    output.serialise(rows, path=args.output)
 
 
 if __name__ == '__main__':
