@@ -1,0 +1,28 @@
+begin.asset
+siteid=359
+longitude_[deg]=-1.478003333
+latitude_[deg]=53.382036667
+height_above_sea_level_[m]=
+address=
+city=
+country=United Kingdom
+Postal_Code=
+firstdate=2020-01-25
+operator=
+desc-url=
+end.asset
+
+begin.asset
+siteid=178
+longitude_[deg]=-1.482935000
+latitude_[deg]=53.357841667
+height_above_sea_level_[m]=
+address=
+city=
+country=United Kingdom
+Postal_Code=
+firstdate=2019-11-23
+operator=
+desc-url=
+end.asset
+

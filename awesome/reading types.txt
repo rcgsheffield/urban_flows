@@ -1,0 +1,12 @@
+{'id': 1, 'name': 'NO', 'unit': 'c', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1}
+{'id': 2, 'name': 'PM25', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 3, 'name': 'PM1', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 4, 'name': 'PMSUM', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 5, 'name': 'CO', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 6, 'name': 'Part Density', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 7, 'name': 'NO2', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 1, 'unit': 'c'}
+{'id': 8, 'name': 'PM10', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 2, 'unit': 'c'}
+{'id': 9, 'name': 'PM4', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 2, 'unit': 'c'}
+{'id': 10, 'name': 'Noise', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 2, 'unit': 'c'}
+{'id': 11, 'name': 'SO2', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 3, 'unit': 'c'}
+{'id': 12, 'name': 'O3', 'min_value': 0, 'max_value': 100000, 'reading_category_id': 3, 'unit': 'c'}

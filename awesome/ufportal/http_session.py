@@ -1,6 +1,9 @@
+"""
+HTTP transport layer
+"""
+
 import logging
 import pathlib
-import json
 
 import requests
 
@@ -8,11 +11,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 class PortalSession(requests.Session):
-    TOKEN_PATH = pathlib.Path.home().joinpath('awesome_token.txt')
     LANGUAGE = 'en'
 
-    def __init__(self):
+    def __init__(self, token_path: pathlib.Path):
         super().__init__()
+        self.token_path = pathlib.Path(token_path)
         self.headers.update(self.extra_headers)
 
     @property
@@ -22,23 +25,18 @@ class PortalSession(requests.Session):
             'Accept-Language': self.LANGUAGE,
         }
 
-    @property
-    def token_path(self):
-        return pathlib.Path(self.TOKEN_PATH)
-
     def request(self, *args, **kwargs) -> dict:
-        response = super().request(*args, **kwargs)
+        """Make a HTTP request to the API and parse the response"""
 
-        # Log payload
+        # Debug log request payload
         for key in ('data', 'json', 'params'):
             try:
-                LOGGER.debug("%s %s", key.upper(), kwargs[key])
+                LOGGER.debug("REQUEST %s %s", key.upper(), kwargs[key])
             except KeyError:
                 pass
 
-        # Log HTTP headers
-        for header, value in response.headers.items():
-            LOGGER.debug("RESPONSE %s: %s", header, value)
+        # Make the request
+        response = super().request(*args, **kwargs)
 
         # Raise errors
         try:
@@ -47,7 +45,7 @@ class PortalSession(requests.Session):
             LOGGER.error(response.text)
             raise
 
-        # Parse JSON payload
+        # Parse JSON response
         return response.json()
 
     @property

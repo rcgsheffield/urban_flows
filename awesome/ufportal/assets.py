@@ -17,11 +17,11 @@ def validate(metadata: dict):
         assert len(site['activity']) > 0
 
 
-def get_metadata() -> dict:
+def _get_metadata() -> dict:
     """
     Retrieve the metadata for Urban Flows Observatory assets. Download metadata from the portal and parse the document.
 
-    The returned document has the following keys: ['pairs', 'sensors', 'families', 'sites']
+    The returned document has the following keys: dict_keys(['sites', 'families', 'pairs', 'sensors'])
     """
     with requests.Session() as session:
         response = session.get(METADATA_URL, params=dict(aktion='json_META'))
@@ -31,3 +31,14 @@ def get_metadata() -> dict:
     validate(metadata)
 
     return metadata
+
+
+def get_metadata() -> tuple:
+    metadata = _get_metadata()
+
+    pairs = metadata['pairs'].values()
+    families = metadata['families'].values()
+    sites = metadata['sites'].values()
+    sensors = metadata['sensors'].values()
+
+    return sites, families, pairs, sensors

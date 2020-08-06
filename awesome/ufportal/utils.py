@@ -1,4 +1,7 @@
+import logging
 import itertools
+
+import ufportal.settings
 
 
 def iter_chunks(iterable: iter, size: int):
@@ -18,3 +21,7 @@ def iter_chunks(iterable: iter, size: int):
         chunk = tuple(itertools.islice(it, size))
 
         yield chunk
+
+
+def configure_logging(verbose: bool = False):
+    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, **ufportal.settings.LOGGING)

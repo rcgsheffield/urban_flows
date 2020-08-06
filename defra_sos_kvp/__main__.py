@@ -52,7 +52,7 @@ def store_raw_data(sampling_feature, date, directory, data):
     with open(path, 'w') as file:
         file.write(data)
 
-        LOGGER.debug("Wrote '%s'", file.name)
+        LOGGER.info("Wrote '%s'", file.name)
 
 
 def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
@@ -94,8 +94,6 @@ def get_data(session, date: datetime.date, sampling_features: iter, directory: s
                 row['unit_of_measurement'] = observation.result.unit_of_measurement
 
                 yield row
-
-                LOGGER.debug(row)
 
                 n += 1
 
@@ -228,7 +226,6 @@ def serialise(rows, path, **kwargs):
 
         n = 0
         for row in rows:
-            LOGGER.debug(row)
             # Output timestamp in ISO 8601
             row['timestamp'] = row['timestamp'].isoformat()
 

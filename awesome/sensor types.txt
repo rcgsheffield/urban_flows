@@ -1,0 +1,10 @@
+{'id': 1, 'name': '0205446e-a9d4-3af4-8ef9-1e99eb3b3e66', 'manufacturer': 'Hansen Ltd', 'rating': 1, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 2, 'name': '9324ab84-6d04-3daa-9cad-90342c78f723', 'manufacturer': 'Bahringer, Gutmann and Lang', 'rating': 2, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 3, 'name': 'c2241852-2d16-3706-bff6-2b914a15de64', 'manufacturer': 'Green, McGlynn and Botsford', 'rating': 5, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 4, 'name': '264855c7-50a3-34bc-a80a-850ac09736c9', 'manufacturer': "Kertzmann, McDermott and O'Conner", 'rating': 5, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 5, 'name': 'dccd3096-0eec-3873-a5e8-ccee3dcec9fd', 'manufacturer': 'Herzog-Bayer', 'rating': 4, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 6, 'name': 'df067051-c556-3a0d-b85a-4f8c04b5074f', 'manufacturer': 'Harris Inc', 'rating': 1, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 7, 'name': 'f28539a4-24cc-335c-932d-c93ef7034405', 'manufacturer': 'Beier Group', 'rating': 2, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 8, 'name': '25d1b4ff-68fb-37c9-80ef-f533d9b24bd2', 'manufacturer': 'Fisher Inc', 'rating': 4, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 9, 'name': 'd449f1db-d8c6-3e29-9886-4258f332fd96', 'manufacturer': 'Gottlieb-Russel', 'rating': 3, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}
+{'id': 10, 'name': '6bd477db-f858-33e4-b789-2a8bad69a759', 'manufacturer': 'Keebler Inc', 'rating': 4, 'created_at': '2020-05-12T18:06:06.000000Z', 'updated_at': '2020-05-12T18:06:06.000000Z'}

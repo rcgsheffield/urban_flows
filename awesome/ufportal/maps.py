@@ -12,8 +12,6 @@ LOGGER = logging.getLogger(__name__)
 def site_to_location(site: dict) -> dict:
     """Map Urban Flows site to an Awesome portal location"""
 
-    LOGGER.debug(site)
-
     # Get latest activity
     activity = sorted(site['activity'], key=lambda act: act['t0'])[0]
 
@@ -26,6 +24,7 @@ def site_to_location(site: dict) -> dict:
 
 
 def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
+    """Map an Urban Flows sensor to an Awesome sensor"""
     # Get latest site deployment
     pair = sorted(sensor['attachedTo'], key=lambda p: p['from'])[0]
     site_name = pair['site']

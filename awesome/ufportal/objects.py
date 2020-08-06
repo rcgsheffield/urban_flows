@@ -23,22 +23,20 @@ class AwesomeObject:
 
     @classmethod
     def build_url(cls, *args, **kwargs) -> str:
-        return urllib.parse.urljoin(cls.BASE_URL, *args, **kwargs)
+        """Build a URL by appending extra items"""
+        url = '/'.join([cls.edge, *map(str, args)])
+        return urllib.parse.urljoin(base=cls.BASE_URL, url=url, **kwargs)
 
     def urljoin(self, *args, **kwargs):
         return urllib.parse.urljoin(self.url, *args, **kwargs)
 
     @property
     def url(self):
-        return self.build_url(self.build_endpoint(self.identifier))
-
-    @classmethod
-    def build_endpoint(cls, identifier) -> str:
-        return '{}/{}'.format(cls.edge, identifier)
+        return self.build_url(self.identifier)
 
     @classmethod
     def list(cls, session, **kwargs) -> list:
-        url = cls.build_url(cls.edge)
+        url = cls.build_url()
         body = session.get(url=url, **kwargs)
 
         # Make sure this isn't a paginated response
@@ -49,12 +47,12 @@ class AwesomeObject:
 
     @classmethod
     def list_iter(cls, session, **kwargs) -> iter:
-        url = cls.build_url(cls.edge)
+        url = cls.build_url()
         yield from session.get_iter(url=url, **kwargs)
 
     @classmethod
     def show(cls, session, identifier, **kwargs):
-        url = cls.build_url(cls.build_endpoint(identifier))
+        url = cls.build_url(identifier)
         return session.get(url, **kwargs)
 
     def get(self, session):
@@ -65,7 +63,7 @@ class AwesomeObject:
 
         LOGGER.debug("Storing %s: %s", cls.__name__, obj)
 
-        url = cls.build_url(cls.edge)
+        url = cls.build_url()
         try:
             return session.post(url, json=obj, **kwargs)
 
@@ -73,10 +71,8 @@ class AwesomeObject:
         except json.JSONDecodeError:
             return dict()
 
-    @classmethod
-    def update(cls, session, obj, **kwargs):
-        url = cls.build_url(cls.edge)
-        return session.patch(url, json=obj, **kwargs)
+    def update(self, session, obj, **kwargs):
+        return session.patch(self.url, json=obj, **kwargs)
 
     def delete(self, session, **kwargs):
         return session.delete(self.url, **kwargs)
@@ -120,7 +116,8 @@ class Location(AwesomeObject):
         return session.get(url)
 
     @staticmethod
-    def new(name: str, lat: float, lon: float, elevation: int):
+    def new(name: str, lat: float, lon: float, elevation: int) -> dict:
+        """Construct a new Location object"""
         return dict(
             name=name,
             lat=lat,

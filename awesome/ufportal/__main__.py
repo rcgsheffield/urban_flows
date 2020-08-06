@@ -3,8 +3,10 @@ import itertools
 import json
 import logging
 import datetime
+import pathlib
 
 import ufportal.assets
+import ufportal.settings
 import ufportal.awesome_utils
 import ufportal.http_session
 import ufportal.maps
@@ -18,10 +20,17 @@ DESCRIPTION = """
 API documentation: https://ufapidocs.clients.builtonawesomeness.co.uk/
 """
 
+# TODO
+USAGE = """
+python -m ufportal
+"""
+
 
 def get_args():
-    parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
     parser.add_argument('-v', '--verbose', action='store_true', help='Show more logging information')
+    parser.add_argument('-t', '--token', type=pathlib.Path, help='Path of file containing access token',
+                        default=ufportal.settings.DEFAULT_TOKEN_PATH)
     return parser.parse_args()
 
 
@@ -38,14 +47,17 @@ def sync_sites(session, sites, locations):
     """Either update or create a new location for each site"""
 
     for site in sites:
-        LOGGER.debug(site)
+        LOGGER.debug("SITE %s", site)
 
         # Convert to Awesome object
         location = ufportal.maps.site_to_location(site)
 
         try:
+            # Retrieve existing location
             location_id = locations[site['name']]
             loc = ufportal.objects.Location(location_id)
+
+            # Amend existing location
             data = loc.update(session, location)
 
         # Location doesn't exist on in Awesome database
@@ -54,7 +66,7 @@ def sync_sites(session, sites, locations):
             # Create new location
             data = ufportal.objects.Location.add(session, location)
 
-        LOGGER.debug(data)
+        LOGGER.debug("LOCATION RESPONSE %s", data)
 
 
 def sync_sensors(session, sensors, awesome_sensors, locations):
@@ -112,39 +124,64 @@ def sync_reading_categories(session, reading_categories):
         reading_category.update(session, obj=obj)
 
 
-def main():
-    args = get_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+def get_urban_flows_metadata() -> tuple:
+    """Retrieve all Urban Flows metadata"""
 
-    # Get UFO metadata
-    metadata = ufportal.assets.get_metadata()
-    sites = metadata['sites'].values()
-    sensors = metadata['sensors'].values()
+    sites, families, pairs, sensors = ufportal.assets.get_metadata()
+
+    # Get a mapping of all detectors on all sensors
+    # Each sensor pod contains multiple detectors (quantitative measurement channels)
     detectors = {det['name'].upper(): det for det in itertools.chain(*(s['detectors'].values() for s in sensors))}
 
-    with ufportal.http_session.PortalSession() as session:
-        # Map key-value pairs to map location name to location identifier
-        awesome_sensors = {obj['name']: obj['id'] for obj in ufportal.objects.Sensor.list_iter(session)}
-        locations = {obj['name']: obj['id'] for obj in ufportal.objects.Location.list_iter(session)}
-        reading_types = {obj['name']: obj['id'] for obj in ufportal.objects.ReadingType.list(session)}
-        reading_categories = {obj['name']: obj['id'] for obj in ufportal.objects.ReadingCategory.list(session)}
+    return sites, families, pairs, sensors, detectors
 
-        # Update Awesome portal to match UFO
-        sync_sites(session, sites, locations=locations)
-        sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-        sync_reading_types(session, detectors=detectors, reading_types=reading_types)
-        sync_reading_categories(session, reading_categories=reading_categories)
 
-        # Sync data
-        # Update from the latest record in the database -- either keep a bookmark or run a MAX query
-        # TODO
-        query = dict(
-            time_period=[
-                datetime.datetime(2020, 3, 2),
-                datetime.datetime(2020, 3, 3),
-            ],
-        )
-        add_readings(session=session, rows=ufportal.ufdex.run(query), reading_types=reading_types, sensors=sensors)
+def sync(session):
+    """Update or add metadata objects to the Awesome web portal"""
+
+    # Get UFO metadata
+    sites, families, pairs, sensors, detectors = get_urban_flows_metadata()
+
+    LOGGER.info('Retrieving portal objects...')
+
+    # Map location name to location identifier
+    awesome_sensors = {obj['name']: obj['id'] for obj in ufportal.objects.Sensor.list_iter(session)}
+    locations = {obj['name']: obj['id'] for obj in ufportal.objects.Location.list_iter(session)}
+    reading_types = {obj['name']: obj['id'] for obj in ufportal.objects.ReadingType.list_iter(session)}
+    reading_categories = {obj['name']: obj['id'] for obj in ufportal.objects.ReadingCategory.list_iter(session)}
+
+    # Update Awesome portal to match UFO
+    LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+    sync_sites(session, sites, locations=locations)
+
+    LOGGER.info('Syncing sensors...')
+    sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+
+    LOGGER.info('Syncing reading types...')
+    sync_reading_types(session, detectors=detectors, reading_types=reading_types)
+
+    LOGGER.info('Syncing reading categories...')
+    sync_reading_categories(session, reading_categories=reading_categories)
+
+    # Sync data
+    # Update from the latest record in the database -- either keep a bookmark or run a MAX query
+    # TODO
+    query = dict(
+        time_period=[
+            datetime.datetime(2020, 3, 2),
+            datetime.datetime(2020, 3, 3),
+        ],
+    )
+    add_readings(session=session, rows=ufportal.ufdex.run(query), reading_types=reading_types, sensors=sensors)
+
+
+def main():
+    args = get_args()
+    ufportal.utils.configure_logging(verbose=args.verbose)
+
+    # Connect to Awesome portal
+    with ufportal.http_session.PortalSession(token_path=args.token) as session:
+        sync(session)
 
 
 if __name__ == '__main__':
