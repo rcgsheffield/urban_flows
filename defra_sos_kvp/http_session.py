@@ -283,7 +283,13 @@ class DefraMeta(requests.Session):
         """Get all the sampling features from a site"""
         for parameter in site['parameter_ids']:
             for feature_of_interest in parameter['feature_of_interest']:
-                yield feature_of_interest['featureOfInterset']
+                sampling_feature = feature_of_interest['featureOfInterset']
+
+                # Skip missing values
+                if sampling_feature == 'missingFOI':
+                    continue
+
+                yield sampling_feature
 
     def get_features_of_interest_by_region(self, region_id: int) -> set:
         sampling_features = set()

@@ -2,8 +2,7 @@ import argparse
 import logging
 import requests
 import json
-
-from pprint import pprint
+import pathlib
 
 import settings
 import assets
@@ -55,7 +54,7 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
     parser.add_argument('-s', '--sampling', action='store_true', help='List sampling points')
-    parser.add_argument('-f', '--features', action='store_true', help='List features of interest')
+    parser.add_argument('-f', '--features', action='store_true', help='List sampling features of interest')
     parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
     parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST, help='Region of interest')
     parser.add_argument('-b', '--box', default=settings.BOUNDING_BOX, help='Bounding box GeoJSON file')
@@ -148,7 +147,7 @@ def build_sensor(station: parsers.Station, sampling_points: iter, unit_map: dict
     )
 
 
-def get_stations(session, sampling_point_urls: set) -> dict:
+def get_stations(session, sampling_point_urls: iter) -> dict:
     """Get unique stations by iterating over sampling points"""
 
     LOGGER.info("Retrieving station information...")
@@ -218,19 +217,29 @@ def get_sampling_features(session, region_id: int, bbox) -> iter:
         yield from session.get_site_sampling_features(site)
 
 
+def load_sampling_features(path: pathlib.Path = None) -> iter:
+    path = pathlib.Path(path) or settings.DEFAULT_SAMPLING_FEATURES_PATH
+    with path.open() as file:
+        for line in file:
+            yield line.strip()
+
+
 def main():
     parser, args = get_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING, **settings.LOGGING)
 
     if args.sampling or args.features:
         bbox = get_bbox(args.box)
         with http_session.DefraMeta() as session:
             if args.sampling:
                 sampling_points = set(get_sampling_points(session, region_id=args.region, bbox=bbox))
-                pprint(sampling_points)
+                for s in sampling_points:
+                    print(s)
             elif args.features:
                 sampling_features = set(get_sampling_features(session, region_id=args.region, bbox=bbox))
-                pprint(sampling_features)
+                LOGGER.info("Found %s sampling features", len(sampling_features))
+                for s in sampling_features:
+                    print(s)
 
     elif args.csv:
         output.print_csv_headers()

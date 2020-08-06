@@ -35,6 +35,8 @@ def get_args():
     parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
+    parser.add_argument('-f', '--features', help='Sampling features file path',
+                        default=settings.DEFAULT_SAMPLING_FEATURES_PATH)
 
     args = parser.parse_args()
 
@@ -64,6 +66,8 @@ def get_data(session, date: datetime.date, sampling_features: iter, directory: s
     :rtype: iter[OrderedDict]
     """
     n = 0
+
+    LOGGER.info("Querying %s sampling features", len(sampling_features))
 
     for sampling_feature in sampling_features:
         data = download_data(session=session, date=date, sampling_feature=sampling_feature, directory=directory)
@@ -109,12 +113,16 @@ def validate(row: OrderedDict) -> bool:
     return True
 
 
-def filter_n(function, iterable) -> iter:
-    """Filter and count the number of rows"""
+def filter_n(function, iterable, **kwargs) -> iter:
+    """
+    Filter and count the number of passed/failed rows.
+
+    Keyword-arguments are passed onto the filter function.
+    """
     n_pass, n_fail = 0, 0
 
     for item in iterable:
-        if function(item):
+        if function(item, **kwargs):
             yield item
             n_pass += 1
         else:
@@ -163,10 +171,10 @@ def transform_row(row: OrderedDict) -> OrderedDict:
     return row
 
 
-def filter_row(row: OrderedDict) -> bool:
+def filter_row(row: OrderedDict, sampling_features: set) -> bool:
     """Filter selected data streams"""
 
-    return row['feature_of_interest'] in settings.SAMPLING_FEATURES
+    return row['feature_of_interest'] in sampling_features
 
 
 def transform(rows: iter) -> iter:
@@ -250,10 +258,13 @@ def main():
     session = http_session.SensorSession()
 
     LOGGER.info('Retrieving raw data and storing in %s', args.raw)
-    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
+
+    # Load sources
+    sampling_features = set(metadata.load_sampling_features(args.features))
+    rows = get_data(session=session, date=args.date, sampling_features=sampling_features, directory=args.raw)
 
     # Clean data
-    rows = filter_n(filter_row, rows)
+    rows = filter_n(filter_row, rows, sampling_features=sampling_features)
     rows = transform(rows)
     rows = filter_n(validate, rows)
     rows = pivot(rows)
