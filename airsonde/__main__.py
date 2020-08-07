@@ -41,8 +41,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-d', '--date', type=parse_date, required=True, help='YYYY-MM-DD')
     parser.add_argument('-o', '--output', help='Path of output file', required=True, type=pathlib.Path)
     parser.add_argument('-a', '--average', help='Time frequency in seconds', type=int,
-
                         default=settings.DEFAULT_AVERAGING_TIME)
+
     return parser.parse_args()
 
 
@@ -106,6 +106,10 @@ def get_time_range(date: datetime.date) -> tuple:
     return start, end
 
 
+def sort(rows: iter, key: str) -> list:
+    return sorted(rows, key=lambda row: row[key])
+
+
 def main():
     args = get_args()
     utils.configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
@@ -122,7 +126,7 @@ def main():
     rows = (transform(row) for row in rows)
 
     # Sort chronologically
-    rows = sorted(rows, key=lambda row: row['timestamp'])
+    rows = sort(rows, key='timestamp')
 
     # Save output file
     write_csv(args.output, rows=rows)
