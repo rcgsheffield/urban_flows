@@ -78,15 +78,29 @@ class SensorSession(requests.Session):
 
     def get_observation(self, **kwargs):
         """
-        Get observation data
+        Get observation data endpoint. This is an API interface available via an XML KVP binding.
 
-        12-006_OGC_Sensor_Observation_Service_Interface_Standard.pdf
+        This endpoint provides access to observations from sensors and sensor systems selected by spatial, temporal
+        and thematic filtering.
+
+        See: 12-006_OGC_Sensor_Observation_Service_Interface_Standard.pdf
+
+        Section 8.3 GetObservation Operation
+
         13.2.3 GetObservation KVP Binding
         http://www.opengis.net/spec/SOS/2.0/req/kvp-core/go-request
 
-        http://schemas.opengis.net/sos/2.0/sosGetObservation.xsd
+        See Example 32 on page 88.
+
+        XML schema: http://schemas.opengis.net/sos/2.0/sosGetObservation.xsd
         """
         return self.call('GetObservation', **kwargs)
+
+    def get_observation_by_date_and_feature(self, date: datetime.date, sampling_features: iter):
+        # Comma-separated unordered list of one or more URL- encoded URIs pointing to specific features of interest of
+        # observations stored by the service.
+        feature_of_interest = ','.join(sampling_features)
+        return self.get_observation_by_date(date=date, params={'featureOfInterest': feature_of_interest})
 
     def get_observation_between(self, start: datetime.datetime, end: datetime.datetime = None, params=None, **kwargs):
         """

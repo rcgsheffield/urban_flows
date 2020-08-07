@@ -16,7 +16,7 @@ Build metadata for the Urban Flows Observatory asset registry.
 """
 
 USAGE = """
-python metadata.py --meta
+python metadata.py -f
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -59,6 +59,7 @@ def get_args():
     parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST, help='Region of interest')
     parser.add_argument('-b', '--box', default=settings.BOUNDING_BOX, help='Bounding box GeoJSON file')
     parser.add_argument('-c', '--csv', action='store_true', help='Show CSV headers')
+    parser.add_argument('-d', '--debug', action='store_true', help='Development mode')
 
     args = parser.parse_args()
 
@@ -221,12 +222,16 @@ def load_sampling_features(path: pathlib.Path = None) -> iter:
     path = pathlib.Path(path) or settings.DEFAULT_SAMPLING_FEATURES_PATH
     with path.open() as file:
         for line in file:
-            yield line.strip()
+            # Strip whitespace
+            line = line.strip()
+            if line:
+                yield line
 
 
 def main():
     parser, args = get_args()
-    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING, **settings.LOGGING)
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO if args.verbose else logging.WARNING,
+                        **settings.LOGGING)
 
     if args.sampling or args.features:
         bbox = get_bbox(args.box)

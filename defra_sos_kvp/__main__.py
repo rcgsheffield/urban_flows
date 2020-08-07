@@ -55,7 +55,13 @@ def store_raw_data(sampling_feature, date, directory, data):
 
 
 def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
-    data = session.get_observation_by_date(date=date, params={'featureOfInterest': sampling_feature})
+    """
+    Call getObservation endpoint to retrieve observation data with a filter.
+
+    featureOfInterest: pointer to a feature of interest for which observations are requested
+    """
+
+    data = session.get_observation_by_date_and_feature(date=date, sampling_features=[sampling_feature])
     store_raw_data(sampling_feature=sampling_feature, date=date, directory=directory, data=data)
 
     return data

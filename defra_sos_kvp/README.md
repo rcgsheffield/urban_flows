@@ -11,7 +11,7 @@ See `settings.py` for configuration.
 To see the usage docs, run
 
 ```bash
-$ python __main__.py --help
+$ python . --help
 $ python metadata.py --help
 ```
 
@@ -39,4 +39,4 @@ The bounding box used for spatial filtering is defined using a GeoJSON file spec
 
 ## Issues
 
-* There seems to be a bug with the SOS API, see: Issue [52North SOS #793](https://github.com/52North/SOS/issues/793). This means we can't do a spatial filter when querying the API. The developers have been informed so this may have been fixed.
+* There seems to be a bug with the SOS API, see: Issue [52North SOS #793](https://github.com/52North/SOS/issues/793). This means we can't do a spatial filter when querying the API. The developers have been informed so this may have been fixed. See `docs/DEFRA UK-AIR SOS spatial filter issue.eml`.
