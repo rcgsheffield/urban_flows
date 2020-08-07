@@ -1,15 +1,15 @@
 import pathlib
 
 DATE_FORMAT = '%Y-%m-%d'
-DEFAULT_CONFIG_FILE = str(pathlib.Path.home().joinpath('oizom.cfg'))
+DEFAULT_CONFIG_FILE = str(pathlib.Path.home().joinpath('configs', 'oizom.cfg'))
 FAMILY = 'EMS_AirSonde'
 DESC_URL = 'https://terminal.oizom.com/#/u/devices/info'
+
 # This appears to have a maximum value of about 240 seconds
 DEFAULT_AVERAGING_TIME = 60  # seconds
 
 # Map data labels to the Urban Flows metric names
 # See table in docs/Polludrone SMART Parameters Table.pdf
-# TODO check new metric names are correct
 METRICS = dict(
     t='timestamp',
     sensor='sensor',
@@ -88,4 +88,14 @@ OUTPUT_COLUMNS = (
     'AQ_NOISE/PEAK',
     'MET_LIGHT',
     'MET_UV'
+)
+
+# Logging
+LOGGING = dict(
+    # https://docs.python.org/3.8/library/logging.html#logrecord-attributes
+    format='%(asctime)s %(filename)s:%(lineno)s %(levelname)s %(message)s',
+)
+ERROR_HANDLER = dict(
+    # Rotate error log file daily
+    when='D',
 )

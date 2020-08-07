@@ -6,11 +6,10 @@ import pathlib
 
 from collections import OrderedDict
 
-import ufoizom.http_session
-import ufoizom.utils
-import ufoizom.settings
+import utils
+import settings
 
-from ufoizom.objects import Device, Data
+from objects import Device, Data
 
 DESCRIPTION = """
 This is a data pipeline to ingest sensor data from a collection of Environmental Monitoring Solutions (EMS)
@@ -30,17 +29,20 @@ class UrbanDialect(csv.excel):
 
 
 def parse_date(date: str) -> datetime.date:
-    return datetime.datetime.strptime(date, ufoizom.settings.DATE_FORMAT).date()
+    return datetime.datetime.strptime(date, settings.DATE_FORMAT).date()
 
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-c', '--config', help='Configuration file', default=ufoizom.settings.DEFAULT_CONFIG_FILE)
+    parser.add_argument('-g', '--debug', action='store_true')
+    parser.add_argument('-c', '--config', help='Configuration file', default=settings.DEFAULT_CONFIG_FILE)
+    parser.add_argument('-e', '--error', help='Error log file path')
     parser.add_argument('-d', '--date', type=parse_date, required=True, help='YYYY-MM-DD')
     parser.add_argument('-o', '--output', help='Path of output file', required=True, type=pathlib.Path)
     parser.add_argument('-a', '--average', help='Time frequency in seconds', type=int,
-                        default=ufoizom.settings.DEFAULT_AVERAGING_TIME)
+
+                        default=settings.DEFAULT_AVERAGING_TIME)
     return parser.parse_args()
 
 
@@ -53,7 +55,7 @@ def parse_timestamp(timestamp: int) -> str:
 def transform(row: dict) -> dict:
     """Clean a row of data"""
     # Rename metrics
-    row = {ufoizom.settings.METRICS[key]: value for key, value in row.items()}
+    row = {settings.METRICS[key]: value for key, value in row.items()}
 
     # Leave timestamp in Unix format
     # row['timestamp'] = parse_timestamp(row['timestamp'])
@@ -63,7 +65,7 @@ def transform(row: dict) -> dict:
 
 
 def write_csv(path: pathlib.Path, rows):
-    headers = ufoizom.settings.OUTPUT_COLUMNS
+    headers = settings.OUTPUT_COLUMNS
     LOGGER.info('CSV headers %s', headers)
     with path.open('w', newline='\n') as file:
         writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
@@ -106,8 +108,8 @@ def get_time_range(date: datetime.date) -> tuple:
 
 def main():
     args = get_args()
-    ufoizom.utils.configure_logging(args.verbose)
-    session = ufoizom.utils.get_session(args.config)
+    utils.configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
+    session = utils.get_session(args.config)
 
     # Time parameters:
     average = datetime.timedelta(seconds=args.average)
