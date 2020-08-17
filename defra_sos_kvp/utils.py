@@ -5,12 +5,18 @@ Utility functions
 import datetime
 import os
 import logging
+import warnings
 
 import arrow
+import arrow.factory
 
 import settings
 
 LOGGER = logging.getLogger(__name__)
+
+# Ignore Arrow parsing version change warnings
+# https://github.com/arrow-py/arrow/issues/612
+warnings.simplefilter('ignore', arrow.factory.ArrowParseWarning)
 
 
 def within_bounding_box(bounding_box, position: tuple) -> bool:

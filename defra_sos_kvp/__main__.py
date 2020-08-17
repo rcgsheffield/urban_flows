@@ -82,7 +82,7 @@ def get_data(session, date: datetime.date, sampling_features: iter, directory: s
             parser = parsers.AirQualityParser(data)
         except parsers.OWSException as exc:
             LOGGER.warning(exc)
-            LOGGER.warning("Skipping sampling feature")
+            LOGGER.warning("Skipping sampling feature '%s'", sampling_feature)
             continue
 
         LOGGER.debug("Feature Collection ID: %s", parser.id)
