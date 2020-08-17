@@ -235,7 +235,7 @@ def main():
 
     if args.sampling or args.features:
         bbox = get_bbox(args.box)
-        with http_session.DefraMeta() as session:
+        with http_session.DefraMetaSession() as session:
             if args.sampling:
                 sampling_points = set(get_sampling_points(session, region_id=args.region, bbox=bbox))
                 for s in sampling_points:
@@ -256,7 +256,7 @@ def main():
             unit_map = dict(build_unit_map(session=session))
 
         # Get a list of all the chosen sampling points
-        with http_session.DefraMeta() as session:
+        with http_session.DefraMetaSession() as session:
             bbox = get_bbox(args.box)
             sampling_points = get_sampling_points(session, region_id=args.region, bbox=bbox)
 
