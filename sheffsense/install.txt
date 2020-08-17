@@ -1,3 +1,6 @@
+# DON'T RUN THIS AS A SCRIPT.
+# THIS IS FOR FUTURE REFERENCE ONLY.
+
 # Joe Heffer 11/6/2020
 
 # How To Set Up a Node.js Application for Production on Ubuntu 18.04
@@ -16,6 +19,12 @@ sudo cp -rv ClimateMonitorV2/ClimateMonitorV2 /opt/sheffsense
 
 # Create a user that will run the service
 sudo useradd sheffsense
+
+# Allow group read access to this home directory
+chmod 740 /home/sheffsense
+
+# Add sheffsense user to the same group as nginx (user www-data)
+usermod -a -G www-data sheffsense
 
 # Use PM2 to run the app as a service
 sudo npm install pm2@latest -g
