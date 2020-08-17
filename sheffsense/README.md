@@ -10,10 +10,28 @@ See: Digital Ocean [How To Set Up a Node.js Application for Production on Ubuntu
 
 # Usage
 
-```bash
-# View service status:
-systemctl status pm2-sheffsense
+## Node app
 
-# Check it's listening:
-lsof -i -P -n | grep sheffsense
+```bash
+# View service status
+$ systemctl status pm2-sheffsense
+
+# Check it's listening
+$ lsof -i -P -n | grep sheffsense
 ```
+
+## Web server
+
+NGINX reverse proxy server.
+
+```bash
+# Check configuration files
+$ sudo nginx -t
+
+# Check service status
+$ systemctl status nginx
+
+# View error logs
+$ sudo tail /var/log/nginx/error.log
+```
+
