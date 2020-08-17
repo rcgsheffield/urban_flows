@@ -6,7 +6,7 @@ server {
     # http://nginx.org/en/docs/http/configuring_https_servers.html
     listen 443 ssl;
     listen [::]:443 ssl;
-    server_name sheffsense.uk www.sheffsense.uk
+    server_name sheffsense.uk www.sheffsense.uk;
     ssl_certificate     /etc/ssl/certs/sheffsense.uk.crt;
 
     # Forward to node.js

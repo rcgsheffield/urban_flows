@@ -20,24 +20,16 @@ sudo useradd sheffsense
 # Use PM2 to run the app as a service
 sudo npm install pm2@latest -g
 
+# These commands must be run manually
 # Run the app as the sheffsense user to create the .pm2 configuration
 # in /home/sheffsense/.pm2
-pm2 start /opt/sheffsense/app.js
+#pm2 start /opt/sheffsense/app.js
 
 # Create a startup script
-sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u sheffsense --hp /home/sheffsense
+#sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u sheffsense --hp /home/sheffsense
 
 # Save the PM2 process list and corresponding environments:
-pm2 save
-#[PM2] Saving current process list...
-#[PM2] Successfully saved in /home/sheffsense/.pm2/dump.pm2
-
-# View service status:
-systemctl status pm2-sheffsense
-
-reboot
-# Check it's listening:
-lsof -i -P -n | grep sheffsense
+#pm2 save --force
 
 # Install web proxy server (NGINX)
 sudo apt install nginx
