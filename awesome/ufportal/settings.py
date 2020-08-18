@@ -1,7 +1,12 @@
 import pathlib
 
-DEFAULT_TOKEN_PATH = pathlib.Path.home().joinpath('awesome_token.txt')
+# Authentication token
+DEFAULT_TOKEN_PATH = pathlib.Path.home().joinpath('configs', 'awesome_token.txt')
 
+# Log config
 LOGGING = dict(
-    format="%(levelname)s %(asctime)-15s %(filename)s:%(lineno)d %(message)s",
+    format="%(levelname)s %(asctime)s %(filename)s:%(lineno)d %(message)s",
 )
+
+# The maximum number of readings to upload at once to /api/reading/bulk. The limit is 100.
+BULK_READINGS_CHUNK_SIZE = 200

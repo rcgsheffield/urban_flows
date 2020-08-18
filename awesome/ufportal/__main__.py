@@ -35,16 +35,24 @@ def get_args():
 
 
 def add_readings(session, rows: iter, sensors: dict, reading_types: dict):
+    """
+    Bulk store readings
+    """
+
     def get_readings(_rows) -> iter:
         for row in _rows:
+            # Convert rows of portal data into portal readings
             yield from ufportal.maps.row_to_readings(row, sensors=sensors, reading_types=reading_types)
 
-    for chunk in ufportal.utils.iter_chunks(get_readings(rows), size=100):
+    # Iterate over data chunks
+    for chunk in ufportal.utils.iter_chunks(get_readings(rows), chunk_size=ufportal.settings.BULK_READINGS_CHUNK_SIZE):
         ufportal.objects.Reading.store_bulk(session, readings=chunk)
 
 
 def sync_sites(session, sites, locations):
-    """Either update or create a new location for each site"""
+    """
+    Either update or create a new location for each site
+    """
 
     for site in sites:
         LOGGER.debug("SITE %s", site)
@@ -88,9 +96,9 @@ def sync_sensors(session, sensors, awesome_sensors, locations):
             ufportal.objects.Sensor.add(session, awe_sensor)
 
 
-def sync_reading_types(session, detectors, reading_types):
+def sync_reading_types(session: ufportal.http_session.PortalSession, detectors: dict, reading_types: dict):
     # Iterate over detectors
-    for detector in detectors:
+    for detector_name, detector in detectors.items():
 
         obj = ufportal.maps.detector_to_reading_type(detector)
 

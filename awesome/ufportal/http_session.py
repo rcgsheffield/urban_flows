@@ -4,6 +4,7 @@ HTTP transport layer
 
 import logging
 import pathlib
+import json
 
 import requests
 
@@ -41,12 +42,21 @@ class PortalSession(requests.Session):
         # Raise errors
         try:
             response.raise_for_status()
+
+        # Log HTTP error codes
         except requests.HTTPError:
             LOGGER.error(response.text)
             raise
 
         # Parse JSON response
-        return response.json()
+        try:
+            return response.json()
+
+        # Log invalid JSON responses
+        except json.JSONDecodeError as e:
+            LOGGER.error(e)
+            LOGGER.error(response.text)
+            raise
 
     @property
     def token(self) -> str:
