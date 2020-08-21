@@ -1,7 +1,8 @@
+import pathlib
 import logging
 import itertools
 
-import ufportal.settings
+import settings
 
 
 def iter_chunks(iterable: iter, chunk_size: int):
@@ -23,5 +24,17 @@ def iter_chunks(iterable: iter, chunk_size: int):
         yield chunk
 
 
-def configure_logging(verbose: bool = False):
-    logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO, **ufportal.settings.LOGGING)
+def configure_logging(verbose: bool = False, debug: bool = False, error: pathlib.Path = None):
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARN,
+                       **settings.LOGGING)
+
+    if error:
+        # Daily error log files
+        handler = logging.FileHandler(filename=error)
+        formatter = logging.Formatter()
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.ERROR)
+
+        # Capture message on all loggers
+        root_logger = logging.getLogger()
+        root_logger.handlers.append(handler)

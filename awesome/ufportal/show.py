@@ -3,10 +3,10 @@ import json
 import argparse
 import pathlib
 
-import ufportal.objects
-import ufportal.http_session
-import ufportal.settings
-import ufportal.utils
+import objects
+import http_session
+import settings
+import utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ Print object metadata from the Awesome portal API
 """
 
 USAGE = """
-python -m ufportal.show --locations
+python -m show --locations
 """
 
 
@@ -56,25 +56,25 @@ def print_objects(session, cls):
 
 def main():
     parser, args = get_args()
-    ufportal.utils.configure_logging(verbose=args.verbose)
+    utils.configure_logging(verbose=args.verbose)
 
     if args.locations:
-        cls = ufportal.objects.Location
+        cls = objects.Location
     elif args.sensors:
-        cls = ufportal.objects.Sensor
+        cls = objects.Sensor
     elif args.sensor_categories:
-        cls = ufportal.objects.SensorCategory
+        cls = objects.SensorCategory
     elif args.sensor_types:
-        cls = ufportal.objects.SensorType
+        cls = objects.SensorType
     elif args.reading_categories:
-        cls = ufportal.objects.ReadingCategory
+        cls = objects.ReadingCategory
     elif args.reading_types:
-        cls = ufportal.objects.ReadingType
+        cls = objects.ReadingType
     else:
         parser.print_help()
         exit()
 
-    with ufportal.http_session.PortalSession(token_path=args.token) as session:
+    with http_session.PortalSession(token_path=args.token) as session:
         print_objects(session, cls)
 
 

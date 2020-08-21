@@ -4,7 +4,7 @@ Utility functions (or examples) for working with the Awesome portal API
 
 import datetime
 
-from ufportal.objects import Location, ReadingCategory
+from objects import Location, ReadingCategory
 
 
 def print_locations(session):

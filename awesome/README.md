@@ -5,5 +5,6 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 # Usage
 
 ```bash
-$ python -m ufportal --help
+$ cd awesome/ufportal
+$ python . --help
 ```

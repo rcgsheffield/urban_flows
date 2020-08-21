@@ -29,15 +29,27 @@ class PortalSession(requests.Session):
     def request(self, *args, **kwargs) -> dict:
         """Make a HTTP request to the API and parse the response"""
 
+        headers = {
+            'Accept': 'application/json',
+        }
+        headers.update(kwargs.pop('headers', dict()))
+
         # Debug log request payload
         for key in ('data', 'json', 'params'):
             try:
-                LOGGER.debug("REQUEST %s %s", key.upper(), kwargs[key])
+                LOGGER.debug("REQUEST %s: %s", key, kwargs[key])
             except KeyError:
                 pass
 
         # Make the request
-        response = super().request(*args, **kwargs)
+        response = super().request(*args, headers=headers, **kwargs)
+
+        for r in response.history:
+            # Log headers
+            for header, value in r.request.headers.items():
+                LOGGER.debug("REQUEST %s: %s", header, value)
+            for header, value in r.headers.items():
+                LOGGER.debug("RESPONSE %s: %s", header, value)
 
         # Raise errors
         try:
