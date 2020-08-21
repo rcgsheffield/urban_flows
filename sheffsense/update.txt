@@ -1,0 +1,8 @@
+# Update system packages
+sudo apt update
+sudo apt upgrade
+
+# Update javascript libraries
+cd /opt/sheffsense
+sudo npm update
+sudo npm audit fix

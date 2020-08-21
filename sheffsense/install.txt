@@ -45,5 +45,11 @@ sudo apt install nginx
 
 # Web app configuration files
 cp nginx/sites-available/* /etc/nginx/sites-available --verbose
+
+# https://www.sheffsense.uk
 ln -s /etc/nginx/sites-available/sheffsense.uk /etc/nginx/sites-enabled/sheffsense.uk --verbose --force
+
+# http://ufshefsense.shef.ac.uk
+#ln -s /etc/nginx/sites-available/ufshefsense.shef.ac.uk /etc/nginx/sites-enabled/ufshefsense.shef.ac.uk --verbose --force
+
 cp pm2/pm2-sheffsense.service /etc/systemd/system/pm2-sheffsense.service --verbose
