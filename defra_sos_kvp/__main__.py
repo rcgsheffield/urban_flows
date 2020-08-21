@@ -12,6 +12,8 @@ import output
 
 from collections import OrderedDict
 
+from defra_sos_kvp.utils import configure_logging
+
 DESCRIPTION = """
 This is a harvester to retrieve data from the DEFRA UK-AIR Sensor Observation Service via their API using the key-value
 pair (KVP) binding.
@@ -223,33 +225,6 @@ def pivot(rows: iter) -> iter:
 
 def sort(rows: iter, key='timestamp') -> iter:
     yield from sorted(rows, key=lambda row: row[key])
-
-
-def configure_logging(verbose: bool = False, debug: bool = False, error: str = None):
-    """
-    Configure logging
-
-    :param verbose: Show extra information in logging stream
-    :param debug: Debug logging level
-    :param error: Error log file path
-    """
-
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING,
-                        **settings.LOGGING)
-
-    # TODO subclass formatter to remove line breaks
-    # TODO write timestamp as seconds since 1970
-
-    if error:
-        # Daily error log files
-        handler = logging.FileHandler(filename=error, **settings.ERROR_HANDLER)
-        formatter = logging.Formatter(settings.LOGGING.get('format'))
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.ERROR)
-
-        # Capture message on all loggers
-        root_logger = logging.getLogger()
-        root_logger.handlers.append(handler)
 
 
 def get_data_spatial(session):

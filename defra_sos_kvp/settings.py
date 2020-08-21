@@ -39,7 +39,3 @@ LOGGING = dict(
     # https://docs.python.org/3.8/library/logging.html#logrecord-attributes
     format='%(asctime)s %(filename)s:%(lineno)s %(levelname)s %(message)s',
 )
-ERROR_HANDLER = dict(
-    # Rotate error log file daily
-    when='D',
-)
