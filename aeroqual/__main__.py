@@ -22,14 +22,23 @@ Aeroqual harvester for the Urban Flows Observatory.
 
 
 class UrbanDialect(csv.excel):
+    """
+    CSV format for Urban Flows
+    """
     delimiter = '|'
 
 
 def date(day: str) -> datetime.datetime:
+    """
+    Parse ISO date e.g. 2000-01-01
+    """
     return datetime.datetime.strptime(day, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
 
 def get_args() -> argparse.Namespace:
+    """
+    Command line arguments
+    """
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
     parser.add_argument('-v', '--verbose', action='store_true')
@@ -56,6 +65,7 @@ def get_data(session, serial: str, start: datetime.datetime, end: datetime.datet
     averaging period = period in minutes to average data – minimum 1 minute
     include journal = (optional) whether to include journal entries – true or false
     """
+    # Example query:
     # from=2016-01-01T00:00:00&to=2016-01-02T00:00:00&averagingperiod=60&includejournal=false
     params = {
         'from': start.isoformat(),
@@ -68,6 +78,7 @@ def get_data(session, serial: str, start: datetime.datetime, end: datetime.datet
 
     data = body.pop('data')
 
+    # Log metadata
     for key, value in body.items():
         LOGGER.info("%s: %s", key, value)
 
@@ -81,12 +92,17 @@ def write_csv(path: pathlib.Path, rows: Rows):
         for row in rows:
             row_count += 1
             if not writer:
+                LOGGER.info("CSV headers %s", row.keys())
                 writer = csv.DictWriter(file, fieldnames=row.keys(), dialect=UrbanDialect)
-                writer.writeheader()
 
             writer.writerow(row)
 
         LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
+
+
+def transform(row: dict) -> dict:
+    # TODO
+    return row
 
 
 def main():
@@ -107,6 +123,7 @@ def main():
         end = args.date + datetime.timedelta(days=1)
         rows = get_data(session, serial_number, start=start, end=end, averagingperiod=args.averagingperiod,
                         includejournal=args.includejournal)
+        rows = map(transform, rows)
         write_csv(rows=rows, path=args.output)
 
 
