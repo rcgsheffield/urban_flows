@@ -1,17 +1,28 @@
 import argparse
 import datetime
 import logging
+import csv
+import pathlib
+
+from typing import Iterable, Mapping
 
 import http_session
 import settings
 import utils
+
 from objects import Instrument, Data
+
+Rows = Iterable[Mapping]
 
 LOGGER = logging.getLogger(__name__)
 
 DESCRIPTION = """
 Aeroqual harvester for the Urban Flows Observatory.
 """
+
+
+class UrbanDialect(csv.excel):
+    delimiter = '|'
 
 
 def date(day: str) -> datetime.datetime:
@@ -26,6 +37,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-e', '--error', help='Error log file path')
     parser.add_argument('-c', '--config', help='Config file', default=str(settings.DEFAULT_CONFIG_FILE))
     parser.add_argument('-d', '--date', help='Get data for this day (UTC)', type=date, required=True)
+    parser.add_argument('-o', '--output', help='Target CSV file path', type=pathlib.Path, required=True)
     parser.add_argument('-a', '--averagingperiod', help='period in minutes to average data – minimum 1 minute',
                         type=int, default=settings.DEFAULT_AVERAGING_PERIOD)
     parser.add_argument('-j', '--includejournal', action='store_true', help='Include journal entries')
@@ -34,7 +46,7 @@ def get_args() -> argparse.Namespace:
 
 
 def get_data(session, serial: str, start: datetime.datetime, end: datetime.datetime, averagingperiod: int,
-             includejournal: bool = False):
+             includejournal: bool = False) -> Rows:
     """
     Fetch instrument data.
 
@@ -51,9 +63,30 @@ def get_data(session, serial: str, start: datetime.datetime, end: datetime.datet
         'averagingperiod': averagingperiod,
         'includejournal': includejournal,
     }
-    data = Data(serial)
-    x = data.get(session, params=params)
-    print(x)
+    obj = Data(serial)
+    body = obj.get(session, params=params)
+
+    data = body.pop('data')
+
+    for key, value in body.items():
+        LOGGER.info("%s: %s", key, value)
+
+    yield from data
+
+
+def write_csv(path: pathlib.Path, rows: Rows):
+    writer = None
+    row_count = 0
+    with path.open('w') as file:
+        for row in rows:
+            row_count += 1
+            if not writer:
+                writer = csv.DictWriter(file, fieldnames=row.keys(), dialect=UrbanDialect)
+                writer.writeheader()
+
+            writer.writerow(row)
+
+        LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
 
 
 def main():
@@ -72,9 +105,9 @@ def main():
 
         start = args.date
         end = args.date + datetime.timedelta(days=1)
-        body = get_data(session, serial_number, start=start, end=end, averagingperiod=args.averagingperiod,
+        rows = get_data(session, serial_number, start=start, end=end, averagingperiod=args.averagingperiod,
                         includejournal=args.includejournal)
-        print(body)
+        write_csv(rows=rows, path=args.output)
 
 
 if __name__ == '__main__':
