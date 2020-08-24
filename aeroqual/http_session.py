@@ -53,7 +53,8 @@ class AeroqualSession(requests.Session):
         “Set-Cookie” header as the “Cookie” header for all subsequent API requests.
         """
         endpoint = 'account/login'
-        self.call(endpoint, post=True, data=dict(UserName=self.username, Password=self.password))
+        url = self.build_url(endpoint)
+        return self.post(url, data=dict(UserName=self.username, Password=self.password))
 
     def request(self, *args, **kwargs):
         # Wrap request, but raise errors
@@ -72,6 +73,13 @@ class AeroqualSession(requests.Session):
             raise
         return response
 
-    def call(self, endpoint: str, post: bool = False, **kwargs) -> requests.Response:
+    def call(self, endpoint: str, **kwargs) -> dict:
         url = self.build_url(endpoint=endpoint)
-        return self.request(url=url, method='post' if post else 'get', **kwargs)
+        response = self.get(url, **kwargs)
+        try:
+            data = response.json()
+            LOGGER.debug(data)
+            return data
+        except:
+            LOGGER.error(response.text)
+            raise
