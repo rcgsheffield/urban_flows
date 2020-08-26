@@ -3,6 +3,8 @@ import urllib.parse
 import pathlib
 import configparser
 
+from collections import OrderedDict
+
 import requests
 
 LOGGER = logging.getLogger(__name__)
@@ -77,7 +79,7 @@ class AeroqualSession(requests.Session):
         url = self.build_url(endpoint=endpoint)
         response = self.get(url, **kwargs)
         try:
-            data = response.json()
+            data = response.json(object_pairs_hook=OrderedDict)
             LOGGER.debug(data)
             return data
         except:
