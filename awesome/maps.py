@@ -43,14 +43,14 @@ def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
 def detector_to_reading_type(detector: dict) -> dict:
     return objects.ReadingType.new(
         name=detector['name'],
-        unit=detector['u'].casefold(),
+        unit=detector['u'].casefold() or 'unit',
         # TODO get real values
         min_value=0,
         max_value=999,
     )
 
 
-def row_to_readings(row: dict, sensors, reading_types) -> iter:
+def row_to_readings(row: dict, sensors: dict, reading_types) -> iter:
     time = row.pop('time')
     sensor = row.pop('sensor')
     del row['site_id']

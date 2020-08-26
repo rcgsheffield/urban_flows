@@ -26,11 +26,11 @@ def iter_chunks(iterable: iter, chunk_size: int):
 
 def configure_logging(verbose: bool = False, debug: bool = False, error: pathlib.Path = None):
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARN,
-                       **settings.LOGGING)
+                        **settings.LOGGING)
 
     if error:
         # Daily error log files
-        handler = logging.FileHandler(filename=error)
+        handler = logging.FileHandler(filename=str(error))
         formatter = logging.Formatter()
         handler.setFormatter(formatter)
         handler.setLevel(logging.ERROR)

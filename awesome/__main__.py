@@ -32,13 +32,19 @@ def get_args():
     parser.add_argument('-e', '--error', type=pathlib.Path, help='Error log file')
     parser.add_argument('-t', '--token', type=pathlib.Path, help='Path of file containing access token',
                         default=settings.DEFAULT_TOKEN_PATH)
+    parser.add_argument('-r', '--reading_type_groups', type=pathlib.Path,
+                        help="Configuration to group reading types into reading categories",
+                        default=settings.DEFAULT_READING_TYPE_GROUPS_FILE)
     return parser.parse_args()
 
 
-def add_readings(session, rows: iter, sensors: dict, reading_types: dict):
+def sync_readings(session, rows: iter, sensors: list, reading_types: dict):
     """
     Bulk store readings
     """
+
+    # Convert list to dictionary
+    sensors = {sensor['name']: sensor for sensor in sensors}
 
     def get_readings(_rows) -> iter:
         for row in _rows:
@@ -118,21 +124,26 @@ def sync_reading_types(session: http_session.PortalSession, detectors: dict, rea
             objects.ReadingType.add(session, obj)
 
 
-def load_reading_category_config() -> list:
-    with open('reading_categories.json') as file:
+def load_reading_category_config(path: pathlib.Path) -> list:
+    with pathlib.Path(path).open() as file:
         return json.load(file)
 
 
-def sync_reading_categories(session, reading_categories):
-    config = load_reading_category_config()
+def sync_reading_categories(session, reading_categories: dict, reading_type_groups: list):
+    LOGGER.debug("READING CATEGORIES: %s", reading_categories)
 
-    for read_cat in config:
+    for read_cat in reading_type_groups:
         obj = objects.ReadingCategory.new(name=read_cat['name'], icon_name=read_cat['icon_name'])
 
-        # Update existing reading category
-        reading_category_id = reading_categories[read_cat['name']]
-        reading_category = objects.ReadingCategory(reading_category_id)
-        reading_category.update(session, obj=obj)
+        try:
+            # Update existing reading category
+            reading_category_id = reading_categories[read_cat['name']]
+            reading_category = objects.ReadingCategory(reading_category_id)
+            reading_category.update(session, obj=obj)
+
+        except KeyError:
+            # Make new reading category
+            objects.ReadingCategory.add(session, obj)
 
 
 def get_urban_flows_metadata() -> tuple:
@@ -148,7 +159,7 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
-def sync(session):
+def sync(session, reading_type_groups: list):
     """Update or add metadata objects to the Awesome web portal"""
 
     # Get UFO metadata
@@ -173,7 +184,7 @@ def sync(session):
     sync_reading_types(session, detectors=detectors, reading_types=reading_types)
 
     LOGGER.info('Syncing reading categories...')
-    sync_reading_categories(session, reading_categories=reading_categories)
+    sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
     # Update from the latest record in the database -- either keep a bookmark or run a MAX query
@@ -184,16 +195,18 @@ def sync(session):
             datetime.datetime(2020, 3, 3),
         ],
     )
-    add_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors)
+    sync_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors)
 
 
 def main():
     args = get_args()
     utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
 
+    reading_type_groups = load_reading_category_config(args.reading_type_groups)
+
     # Connect to Awesome portal
     with http_session.PortalSession(token_path=args.token) as session:
-        sync(session)
+        sync(session, reading_type_groups=reading_type_groups)
 
 
 if __name__ == '__main__':

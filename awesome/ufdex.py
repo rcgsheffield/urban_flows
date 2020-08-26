@@ -34,7 +34,7 @@ LOGGER = logging.getLogger(__name__)
 NULL = -32768
 
 
-def stream(time_period, site_ids) -> iter:
+def stream(time_period, site_ids: iter = None) -> iter:
     """Retrieve raw data over HTTP"""
 
     # Query database
@@ -42,10 +42,12 @@ def stream(time_period, site_ids) -> iter:
         Tfrom=time_period[0].isoformat(),
         Tto=time_period[1].isoformat(),
         aktion='CSV_show',
-        bySite=','.join(site_ids),
         freqInMin=5,
         tok='generic',
     )
+
+    if site_ids:
+        params['bySite'] = ','.join(site_ids),
 
     with requests.Session() as session:
         # Streaming Requests

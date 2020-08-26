@@ -7,11 +7,13 @@ import pathlib
 import json
 
 import requests
+import requests_cache
 
 LOGGER = logging.getLogger(__name__)
 
 
-class PortalSession(requests.Session):
+# TODO use requests.Session
+class PortalSession(requests_cache.CachedSession):
     LANGUAGE = 'en'
 
     def __init__(self, token_path: pathlib.Path):

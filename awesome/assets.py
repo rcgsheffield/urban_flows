@@ -36,10 +36,10 @@ def _get_metadata() -> dict:
 def get_metadata() -> tuple:
     metadata = _get_metadata()
 
-    pairs = metadata['pairs'].values()
-    families = metadata['families'].values()
-    sites = metadata['sites'].values()
-    sensors = metadata['sensors'].values()
+    pairs = list(metadata['pairs'].values())
+    families = list(metadata['families'].values())
+    sites = list(metadata['sites'].values())
+    sensors = list(metadata['sensors'].values())
 
     return sites, families, pairs, sensors
 
