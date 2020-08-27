@@ -38,7 +38,7 @@ def get_args():
     return parser.parse_args()
 
 
-def sync_readings(session, rows: iter, sensors: list, reading_types: dict):
+def sync_readings(session, rows: iter, sensors: list, awesome_sensors: dict, reading_types: dict):
     """
     Bulk store readings
     """
@@ -49,7 +49,8 @@ def sync_readings(session, rows: iter, sensors: list, reading_types: dict):
     def get_readings(_rows) -> iter:
         for row in _rows:
             # Convert rows of portal data into portal readings
-            yield from maps.row_to_readings(row, sensors=sensors, reading_types=reading_types)
+            yield from maps.row_to_readings(row, sensors=sensors, reading_types=reading_types,
+                                            awesome_sensors=awesome_sensors)
 
     # Iterate over data chunks
     for chunk in utils.iter_chunks(get_readings(rows), chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
@@ -195,7 +196,8 @@ def sync(session, reading_type_groups: list):
             datetime.datetime(2020, 3, 3),
         ],
     )
-    sync_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors)
+    sync_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors,
+                  awesome_sensors=awesome_sensors)
 
 
 def main():

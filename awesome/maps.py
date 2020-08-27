@@ -50,14 +50,29 @@ def detector_to_reading_type(detector: dict) -> dict:
     )
 
 
-def row_to_readings(row: dict, sensors: dict, reading_types) -> iter:
+def row_to_readings(row: dict, sensors: dict, awesome_sensors: dict, reading_types) -> iter:
+    """
+    Convert a row of UFO data into an Awesome portal reading
+
+    :param row: UFO data row
+    :param sensors: UFO sensor
+    :param reading_types: Awesome reading types
+    :return:
+    """
+
     time = row.pop('time')
-    sensor = row.pop('sensor')
+    uf_sensor_id = row.pop('sensor')
+    sensor = sensors[uf_sensor_id]
+    awesome_sensor_id = awesome_sensors[sensor['name']]
+
+    LOGGER.debug(sensor)
+
     del row['site_id']
 
+    # Each row contains several readings
     for key, value in row.items():
         yield objects.Reading.new(
-            sensor_id=sensors[sensor],
+            sensor_id=awesome_sensor_id,
             reading_type_id=reading_types[key],
             value=value,
             created=time,

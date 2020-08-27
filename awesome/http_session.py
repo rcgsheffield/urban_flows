@@ -28,7 +28,7 @@ class PortalSession(requests_cache.CachedSession):
             'Accept-Language': self.LANGUAGE,
         }
 
-    def request(self, *args, **kwargs) -> dict:
+    def request(self, *args, **kwargs):
         """Make a HTTP request to the API and parse the response"""
 
         headers = {
@@ -62,6 +62,11 @@ class PortalSession(requests_cache.CachedSession):
             LOGGER.error(response.text)
             raise
 
+        return response
+
+    def call(self, *args, **kwargs) -> dict:
+        response = self.get(*args, **kwargs)
+
         # Parse JSON response
         try:
             return response.json()
@@ -82,7 +87,7 @@ class PortalSession(requests_cache.CachedSession):
         # Iterate over pages
         while True:
             try:
-                body = self.get(url, **kwargs)
+                body = self.call(url, **kwargs)
 
             # End pagination
             except requests.exceptions.MissingSchema:

@@ -37,7 +37,7 @@ class AwesomeObject:
     @classmethod
     def list(cls, session, **kwargs) -> list:
         url = cls.build_url()
-        body = session.get(url=url, **kwargs)
+        body = session.call(url=url, **kwargs)
 
         # Make sure this isn't a paginated response
         if 'links' in body:
@@ -53,7 +53,7 @@ class AwesomeObject:
     @classmethod
     def show(cls, session, identifier, **kwargs):
         url = cls.build_url(identifier)
-        return session.get(url, **kwargs)
+        return session.call(url, **kwargs)
 
     def get(self, session):
         return self.show(session, self.identifier)
@@ -113,7 +113,7 @@ class Location(AwesomeObject):
 
     def sensors(self, session):
         url = self.urljoin('sensors')
-        return session.get(url)
+        return session.call(url)
 
     @staticmethod
     def new(name: str, lat: float, lon: float, elevation: int) -> dict:
