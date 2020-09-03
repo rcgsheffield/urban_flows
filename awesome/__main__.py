@@ -1,15 +1,15 @@
 import argparse
+import datetime
 import itertools
 import json
 import logging
-import datetime
 import pathlib
 
 import assets
-import settings
 import http_session
 import maps
 import objects
+import settings
 import ufdex
 import utils
 
@@ -57,9 +57,15 @@ def sync_readings(session, rows: iter, sensors: list, awesome_sensors: dict, rea
         objects.Reading.store_bulk(session, readings=chunk)
 
 
-def sync_sites(session, sites, locations):
+def sync_sites(session: http_session.PortalSession, sites, locations: dict):
     """
-    Either update or create a new location for each site
+    Convert UFO sites into Awesome locations.
+
+    Either update or create a new location for each site.
+
+    :param session: Awesome portal HTTP session
+    :param sites: UFO sites
+    :param locations: Map of Awesome location names to identifiers
     """
 
     for site in sites:
@@ -74,19 +80,28 @@ def sync_sites(session, sites, locations):
             loc = objects.Location(location_id)
 
             # Amend existing location
-            data = loc.update(session, location)
+            loc.update(session, location)
 
         # Location doesn't exist on in Awesome database
         except KeyError:
 
             # Create new location
-            data = objects.Location.add(session, location)
+            body = objects.Location.add(session, location)
+            new_location = body['data']
 
-        LOGGER.debug("LOCATION RESPONSE %s", data)
+            # Store id of new location
+            locations[new_location['name']] = new_location['id']
 
 
-def sync_sensors(session, sensors, awesome_sensors, locations):
-    """Either update or create a new location for each site"""
+def sync_sensors(session: http_session.PortalSession, sensors, awesome_sensors, locations: dict):
+    """
+    Either update or create a new location for each site
+
+    :param session: Awesome portal HTTP session
+    :param sensors: UFO sensors
+    :param awesome_sensors: Awesome portal sensors
+    :param locations: Map of Awesome location name to identifier
+    """
 
     for sensor in sensors:
 
@@ -101,7 +116,11 @@ def sync_sensors(session, sensors, awesome_sensors, locations):
         # Doesn't exist on in Awesome database
         except KeyError:
             # Create new
-            objects.Sensor.add(session, awe_sensor)
+            body = objects.Sensor.add(session, awe_sensor)
+            new_sensor = body['data']
+
+            # Store id of new sensor
+            awesome_sensors[new_sensor['name']] = new_sensor['id']
 
 
 def sync_reading_types(session: http_session.PortalSession, detectors: dict, reading_types: dict):
@@ -122,7 +141,9 @@ def sync_reading_types(session: http_session.PortalSession, detectors: dict, rea
         # Doesn't exist on in Awesome database
         except KeyError:
             # Create new
-            objects.ReadingType.add(session, obj)
+            body = objects.ReadingType.add(session, obj)
+            new_reading_type = body['data']
+            reading_types[new_reading_type['name']] = new_reading_type['id']
 
 
 def load_reading_category_config(path: pathlib.Path) -> list:
@@ -144,7 +165,9 @@ def sync_reading_categories(session, reading_categories: dict, reading_type_grou
 
         except KeyError:
             # Make new reading category
-            objects.ReadingCategory.add(session, obj)
+            body = objects.ReadingCategory.add(session, obj)
+            new_reading_category = body['data']
+            reading_categories[new_reading_category['name']] = new_reading_category['id']
 
 
 def get_urban_flows_metadata() -> tuple:
@@ -160,6 +183,35 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
+def build_awesome_object_map(session: http_session.PortalSession, cls: objects.AwesomeObject) -> dict:
+    """
+    Map Awesome object names to identifiers
+    """
+    return {obj['name']: obj['id'] for obj in cls.list_iter(session)}
+
+
+def build_awesome_sensor_map(session: http_session.PortalSession) -> dict:
+    """
+    Map Awesome sensor names to identifiers
+    """
+    return build_awesome_object_map(session, objects.Sensor)
+
+
+def build_awesome_location_map(session: http_session.PortalSession):
+    """
+    Map Awesome location names to identifiers
+    """
+    return build_awesome_object_map(session, objects.Location)
+
+
+def build_awesome_reading_type_map(session):
+    return build_awesome_object_map(session, objects.ReadingType)
+
+
+def build_awesome_reading_category_map(session):
+    return build_awesome_object_map(session, objects.ReadingCategory)
+
+
 def sync(session, reading_type_groups: list):
     """Update or add metadata objects to the Awesome web portal"""
 
@@ -169,12 +221,12 @@ def sync(session, reading_type_groups: list):
     LOGGER.info('Retrieving portal objects...')
 
     # Map location name to location identifier
-    awesome_sensors = {obj['name']: obj['id'] for obj in objects.Sensor.list_iter(session)}
-    locations = {obj['name']: obj['id'] for obj in objects.Location.list_iter(session)}
-    reading_types = {obj['name']: obj['id'] for obj in objects.ReadingType.list_iter(session)}
-    reading_categories = {obj['name']: obj['id'] for obj in objects.ReadingCategory.list_iter(session)}
+    awesome_sensors = build_awesome_sensor_map(session)
+    locations = build_awesome_location_map(session)
+    reading_types = build_awesome_reading_type_map(session)
+    reading_categories = build_awesome_reading_category_map(session)
 
-    # Update Awesome portal to match UFO
+    # Sync metadata objects from USO to Awesome portal
     LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
     sync_sites(session, sites, locations=locations)
 

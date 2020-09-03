@@ -23,10 +23,25 @@ def site_to_location(site: dict) -> dict:
     )
 
 
+def sensor_latest_deployment(sensor: dict) -> dict:
+    """
+    Get latest site deployment
+    """
+
+    # Sort by deployment date (ascending)
+    pairs = sorted(sensor['attachedTo'], key=lambda p: p['from'])
+
+    pair = pairs[0]
+
+    return pair
+
+
 def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
-    """Map an Urban Flows sensor to an Awesome sensor"""
-    # Get latest site deployment
-    pair = sorted(sensor['attachedTo'], key=lambda p: p['from'])[0]
+    """
+    Map an Urban Flows sensor to an Awesome sensor
+    """
+
+    pair = sensor_latest_deployment(sensor)
     site_name = pair['site']
 
     # Get location identifier
@@ -44,7 +59,10 @@ def detector_to_reading_type(detector: dict) -> dict:
     return objects.ReadingType.new(
         name=detector['name'],
         unit=detector['u'].casefold() or 'unit',
-        # TODO get real values
+
+        # Absolute maximum values the reading can take.
+        # For example, temperature can never go below absolute zero of -273 C
+        # TODO configure this on a per-reading-type basis
         min_value=0,
         max_value=999,
     )

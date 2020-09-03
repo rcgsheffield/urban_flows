@@ -1,7 +1,6 @@
 # AirSonde data pipeline
 
-This is a data pipeline to ingest sensor data from a collection of Environmental Monitoring Solutions (EMS)
-[AirSonde](https://www.em-solutions.co.uk/airsonde/) devices via the Oizom API.
+This is a data pipeline to ingest sensor data from a collection of Environmental Monitoring Solutions (EMS) [AirSonde](https://www.em-solutions.co.uk/airsonde/) devices via the Oizom API.
 
 ## Useful links
 

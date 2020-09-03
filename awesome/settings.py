@@ -12,3 +12,5 @@ LOGGING = dict(
 BULK_READINGS_CHUNK_SIZE = 100
 
 DEFAULT_READING_TYPE_GROUPS_FILE = 'reading_type_groups.json'
+
+BASE_URL = 'http://ufportal.shef.ac.uk/api/'

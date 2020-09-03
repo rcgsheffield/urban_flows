@@ -1,5 +1,5 @@
 """
-HTTP transport layer
+HTTP transport layer for the Awesome portal
 """
 
 import logging
@@ -7,18 +7,19 @@ import pathlib
 import json
 
 import requests
-import requests_cache
 
 LOGGER = logging.getLogger(__name__)
 
 
-# TODO use requests.Session
-class PortalSession(requests_cache.CachedSession):
+class PortalSession(requests.Session):
     LANGUAGE = 'en'
 
     def __init__(self, token_path: pathlib.Path):
         super().__init__()
+
+        self._token = str()
         self.token_path = pathlib.Path(token_path)
+
         self.headers.update(self.extra_headers)
 
     @property
@@ -79,8 +80,14 @@ class PortalSession(requests_cache.CachedSession):
 
     @property
     def token(self) -> str:
-        with self.token_path.open() as file:
-            return file.read().strip()
+        """
+        Load authentication token
+        """
+        # Load once and store
+        if not self._token:
+            with self.token_path.open() as file:
+                self._token = file.read().strip()
+        return self._token
 
     def get_iter(self, url, **kwargs):
         """Paginated API call"""

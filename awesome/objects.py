@@ -2,17 +2,20 @@ import logging
 import urllib.parse
 import datetime
 import json
+import abc
+
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
 
-class AwesomeObject:
+class AwesomeObject(abc.ABC):
     """
     An object on the Awesome platform
     
     API documentation: https://ufapidocs.clients.builtonawesomeness.co.uk/
     """
-    BASE_URL = 'https://ufportal.clients.builtonawesomeness.co.uk/api/'
+    BASE_URL = settings.BASE_URL
     edge = None
 
     def __init__(self, identifier):
@@ -65,7 +68,8 @@ class AwesomeObject:
 
         url = cls.build_url()
         try:
-            return session.post(url, json=obj, **kwargs)
+            response = session.post(url, json=obj, **kwargs)
+            return response.json()
 
         # This POST request redirects to the HTML home page, so just return empty
         except json.JSONDecodeError:
@@ -235,3 +239,13 @@ class Reading(AwesomeObject):
             reading_type_id=reading_type_id,
             sensor_id=sensor_id,
         )
+
+    @classmethod
+    def delete_bulk(cls, session, start: datetime.datetime, end: datetime.datetime, reading_type_id: int):
+        url = cls.build_url('bulk/delete')
+        body = {
+            'from': str(start.replace(microsecond=0)),
+            'to': str(end.replace(microsecond=0)),
+            'reading_type_id': reading_type_id,
+        }
+        return session.post(url, json=body)
