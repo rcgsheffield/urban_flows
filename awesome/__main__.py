@@ -12,6 +12,7 @@ import objects
 import settings
 import ufdex
 import utils
+import exceptions
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +55,12 @@ def sync_readings(session, rows: iter, sensors: list, awesome_sensors: dict, rea
 
     # Iterate over data chunks
     for chunk in utils.iter_chunks(get_readings(rows), chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
-        objects.Reading.store_bulk(session, readings=chunk)
+        if chunk:
+            try:
+                objects.Reading.store_bulk(session, readings=chunk)
+            # No more readings, so stop
+            except exceptions.EmptyValueError:
+                break
 
 
 def sync_sites(session: http_session.PortalSession, sites, locations: dict):
@@ -227,27 +233,28 @@ def sync(session, reading_type_groups: list):
     reading_categories = build_awesome_reading_category_map(session)
 
     # Sync metadata objects from USO to Awesome portal
-    LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-    sync_sites(session, sites, locations=locations)
-
-    LOGGER.info('Syncing sensors...')
-    sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-
-    LOGGER.info('Syncing reading types...')
-    sync_reading_types(session, detectors=detectors, reading_types=reading_types)
-
-    LOGGER.info('Syncing reading categories...')
-    sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
+    # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+    # sync_sites(session, sites, locations=locations)
+    #
+    # LOGGER.info('Syncing sensors...')
+    # sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+    #
+    # LOGGER.info('Syncing reading types...')
+    # sync_reading_types(session, detectors=detectors, reading_types=reading_types)
+    #
+    # LOGGER.info('Syncing reading categories...')
+    # sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
     # Update from the latest record in the database -- either keep a bookmark or run a MAX query
     # TODO
     query = dict(
         time_period=[
-            datetime.datetime(2020, 3, 2),
-            datetime.datetime(2020, 3, 3),
+            datetime.datetime(2020, 3, 2, 0),
+            datetime.datetime(2020, 3, 2, 0, 1),
         ],
     )
+    LOGGER.info('Syncing data...')
     sync_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors,
                   awesome_sensors=awesome_sensors)
 

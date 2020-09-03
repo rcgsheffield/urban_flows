@@ -69,10 +69,10 @@ def stream(time_period, site_ids: iter = None) -> iter:
     return response.iter_lines(decode_unicode=True)
 
 
-def parse(query: dict) -> iter:
+def parse(lines: iter) -> iter:
     """Process raw data and generate rows of useful data"""
 
-    for line in stream(**query):
+    for line in lines:
 
         if line.startswith('#'):
             LOGGER.debug(line)
@@ -148,5 +148,5 @@ def transform(row: dict) -> dict:
 
 
 def run(query: dict) -> iter:
-    for row in parse(query):
+    for row in parse(stream(**query)):
         yield transform(row)

@@ -5,7 +5,7 @@ import itertools
 import settings
 
 
-def iter_chunks(iterable: iter, chunk_size: int):
+def iter_chunks(iterable: iter, chunk_size: int) -> iter:
     """
     Iterate over fixed-size chunks of an iterable.
 

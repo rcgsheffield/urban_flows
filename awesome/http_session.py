@@ -47,11 +47,11 @@ class PortalSession(requests.Session):
         # Make the request
         response = super().request(*args, headers=headers, **kwargs)
 
-        for r in response.history:
+        for _response in response.history:
             # Log headers
-            for header, value in r.request.headers.items():
+            for header, value in _response.request.headers.items():
                 LOGGER.debug("REQUEST %s: %s", header, value)
-            for header, value in r.headers.items():
+            for header, value in _response.headers.items():
                 LOGGER.debug("RESPONSE %s: %s", header, value)
 
         # Raise errors
@@ -65,8 +65,8 @@ class PortalSession(requests.Session):
 
         return response
 
-    def call(self, *args, **kwargs) -> dict:
-        response = self.get(*args, **kwargs)
+    def call(self, *args, method: str = 'get', **kwargs) -> dict:
+        response = self.request(method, *args, **kwargs)
 
         # Parse JSON response
         try:

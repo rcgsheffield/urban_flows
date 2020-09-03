@@ -4,7 +4,10 @@ import datetime
 import json
 import abc
 
+import requests
+
 import settings
+import exceptions
 
 LOGGER = logging.getLogger(__name__)
 
@@ -226,10 +229,16 @@ class Reading(AwesomeObject):
         return '{}m'.format(minutes)
 
     @classmethod
-    def store_bulk(cls, session, readings):
+    def store_bulk(cls, session, readings) -> dict:
         """Bulk Store up to 100 Readings"""
         url = cls.build_url('bulk')
-        return session.post(url, json=dict(readings=readings))
+        try:
+            return session.call(url, method='post', json=dict(readings=readings))
+        except requests.HTTPError:
+            if not readings:
+                raise exceptions.EmptyValueError
+            else:
+                raise
 
     @classmethod
     def new(cls, value: float, created: str, reading_type_id: int, sensor_id: int) -> dict:
@@ -249,3 +258,25 @@ class Reading(AwesomeObject):
             'reading_type_id': reading_type_id,
         }
         return session.post(url, json=body)
+
+
+class AQIStandard(AwesomeObject):
+    """
+    Air Quality Index Standard represents an implementation of an Air Quality Index e.g. EU, British.
+    """
+    edge = 'aqi-standards'
+
+    @classmethod
+    def new(cls, name: str, breakpoints: list, description: str = None):
+        """
+
+        :param name: Name of the Standard
+        :param description: A brief description of the standard
+        :param breakpoints: An of breakpoints consisting of key-value pairs. min, max, color
+        :return:
+        """
+        return dict(
+            name=name,
+            description=description or '',
+            breakpoints=breakpoints,
+        )
