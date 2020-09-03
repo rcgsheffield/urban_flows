@@ -30,7 +30,9 @@ def delete_objects(session: PortalSession, cls: Type[objects.AwesomeObject]):
 
 def delete(session: PortalSession):
     # Bulk delete readings
+    LOGGER.info('Bulk deleting readings...')
     for reading_type in objects.ReadingType.list_iter(session):
+        LOGGER.info(reading_type)
         objects.Reading.delete_bulk(
             session=session,
             start=datetime.datetime.min.replace(tzinfo=datetime.timezone.utc),
@@ -39,6 +41,7 @@ def delete(session: PortalSession):
         )
 
     # Delete metadata objects
+    LOGGER.info('Deleting metadata objects...')
     delete_objects(session, objects.Location)
     delete_objects(session, objects.Sensor)
     delete_objects(session, objects.ReadingCategory)

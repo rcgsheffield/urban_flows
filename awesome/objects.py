@@ -4,6 +4,8 @@ import datetime
 import json
 import abc
 
+from typing import List, Dict
+
 import requests
 
 import settings
@@ -267,16 +269,35 @@ class AQIStandard(AwesomeObject):
     edge = 'aqi-standards'
 
     @classmethod
-    def new(cls, name: str, breakpoints: list, description: str = None):
+    def new(cls, name: str, breakpoints: List[Dict], description: str = None):
         """
 
         :param name: Name of the Standard
         :param description: A brief description of the standard
         :param breakpoints: An of breakpoints consisting of key-value pairs. min, max, color
-        :return:
         """
         return dict(
             name=name,
             description=description or '',
-            breakpoints=breakpoints,
+            # Serialise dictionary to string e.g. "{'min' :1, 'max': 5, 'color' : 'green'}"
+            breakpoints=[str(d) for d in breakpoints],
         )
+
+
+class AQIReading(AwesomeObject):
+    """
+    An AQI Reading represents an air quality index calculation for a given point in time relating to an AQI standard.
+    """
+    edge = 'aqi-readings'
+
+    @classmethod
+    def store_bulk(cls, session, aqi_readings: List[dict]):
+        """
+         Bulk Store AQI Readings
+
+        :param session: Awesome portal HTTP session
+        :param aqi_readings: e.g. [dict(created="2016-01-01 00:00:00", value=8, aqi_standard_id=1), ...]
+        :return:
+        """
+        url = cls.build_url('bulk')
+        session.call(url, method='post', json=dict(aqi_readings=list(aqi_readings)))

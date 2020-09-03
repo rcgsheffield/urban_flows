@@ -5,6 +5,8 @@ import json
 import logging
 import pathlib
 
+from typing import Type
+
 import assets
 import http_session
 import maps
@@ -20,14 +22,9 @@ DESCRIPTION = """
 API documentation: https://ufapidocs.clients.builtonawesomeness.co.uk/
 """
 
-# TODO
-USAGE = """
-python -m ufportal
-"""
-
 
 def get_args():
-    parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
+    parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument('-v', '--verbose', action='store_true', help='Show more logging information')
     parser.add_argument('-d', '--debug', action='store_true')
     parser.add_argument('-e', '--error', type=pathlib.Path, help='Error log file')
@@ -36,6 +33,8 @@ def get_args():
     parser.add_argument('-r', '--reading_type_groups', type=pathlib.Path,
                         help="Configuration to group reading types into reading categories",
                         default=settings.DEFAULT_READING_TYPE_GROUPS_FILE)
+    parser.add_argument('-a', '--aqi', help="Air quality standards JSON file",
+                        default=settings.DEFAULT_AQI_STANDARDS_FILE, type=pathlib.Path)
     return parser.parse_args()
 
 
@@ -189,48 +188,39 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
-def build_awesome_object_map(session: http_session.PortalSession, cls: objects.AwesomeObject) -> dict:
+def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> dict:
     """
     Map Awesome object names to identifiers
     """
     return {obj['name']: obj['id'] for obj in cls.list_iter(session)}
 
 
-def build_awesome_sensor_map(session: http_session.PortalSession) -> dict:
-    """
-    Map Awesome sensor names to identifiers
-    """
-    return build_awesome_object_map(session, objects.Sensor)
+def sync_aqi_standards(session, aqi_standards_file):
+    with aqi_standards_file.open() as file:
+        standards = json.load(file)  # list[dict]
+
+    for standard in standards:
+        data = objects.AQIStandard.new(name=standard['name'], description=standard.get('description'),
+                                       breakpoints=standard['breakpoints'])
+
+        objects.AQIStandard.add(session, data)
 
 
-def build_awesome_location_map(session: http_session.PortalSession):
-    """
-    Map Awesome location names to identifiers
-    """
-    return build_awesome_object_map(session, objects.Location)
-
-
-def build_awesome_reading_type_map(session):
-    return build_awesome_object_map(session, objects.ReadingType)
-
-
-def build_awesome_reading_category_map(session):
-    return build_awesome_object_map(session, objects.ReadingCategory)
-
-
-def sync(session, reading_type_groups: list):
+def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     """Update or add metadata objects to the Awesome web portal"""
 
-    # Get UFO metadata
-    sites, families, pairs, sensors, detectors = get_urban_flows_metadata()
+    # # Get UFO metadata
+    # sites, families, pairs, sensors, detectors = get_urban_flows_metadata()
+    #
+    # LOGGER.info('Retrieving portal objects...')
+    #
+    # # Map location name to location identifier
+    # awesome_sensors = build_awesome_object_map(session, objects.Sensor)
+    # locations = build_awesome_object_map(session, objects.Location)
+    # reading_types = build_awesome_object_map(session, objects.ReadingType)
+    # reading_categories = build_awesome_object_map(session, objects.ReadingCategory)
 
-    LOGGER.info('Retrieving portal objects...')
-
-    # Map location name to location identifier
-    awesome_sensors = build_awesome_sensor_map(session)
-    locations = build_awesome_location_map(session)
-    reading_types = build_awesome_reading_type_map(session)
-    reading_categories = build_awesome_reading_category_map(session)
+    sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
 
     # Sync metadata objects from USO to Awesome portal
     # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
@@ -267,7 +257,7 @@ def main():
 
     # Connect to Awesome portal
     with http_session.PortalSession(token_path=args.token) as session:
-        sync(session, reading_type_groups=reading_type_groups)
+        sync(session, reading_type_groups=reading_type_groups, aqi_standards_file=args.aqi)
 
 
 if __name__ == '__main__':
