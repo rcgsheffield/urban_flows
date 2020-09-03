@@ -33,8 +33,8 @@ def delete(session: PortalSession):
     for reading_type in objects.ReadingType.list_iter(session):
         objects.Reading.delete_bulk(
             session=session,
-            start=datetime.datetime(1970, 1, 1),
-            end=datetime.datetime.now(),
+            start=datetime.datetime.min.replace(tzinfo=datetime.timezone.utc),
+            end=datetime.datetime.utcnow(),
             reading_type_id=reading_type['id']
         )
 

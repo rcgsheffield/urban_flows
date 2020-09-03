@@ -244,8 +244,8 @@ class Reading(AwesomeObject):
     def delete_bulk(cls, session, start: datetime.datetime, end: datetime.datetime, reading_type_id: int):
         url = cls.build_url('bulk/delete')
         body = {
-            'from': str(start.replace(microsecond=0)),
-            'to': str(end.replace(microsecond=0)),
+            'from': start.isoformat(),
+            'to': end.isoformat(),
             'reading_type_id': reading_type_id,
         }
         return session.post(url, json=body)
