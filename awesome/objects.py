@@ -268,6 +268,12 @@ class AQIStandard(AwesomeObject):
     """
     edge = 'aqi-standards'
 
+    class Colour:
+        GREEN = 'green'
+        AMBER = 'amber'
+        RED = 'red'
+        VIOLET = 'violet'
+
     @classmethod
     def new(cls, name: str, breakpoints: List[Dict], description: str = None):
         """

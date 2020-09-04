@@ -209,31 +209,30 @@ def sync_aqi_standards(session, aqi_standards_file):
 def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     """Update or add metadata objects to the Awesome web portal"""
 
-    # # Get UFO metadata
-    # sites, families, pairs, sensors, detectors = get_urban_flows_metadata()
-    #
-    # LOGGER.info('Retrieving portal objects...')
-    #
-    # # Map location name to location identifier
-    # awesome_sensors = build_awesome_object_map(session, objects.Sensor)
-    # locations = build_awesome_object_map(session, objects.Location)
-    # reading_types = build_awesome_object_map(session, objects.ReadingType)
-    # reading_categories = build_awesome_object_map(session, objects.ReadingCategory)
+    # Get UFO metadata
+    sites, families, pairs, sensors, detectors = get_urban_flows_metadata()
+
+    LOGGER.info('Retrieving portal objects...')
+
+    # Map location name to location identifier
+    awesome_sensors = build_awesome_object_map(session, objects.Sensor)
+    locations = build_awesome_object_map(session, objects.Location)
+    reading_types = build_awesome_object_map(session, objects.ReadingType)
+    reading_categories = build_awesome_object_map(session, objects.ReadingCategory)
 
     sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
 
-    # Sync metadata objects from USO to Awesome portal
-    # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-    # sync_sites(session, sites, locations=locations)
-    #
-    # LOGGER.info('Syncing sensors...')
-    # sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-    #
-    # LOGGER.info('Syncing reading types...')
-    # sync_reading_types(session, detectors=detectors, reading_types=reading_types)
-    #
-    # LOGGER.info('Syncing reading categories...')
-    # sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
+    LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+    sync_sites(session, sites, locations=locations)
+
+    LOGGER.info('Syncing sensors...')
+    sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+
+    LOGGER.info('Syncing reading types...')
+    sync_reading_types(session, detectors=detectors, reading_types=reading_types)
+
+    LOGGER.info('Syncing reading categories...')
+    sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
     # Update from the latest record in the database -- either keep a bookmark or run a MAX query
