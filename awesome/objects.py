@@ -278,9 +278,8 @@ class AQIStandard(AwesomeObject):
         """
         return dict(
             name=name,
+            breakpoints=breakpoints,
             description=description or '',
-            # Serialise dictionary to string e.g. "{'min' :1, 'max': 5, 'color' : 'green'}"
-            breakpoints=[str(d) for d in breakpoints],
         )
 
 
