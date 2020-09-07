@@ -1,4 +1,7 @@
 class Band:
+    """
+    Air quality pollutant banding categories
+    """
     LOW = 'Low'
     MODERATE = 'Moderate'
     HIGH = 'High'
@@ -20,12 +23,9 @@ class AirQualityIndex:
     }
     THRESHOLDS = dict()
 
-    @classmethod
-    def round(cls, value: float) -> int:
-        """
-        Round a number to the nearest integer
-        """
-        return int(round(value, 0))
+    def __repr__(self):
+        kwargs = ', '.join('{}={}'.format(key, value) for key, value in self.pollutants.items())
+        return '{}({})'.format(self.__class__.__name__, kwargs)
 
     def __init__(self, **kwargs):
         """
@@ -60,6 +60,13 @@ class AirQualityIndex:
     @property
     def index(self) -> int:
         return max(self.pollutant_indexes.values())
+
+    @classmethod
+    def round(cls, value: float) -> int:
+        """
+        Round a number to the nearest integer
+        """
+        return int(round(value, 0))
 
     @property
     def min_value(self) -> int:

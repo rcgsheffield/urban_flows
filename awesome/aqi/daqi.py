@@ -66,10 +66,6 @@ class DailyAirQualityIndex(aqi.AirQualityIndex):
         )
     )
 
-    def __repr__(self):
-        kwargs = ', '.join('{}={}'.format(key, value) for key, value in self.pollutants.items())
-        return '{}({})'.format(self.__class__.__name__, kwargs)
-
     def __init__(self, nitrogen_dioxide: float, sulphur_dioxide: float, ozone: float, particles_25: float,
                  particles_10: float):
         """
