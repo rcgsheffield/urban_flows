@@ -1,12 +1,35 @@
 import aqi
 
 
+class Band:
+    """
+    Air quality pollutant banding categories
+    """
+    LOW = 'Low'
+    MODERATE = 'Moderate'
+    HIGH = 'High'
+    VERY_HIGH = 'Very High'
+
+
 class DailyAirQualityIndex(aqi.AirQualityIndex):
     """
     Daily Air Quality Index
 
     https://uk-air.defra.gov.uk/air-pollution/daqi
     """
+    BANDS = {
+        1: Band.LOW,
+        2: Band.LOW,
+        3: Band.LOW,
+        4: Band.MODERATE,
+        5: Band.MODERATE,
+        6: Band.MODERATE,
+        7: Band.HIGH,
+        8: Band.HIGH,
+        9: Band.HIGH,
+        10: Band.VERY_HIGH,
+    }
+
     # Pollutant banding ranges, map of upper thresholds to band index
     THRESHOLDS = dict(
         nitrogen_dioxide=(

@@ -1,26 +1,12 @@
-class Band:
-    """
-    Air quality pollutant banding categories
-    """
-    LOW = 'Low'
-    MODERATE = 'Moderate'
-    HIGH = 'High'
-    VERY_HIGH = 'Very High'
+import abc
 
 
-class AirQualityIndex:
-    BANDS = {
-        1: Band.LOW,
-        2: Band.LOW,
-        3: Band.LOW,
-        4: Band.MODERATE,
-        5: Band.MODERATE,
-        6: Band.MODERATE,
-        7: Band.HIGH,
-        8: Band.HIGH,
-        9: Band.HIGH,
-        10: Band.VERY_HIGH,
-    }
+class AirQualityIndex(abc.ABC):
+    """
+    Air Quality Index
+    """
+
+    BANDS = dict()
     THRESHOLDS = dict()
 
     def __repr__(self):
