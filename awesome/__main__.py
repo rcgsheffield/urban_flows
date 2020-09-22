@@ -62,7 +62,7 @@ def sync_readings(session, rows: iter, sensors: list, awesome_sensors: dict, rea
                 break
 
 
-def sync_sites(session: http_session.PortalSession, sites, locations: dict):
+def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
     """
     Convert UFO sites into Awesome locations.
 
@@ -220,6 +220,9 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     reading_types = build_awesome_object_map(session, objects.ReadingType)
     reading_categories = build_awesome_object_map(session, objects.ReadingCategory)
 
+    # TODO skip unchanged objects (don't update if no changes). Perhaps list all Awesome objects and compare to find
+    # differences.
+
     sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
 
     LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
@@ -244,7 +247,8 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
         ],
     )
     LOGGER.info('Syncing data...')
-    sync_readings(session=session, rows=ufdex.run(query), reading_types=reading_types, sensors=sensors,
+    query = ufdex.UrbanFlowsQuery(**query)
+    sync_readings(session=session, rows=query(), reading_types=reading_types, sensors=sensors,
                   awesome_sensors=awesome_sensors)
 
 

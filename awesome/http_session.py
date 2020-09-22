@@ -7,6 +7,7 @@ import pathlib
 import json
 
 import requests
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -14,11 +15,11 @@ LOGGER = logging.getLogger(__name__)
 class PortalSession(requests.Session):
     LANGUAGE = 'en'
 
-    def __init__(self, token_path: pathlib.Path):
+    def __init__(self, token_path: pathlib.Path = None):
         super().__init__()
 
         self._token = str()
-        self.token_path = pathlib.Path(token_path)
+        self.token_path = pathlib.Path(token_path or settings.DEFAULT_TOKEN_PATH)
 
         self.headers.update(self.extra_headers)
 

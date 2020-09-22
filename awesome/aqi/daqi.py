@@ -17,6 +17,15 @@ class DailyAirQualityIndex(aqi.AirQualityIndex):
 
     https://uk-air.defra.gov.uk/air-pollution/daqi
     """
+
+    COLUMN_MAP = {
+        'AQ_PM25': 'particles_25',
+        'AQ_PM10': 'particles_10',
+        'AQ_NO2': 'nitrogen_dioxide',
+        'AQ_SO2': 'sulphur_dioxide',
+        'AQ_O3': 'ozone',
+    }
+
     BANDS = {
         1: Band.LOW,
         2: Band.LOW,
@@ -39,8 +48,16 @@ class DailyAirQualityIndex(aqi.AirQualityIndex):
         particles_10=(16, 33, 50, 58, 66, 75, 83, 91, 100),
     )
 
-    def __init__(self, nitrogen_dioxide: float, sulphur_dioxide: float, ozone: float, particles_25: float,
-                 particles_10: float):
+    RUNNING_AVERAGE_WINDOWS = dict(
+        ozone='8H',  # 8 hours
+        nitrogen_dioxide='1H',  # 1 hour
+        sulphur_dioxide='15min',  # 15 minutes
+        particles_25='24H',  # 24 hours
+        particles_10='24H',  # 24 hours
+    )
+
+    def __init__(self, nitrogen_dioxide: float = None, sulphur_dioxide: float = None, ozone: float = None,
+                 particles_25: float = None, particles_10: float = None):
         """
         The overall air pollution index for a site or region is determined by the highest concentration of five
         pollutants. The index is numbered 1-10 and divided into four bands, low (1) to very high (10).

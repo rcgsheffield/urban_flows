@@ -7,7 +7,7 @@ cd ~/ClimateMonitorV2
 git pull
 
 # Install updated app code
-sudo cp -r ClimateMonitorV2 /opt/sheffsense
+sudo cp -a ClimateMonitorV2/. /opt/sheffsense/
 
 # Update javascript libraries
 cd /opt/sheffsense

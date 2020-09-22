@@ -5,9 +5,14 @@ class AirQualityIndex(abc.ABC):
     """
     Air Quality Index
     """
-
+    # Map from Urban flows column names to AQI pollutants
+    COLUMN_MAP = dict()
     BANDS = dict()
     THRESHOLDS = dict()
+
+    # Map pollutants to running average time offsets
+    # https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+    RUNNING_AVERAGE_WINDOWS = dict()
 
     def __repr__(self):
         kwargs = ', '.join('{}={}'.format(key, value) for key, value in self.pollutants.items())
@@ -17,11 +22,8 @@ class AirQualityIndex(abc.ABC):
         """
         Specify pollutant values
         """
-        # Store input pollutants and round measurements
-        self.pollutants = {key: self.round(value) for key, value in kwargs.items()}
-
-    def __getattr__(self, item):
-        return self.calculate_pollutant_index(item)
+        # Store input pollutants and round measurements. Skip missing values
+        self.pollutants = {key: self.round(value) for key, value in kwargs.items() if value is not None}
 
     def calculate_pollutant_index(self, pollutant: str) -> int:
         """
@@ -41,11 +43,18 @@ class AirQualityIndex(abc.ABC):
 
     @property
     def pollutant_indexes(self) -> dict:
-        return {pollutant: getattr(self, pollutant) for pollutant in self.pollutants.keys()}
+        return {pollutant: self.calculate_pollutant_index(pollutant) for pollutant in self.pollutants.keys()}
 
     @property
     def index(self) -> int:
-        return max(self.pollutant_indexes.values())
+        try:
+            return max(self.pollutant_indexes.values())
+        except ValueError:
+            # No values input, so return null
+            if not self.pollutant_indexes:
+                pass
+            else:
+                raise
 
     @classmethod
     def round(cls, value: float) -> int:

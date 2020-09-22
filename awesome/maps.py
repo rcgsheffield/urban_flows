@@ -93,5 +93,5 @@ def row_to_readings(row: dict, sensors: dict, awesome_sensors: dict, reading_typ
             sensor_id=awesome_sensor_id,
             reading_type_id=reading_types[key],
             value=value,
-            created=time,
+            created=time.isoformat(),
         )

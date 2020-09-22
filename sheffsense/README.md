@@ -22,6 +22,9 @@ $ systemctl status pm2-sheffsense
 
 # Check it's listening
 $ lsof -i -P -n | grep sheffsense
+
+# Restart service
+$ sudo systemctl restart pm2-sheffsense
 ```
 
 ## Web server
@@ -37,5 +40,8 @@ $ systemctl status nginx
 
 # View error logs
 $ sudo tail /var/log/nginx/error.log
+
+# Restart service
+$ sudo systemctl restart nginx
 ```
 

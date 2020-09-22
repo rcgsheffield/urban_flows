@@ -4,7 +4,7 @@ import datetime
 import json
 import abc
 
-from typing import List, Dict
+from typing import List, Dict, Iterable
 
 import requests
 
@@ -296,7 +296,16 @@ class AQIReading(AwesomeObject):
     edge = 'aqi-readings'
 
     @classmethod
-    def store_bulk(cls, session, aqi_readings: List[dict]):
+    def new(cls, location_id: int, created: str, value: int, aqi_standard_id: int):
+        return dict(
+            location_id=location_id,
+            created=created,
+            value=value,
+            aqi_standard_id=aqi_standard_id,
+        )
+
+    @classmethod
+    def store_bulk(cls, session, aqi_readings: Iterable[Dict]):
         """
          Bulk Store AQI Readings
 
