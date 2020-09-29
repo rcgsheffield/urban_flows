@@ -7,6 +7,8 @@ import pathlib
 
 from typing import Type, List
 
+import pandas
+
 import assets
 import http_session
 import maps
@@ -233,6 +235,42 @@ def sync_aqi_standards(session, aqi_standards_file):
         objects.AQIStandard.add(session, data)
 
 
+def sync_aqi_readings(session, sites, locations: dict):
+    import aqi.operations
+
+    for site in sites:
+        # Get the latest timestamp that was successfully synced (or the default start date)
+        site_obj = assets.Site(site['name'])
+        bookmark = site_obj.latest_timestamp or settings.TIME_START
+
+        LOGGER.info("Site %s, latest timestamp %s", site['name'], bookmark)
+
+        data = aqi.operations.get_urban_flows_data(site_id=site['name'], start=bookmark)
+
+        # Skip missing data
+        if data.empty:
+            continue
+
+        air_quality_index = aqi.operations.calculate_air_quality(data)['air_quality_index'].dropna()
+
+        if air_quality_index.empty:
+            continue
+
+        location_id = locations[site['name']]
+
+        print(air_quality_index)
+
+        readings = maps.aqi_readings(air_quality_index, aqi_standard_id=1, location_id=location_id)
+
+        # Sync readings
+        objects.AQIReading.store_bulk(session, readings)
+
+        # Update bookmark on success
+        new_timestamp = data.index.max()
+        if not pandas.isnull(new_timestamp):
+            site_obj.latest_timestamp = new_timestamp.to_pydatetime()
+
+
 def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     """Update or add metadata objects to the Awesome web portal"""
 
@@ -251,6 +289,7 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     # differences.
 
     sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
+    sync_aqi_readings(session, sites=sites, locations=locations)
     #
     # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
     # sync_sites(session, sites, locations=locations)
@@ -265,7 +304,7 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     # sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
-    sync_readings(session=session, reading_types=reading_types, sensors=sensors, awesome_sensors=awesome_sensors)
+    # sync_readings(session=session, reading_types=reading_types, sensors=sensors, awesome_sensors=awesome_sensors)
 
 
 def main():

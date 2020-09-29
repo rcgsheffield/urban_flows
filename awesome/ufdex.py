@@ -65,6 +65,10 @@ class UrbanFlowsQuery:
     @time_period.setter
     def time_period(self, time_period: tuple):
 
+        for t in time_period:
+            if not t:
+                raise ValueError('Time period undefined')
+
         if time_period[1] < time_period[0]:
             raise ValueError('End time before start time')
 
@@ -119,9 +123,7 @@ class UrbanFlowsQuery:
 
                 # Streaming Requests
                 # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
-                LOGGER.info(params)
-                # params_str = "&".join("%s=%s" % (k, v) for k, v in params.items())
-                response = session.get(URL, stream=False, params=params)
+                response = session.get(URL, stream=True, params=params)
 
                 # Raise HTTP errors
                 try:

@@ -5,6 +5,10 @@ import pathlib
 CONFIG_PATH = pathlib.Path.home().joinpath('configs')
 DEFAULT_TOKEN_PATH = CONFIG_PATH.joinpath('awesome_token.txt')
 SENSOR_BOOKMARK_PATH = CONFIG_PATH.joinpath('sensor_bookmarks.json')
+SITE_BOOKMARK_PATH = CONFIG_PATH.joinpath('site_bookmarks.json')
+
+# The beginning of data collection
+TIME_START = datetime.datetime(2020, 9, 20)
 
 # Log config
 LOGGING = dict(

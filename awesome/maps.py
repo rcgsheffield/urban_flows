@@ -4,6 +4,8 @@ Map Urban Flows assets to Awesome portal objects.
 
 import logging
 
+import pandas
+
 import objects
 
 LOGGER = logging.getLogger(__name__)
@@ -94,3 +96,18 @@ def row_to_readings(row: dict, sensor_name: str, awesome_sensors: dict, reading_
             value=value,
             created=time.isoformat(),
         )
+
+
+def aqi_readings(air_quality_index: pandas.Series, aqi_standard_id: int, location_id: int) -> list:
+    """
+
+    """
+    return [
+        dict(
+            created=timestamp.isoformat(),
+            value=int(value),
+            aqi_standard_id=aqi_standard_id,
+            location_id=location_id,
+        )
+        for timestamp, value in air_quality_index.items()
+    ]

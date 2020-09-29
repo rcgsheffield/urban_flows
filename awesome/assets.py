@@ -17,27 +17,24 @@ LOGGER = logging.getLogger(__name__)
 METADATA_URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 
-class Sensor:
+class BookmarkMixin:
     """
-    Urban Flows Observatory Sensor
+    Serialise the latest timestamp successfully replicated from the data stream.
     """
-    SENSOR_BOOKMARK_PATH = pathlib.Path(settings.SENSOR_BOOKMARK_PATH)
-
-    def __init__(self, name: str):
-        self.name = name
+    BOOKMARK_PATH = None
 
     @classmethod
     def load_sensor_bookmarks(cls) -> dict:
         try:
-            with cls.SENSOR_BOOKMARK_PATH.open() as file:
+            with cls.BOOKMARK_PATH.open() as file:
                 return dict(json.load(file))
         except FileNotFoundError:
             return dict()
 
     @classmethod
     def save_sensor_bookmarks(cls, bookmarks: dict):
-        with cls.SENSOR_BOOKMARK_PATH.open('w') as file:
-            json.dump(bookmarks, file)
+        with cls.BOOKMARK_PATH.open('w') as file:
+            json.dump(bookmarks, file, indent=2)
             LOGGER.debug("Wrote '%s'", file.name)
 
     @property
@@ -61,8 +58,33 @@ class Sensor:
     @latest_timestamp.setter
     def latest_timestamp(self, timestamp: datetime.datetime):
         bookmarks = self.load_sensor_bookmarks()
+        if not timestamp:
+            raise ValueError('No timestamp specified')
         bookmarks[self.name] = timestamp.isoformat()
         self.save_sensor_bookmarks(bookmarks)
+
+
+class Asset(BookmarkMixin):
+    """
+    Urban Flows Observatory Asset
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+
+
+class Sensor(Asset):
+    """
+    Urban Flows Observatory Sensor
+    """
+    BOOKMARK_PATH = pathlib.Path(settings.SENSOR_BOOKMARK_PATH)
+
+
+class Site(Asset):
+    """
+    Urban Flows Observatory Site
+    """
+    BOOKMARK_PATH = pathlib.Path(settings.SITE_BOOKMARK_PATH)
 
 
 def validate(metadata: dict):
