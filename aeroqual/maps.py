@@ -27,7 +27,8 @@ def sensor_to_detector(sensor: Mapping) -> dict:
     return dict(
         name=settings.RENAME_COLUMNS[sensor['name']],
         unit=sensor['units'],
-        epsilon=sensor['decimalPlaces'],
+        # Nominal instrument error (10^-NDP)
+        epsilon=10 ** (-sensor['decimalPlaces']),
     )
 
 
