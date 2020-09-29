@@ -14,8 +14,10 @@ class Band:
 class DailyAirQualityIndex(aqi.AirQualityIndex):
     """
     Daily Air Quality Index
-
     https://uk-air.defra.gov.uk/air-pollution/daqi
+
+    Report: Update on Implementation of the Daily Air Quality Index
+    https://uk-air.defra.gov.uk/library/reports?report_id=750
     """
 
     COLUMN_MAP = {

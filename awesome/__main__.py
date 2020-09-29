@@ -5,7 +5,7 @@ import json
 import logging
 import pathlib
 
-from typing import Type
+from typing import Type, List
 
 import assets
 import http_session
@@ -38,28 +38,51 @@ def get_args():
     return parser.parse_args()
 
 
-def sync_readings(session, rows: iter, sensors: list, awesome_sensors: dict, reading_types: dict):
+def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: dict):
     """
     Bulk store readings
     """
 
-    # Convert list to dictionary
-    sensors = {sensor['name']: sensor for sensor in sensors}
-
-    def get_readings(_rows) -> iter:
+    def map_row_to_readings(_rows, sensor_name: str) -> iter:
         for row in _rows:
             # Convert rows of portal data into portal readings
-            yield from maps.row_to_readings(row, sensors=sensors, reading_types=reading_types,
+            yield from maps.row_to_readings(row, sensor_name=sensor_name, reading_types=reading_types,
                                             awesome_sensors=awesome_sensors)
 
-    # Iterate over data chunks
-    for chunk in utils.iter_chunks(get_readings(rows), chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
-        if chunk:
-            try:
-                objects.Reading.store_bulk(session, readings=chunk)
-            # No more readings, so stop
-            except exceptions.EmptyValueError:
-                break
+    for sensor in sensors:
+        if ('[SCC]' in sensor['name']) or sensor['name'] == '21924':
+            LOGGER.warning("Skipping sensor %s", sensor['name'])
+            continue
+        LOGGER.info("Sensor %s", sensor['name'])
+
+        # Get the beginning of the time period
+        _sensor = assets.Sensor(sensor['name'])
+        start_time = _sensor.latest_timestamp
+
+        if not start_time:
+            start_time = datetime.datetime(2019, 1, 1)
+
+        # Update from the latest record in the database -- either keep a bookmark or run a MAX query
+        query = dict(
+            sensors={sensor['name']},
+            time_period=[
+                start_time,
+                datetime.datetime.utcnow(),
+            ],
+
+        )
+        query = ufdex.UrbanFlowsQuery(**query)
+        rows = query()
+
+        # Iterate over data chunks
+        for chunk in utils.iter_chunks(map_row_to_readings(rows, sensor_name=sensor['name']),
+                                       chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+            if chunk:
+                try:
+                    objects.Reading.store_bulk(session, readings=chunk)
+                # No more readings, so stop
+                except exceptions.EmptyValueError:
+                    break
 
 
 def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
@@ -195,9 +218,13 @@ def build_awesome_object_map(session: http_session.PortalSession, cls: Type[obje
     return {obj['name']: obj['id'] for obj in cls.list_iter(session)}
 
 
+def load_aqi_standards(path: pathlib.Path) -> List[dict]:
+    with path.open() as file:
+        return json.load(file)
+
+
 def sync_aqi_standards(session, aqi_standards_file):
-    with aqi_standards_file.open() as file:
-        standards = json.load(file)  # list[dict]
+    standards = load_aqi_standards(aqi_standards_file)
 
     for standard in standards:
         data = objects.AQIStandard.new(name=standard['name'], description=standard.get('description'),
@@ -224,32 +251,21 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
     # differences.
 
     sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
-
-    LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-    sync_sites(session, sites, locations=locations)
-
-    LOGGER.info('Syncing sensors...')
-    sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-
-    LOGGER.info('Syncing reading types...')
-    sync_reading_types(session, detectors=detectors, reading_types=reading_types)
-
-    LOGGER.info('Syncing reading categories...')
-    sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
+    #
+    # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+    # sync_sites(session, sites, locations=locations)
+    #
+    # LOGGER.info('Syncing sensors...')
+    # sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+    #
+    # LOGGER.info('Syncing reading types...')
+    # sync_reading_types(session, detectors=detectors, reading_types=reading_types)
+    #
+    # LOGGER.info('Syncing reading categories...')
+    # sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
-    # Update from the latest record in the database -- either keep a bookmark or run a MAX query
-    # TODO
-    query = dict(
-        time_period=[
-            datetime.datetime(2020, 3, 2, 0),
-            datetime.datetime(2020, 3, 2, 0, 1),
-        ],
-    )
-    LOGGER.info('Syncing data...')
-    query = ufdex.UrbanFlowsQuery(**query)
-    sync_readings(session=session, rows=query(), reading_types=reading_types, sensors=sensors,
-                  awesome_sensors=awesome_sensors)
+    sync_readings(session=session, reading_types=reading_types, sensors=sensors, awesome_sensors=awesome_sensors)
 
 
 def main():

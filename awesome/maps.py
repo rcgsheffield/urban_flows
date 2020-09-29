@@ -68,12 +68,12 @@ def detector_to_reading_type(detector: dict) -> dict:
     )
 
 
-def row_to_readings(row: dict, sensors: dict, awesome_sensors: dict, reading_types) -> iter:
+def row_to_readings(row: dict, sensor_name: str, awesome_sensors: dict, reading_types) -> iter:
     """
     Convert a row of UFO data into multiple Awesome portal readings.
 
     :param row: UFO data row
-    :param sensors: UFO sensor
+    :param sensor_name: UFO sensor name
     :param reading_types: Awesome reading types
     :param awesome_sensors: Map Awesome sensor name to identifier
     :return: Generate readings
@@ -81,9 +81,8 @@ def row_to_readings(row: dict, sensors: dict, awesome_sensors: dict, reading_typ
 
     # Extract metadata (dimensions) common to all data columns
     time = row.pop('time')
-    uf_sensor_id = row.pop('sensor')
-    sensor = sensors[uf_sensor_id]
-    awesome_sensor_id = awesome_sensors[sensor['name']]
+    del row['sensor']
+    awesome_sensor_id = awesome_sensors[sensor_name]
 
     del row['site_id']
 

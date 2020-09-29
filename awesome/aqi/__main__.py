@@ -6,6 +6,7 @@ import pandas
 
 import ufdex
 import aqi.daqi
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -18,6 +19,8 @@ def calculate_index(row: pandas.Series):
 
 
 def get_urban_flows_data(site_id: str, time: datetime.datetime = None) -> pandas.DataFrame:
+    LOGGER.info("Site %s", site_id)
+
     time = time or datetime.datetime.utcnow()
 
     # Get Urban Flows data
@@ -28,7 +31,13 @@ def get_urban_flows_data(site_id: str, time: datetime.datetime = None) -> pandas
     )
 
     # Pre-process input data
-    data = pandas.DataFrame.from_dict(query())
+
+    # data = pandas.DataFrame.from_dict(query())
+    data = pandas.DataFrame(
+        columns=['TIME_UTC_UNIX', 'ID_MAIN', 'site_id'],
+    )
+    for row in query():
+        data = data.append(row, ignore_index=True)
     data = data.rename(columns={'ID_MAIN': 'sensor', 'TIME_UTC_UNIX': 'time'})
     data = data.drop(['sensor', 'site_id'], axis=1)
     data['time'] = pandas.to_datetime(data['time'], utc=True)
@@ -36,19 +45,19 @@ def get_urban_flows_data(site_id: str, time: datetime.datetime = None) -> pandas
     data = data.astype('float')
     data = data.sort_index()
 
-    data.info()
-    print(data.head())
-
-    # There may be multiple sensors at the same site, so take an average
-    data = data.groupby(pandas.Grouper(freq='1min')).mean().dropna(axis=0, how='all')
+    # There may be multiple sensors at the same site, so take an average because the time frequency of the measurements
+    # will not be consistent. This smooths out the data.
+    try:
+        data = data.groupby(pandas.Grouper(freq=settings.AQI_TIME_AVERAGE_FREQUENCY)).mean().dropna(axis=0, how='all')
+    except pandas.core.base.DataError:
+        if not data.empty:
+            raise
 
     return data
 
 
 def get_aqi(**kwargs) -> pandas.DataFrame:
     data = get_urban_flows_data(**kwargs)
-
-    print(data.head())
 
     # Calculate rolling average for each pollutant
     avg = pandas.DataFrame(index=data.index)
@@ -66,10 +75,11 @@ def get_aqi(**kwargs) -> pandas.DataFrame:
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
-    data = get_aqi(site_id='S0006')
-    print(data.head())
+    for site_id in {'S0002', 'LD0072'}:
+        data = get_aqi(site_id=site_id)
+        print(data.head())
 
 
 if __name__ == '__main__':

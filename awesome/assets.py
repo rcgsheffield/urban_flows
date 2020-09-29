@@ -4,10 +4,65 @@ Urban Flows Observatory assets
 
 import logging
 import requests
+import datetime
+import json
+import pathlib
+
+import arrow.parser
+
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
 METADATA_URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
+
+
+class Sensor:
+    """
+    Urban Flows Observatory Sensor
+    """
+    SENSOR_BOOKMARK_PATH = pathlib.Path(settings.SENSOR_BOOKMARK_PATH)
+
+    def __init__(self, name: str):
+        self.name = name
+
+    @classmethod
+    def load_sensor_bookmarks(cls) -> dict:
+        try:
+            with cls.SENSOR_BOOKMARK_PATH.open() as file:
+                return dict(json.load(file))
+        except FileNotFoundError:
+            return dict()
+
+    @classmethod
+    def save_sensor_bookmarks(cls, bookmarks: dict):
+        with cls.SENSOR_BOOKMARK_PATH.open('w') as file:
+            json.dump(bookmarks, file)
+            LOGGER.debug("Wrote '%s'", file.name)
+
+    @property
+    def _latest_timestamp(self) -> str:
+        try:
+            return self.load_sensor_bookmarks()[self.name]
+        # No entry exists
+        except KeyError:
+            return ''
+
+    @property
+    def latest_timestamp(self) -> datetime.datetime:
+        timestamp = self._latest_timestamp
+        try:
+            return arrow.get(timestamp).datetime
+        # Ignore empty strings
+        except arrow.parser.ParserError:
+            if timestamp:
+                raise
+
+    @latest_timestamp.setter
+    def latest_timestamp(self, timestamp: datetime.datetime):
+        bookmarks = self.load_sensor_bookmarks()
+        bookmarks[self.name] = timestamp.isoformat()
+        self.save_sensor_bookmarks(bookmarks)
 
 
 def validate(metadata: dict):

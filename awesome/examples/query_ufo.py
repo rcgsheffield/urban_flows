@@ -2,7 +2,6 @@ import datetime
 import logging
 
 import ufdex
-import assets
 
 LOGGER = logging.getLogger(__name__)
 
@@ -12,14 +11,14 @@ if __name__ == '__main__':
     # sites, families, pairs, sensors = assets.get_metadata()
     sensors = {'2006150', '2009150'}
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now() - datetime.timedelta(days=1)
 
     for sensor in sensors:
         LOGGER.info("Sensor name: %s", sensor)
 
         query = dict(
             time_period=[
-                now - datetime.timedelta(minutes=300),
+                now - datetime.timedelta(days=2),
                 now,
             ],
             sensors={sensor},

@@ -26,10 +26,12 @@ import requests
 import datetime
 
 from typing import Iterable, Dict, Sequence
-
 from collections import OrderedDict
 
-URL = 'https://sheffield-portal.urbanflows.ac.uk/uflobin/ufdex'
+import settings
+
+# URL = 'https://sheffield-portal.urbanflows.ac.uk/uflobin/ufdex'
+URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF0'
 
 LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +43,9 @@ class UrbanFlowsQuery:
     Retrieve data from the Urban Flows Observatory data extraction tool by specifying filters.
     """
 
+    # 2020-01-23T10:20:32
+    TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
+
     TIME_COLUMN = 'TIME_UTC_UNIX'
 
     def __init__(self, time_period: Sequence[datetime.datetime], site_ids: set = None,
@@ -50,49 +55,87 @@ class UrbanFlowsQuery:
         :param site_ids: Filter locations
         """
         self.time_period = time_period
-        self.site_ids = site_ids or set()
-        self.sensors = sensors or set()
+        self.site_ids = set(site_ids or set())
+        self.sensors = set(sensors or set())
+
+    @property
+    def time_period(self):
+        return self._time_period
+
+    @time_period.setter
+    def time_period(self, time_period: tuple):
+
+        if time_period[1] < time_period[0]:
+            raise ValueError('End time before start time')
+
+        self._time_period = tuple((t.replace(microsecond=0) for t in time_period))
+
+    @property
+    def time_from(self) -> str:
+        return self.format_timestamp(self.time_period[0])
+
+    @property
+    def time_to(self) -> str:
+        return self.format_timestamp(self.time_period[1])
 
     @classmethod
     def format_timestamp(cls, t: datetime.datetime) -> str:
-        return t.replace(microsecond=0).isoformat()
+        return t.replace(microsecond=0).strftime(cls.TIME_FORMAT)
+
+    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[tuple]:
+        start, end = self.time_period
+        t0, t1 = start, start + freq
+
+        while True:
+
+            if t1 > end:
+                yield t0, end
+                break
+            else:
+                yield t0, t1
+
+            t0 += freq
+            t1 += freq
 
     def stream(self) -> Iterable[Dict]:
         """Retrieve raw data over HTTP"""
-
-        # Query database
-        params = dict(
-            Tfrom=self.format_timestamp(self.time_period[0]),
-            Tto=self.format_timestamp(self.time_period[1]),
-            aktion='CSV_show',
-            freqInMin=5,
-            tok='generic',
-        )
-
-        if self.sensors:
-            params['bySensor'] = ','.join(self.sensors)
-
-        if self.site_ids:
-            params['bySite'] = ','.join(self.site_ids),
-
         with requests.Session() as session:
-            # Streaming Requests
-            # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
-            response = session.get(URL, stream=True, params=params)
+            for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
 
-        # Raise HTTP errors
-        try:
-            response.raise_for_status()
-        except requests.HTTPError:
-            LOGGER.error(response.text)
-            raise
+                # Prepare query parameters
+                params = dict(
+                    Tfrom=self.format_timestamp(start),
+                    Tto=self.format_timestamp(end),
+                    aktion='CSV_show',
+                    freqInMin=5,
+                    tok='generic',
+                )
 
-        # Provide a fallback encoding in the event the server doesn't provide one
-        if not response.encoding:
-            response.encoding = 'utf-8'
+                if self.sensors:
+                    params['bySensor'] = ','.join(self.sensors)
 
-        # Generate lines of data
-        return response.iter_lines(decode_unicode=True)
+                if self.site_ids:
+                    params['bySite'] = ','.join(self.site_ids)
+
+                # Streaming Requests
+                # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
+                LOGGER.info(params)
+                # params_str = "&".join("%s=%s" % (k, v) for k, v in params.items())
+                response = session.get(URL, stream=False, params=params)
+
+                # Raise HTTP errors
+                try:
+                    response.raise_for_status()
+                except requests.HTTPError:
+                    LOGGER.error(response.text)
+                    raise
+
+                # Provide a fallback encoding in the event the server doesn't provide one
+                if not response.encoding:
+                    response.encoding = 'utf-8'
+
+                # Generate lines of data
+                yield from response.iter_lines(decode_unicode=True)
 
     @staticmethod
     def parse(lines: iter) -> iter:
@@ -170,5 +213,9 @@ class UrbanFlowsQuery:
         return row
 
     def __call__(self, *args, **kwargs):
+        row_count = 0
         for row in self.parse(self.stream()):
             yield self.transform(row)
+            row_count += 1
+
+        LOGGER.info("Generated %s rows", row_count)
