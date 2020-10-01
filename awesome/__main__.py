@@ -267,7 +267,7 @@ def sync_aqi_readings(session, sites, locations: dict):
 
         # Sync readings (The aqi readings input must have between 1 and 100 items.)
         for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
-            objects.AQIReading.store_bulk(session, chunk)
+            objects.AQIReading.store_bulk(session, aqi_readings=chunk)
 
         # Update bookmark on success
         new_timestamp = data.index.max()

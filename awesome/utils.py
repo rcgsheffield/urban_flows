@@ -16,10 +16,14 @@ def iter_chunks(iterable: iter, chunk_size: int) -> iter:
     :returns: iter[tuple]
     """
 
-    it = iter(iterable)
+    _iterable = iter(iterable)
 
     while True:
-        chunk = tuple(itertools.islice(it, chunk_size))
+        chunk = tuple(itertools.islice(_iterable, chunk_size))
+
+        # Stop iterating when we reach an empty chunk
+        if not chunk:
+            break
 
         yield chunk
 
