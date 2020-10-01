@@ -26,3 +26,8 @@ BASE_URL = 'http://ufportal.shef.ac.uk/api/'
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
 URBAN_FlOWS_TIME_CHUNK = datetime.timedelta(days=31)
+
+UF_COLUMN_RENAME = {
+    'ID_MAIN': 'sensor',
+    'TIME_UTC_UNIX': 'time',
+}

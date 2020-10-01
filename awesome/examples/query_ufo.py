@@ -9,7 +9,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     # sites, families, pairs, sensors = assets.get_metadata()
-    sensors = {'2006150', '2009150'}
+    sensors = {'24298', '2006150', '2009150'}
 
     now = datetime.datetime.now() - datetime.timedelta(days=1)
 

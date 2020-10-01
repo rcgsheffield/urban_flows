@@ -34,7 +34,7 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
     data = pandas.DataFrame(columns=['TIME_UTC_UNIX', 'ID_MAIN', 'site_id'])
     for row in query():
         data = data.append(row, ignore_index=True)
-    data = data.rename(columns={'ID_MAIN': 'sensor', 'TIME_UTC_UNIX': 'time'})
+    data = data.rename(columns=settings.UF_COLUMN_RENAME)
     data = data.drop(['sensor', 'site_id'], axis=1)
     data['time'] = pandas.to_datetime(data['time'], utc=True)
     data = data.set_index('time')

@@ -45,6 +45,11 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
     Bulk store readings
     """
 
+    def rename(row: dict, key_map: dict) -> dict:
+        for old_key, new_key in key_map.items():
+            row[new_key] = row.pop(old_key)
+        return row
+
     def map_row_to_readings(_rows, sensor_name: str) -> iter:
         for row in _rows:
             # Convert rows of portal data into portal readings
@@ -76,6 +81,7 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
         )
         query = ufdex.UrbanFlowsQuery(**query)
         rows = query()
+        rows = (rename(row, key_map=settings.UF_COLUMN_RENAME) for row in rows)
 
         # Iterate over data chunks
         for chunk in utils.iter_chunks(map_row_to_readings(rows, sensor_name=sensor['name']),
@@ -294,21 +300,21 @@ def sync(session, reading_type_groups: list, aqi_standards_file: pathlib.Path):
 
     sync_aqi_standards(session, aqi_standards_file=aqi_standards_file)
     sync_aqi_readings(session, sites=sites, locations=locations)
-    #
-    # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-    # sync_sites(session, sites, locations=locations)
-    #
-    # LOGGER.info('Syncing sensors...')
-    # sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-    #
-    # LOGGER.info('Syncing reading types...')
-    # sync_reading_types(session, detectors=detectors, reading_types=reading_types)
-    #
-    # LOGGER.info('Syncing reading categories...')
-    # sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
+
+    LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+    sync_sites(session, sites, locations=locations)
+
+    LOGGER.info('Syncing sensors...')
+    sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+
+    LOGGER.info('Syncing reading types...')
+    sync_reading_types(session, detectors=detectors, reading_types=reading_types)
+
+    LOGGER.info('Syncing reading categories...')
+    sync_reading_categories(session, reading_categories=reading_categories, reading_type_groups=reading_type_groups)
 
     # Sync data
-    # sync_readings(session=session, reading_types=reading_types, sensors=sensors, awesome_sensors=awesome_sensors)
+    sync_readings(session=session, reading_types=reading_types, sensors=sensors, awesome_sensors=awesome_sensors)
 
 
 def main():
