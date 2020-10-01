@@ -2,6 +2,7 @@
 Urban Flows Observatory assets
 """
 
+import itertools
 import logging
 import requests
 import datetime
@@ -121,6 +122,16 @@ def get_metadata() -> tuple:
     return sites, families, pairs, sensors
 
 
+def get_detectors_from_sensors(sensors) -> dict:
+    """
+    Get a mapping of all detectors on all sensors
+    Each sensor pod contains multiple detectors (quantitative measurement channels)
+    Different sensors may have detectors (channels) with the same name (but different properties perhaps)
+    """
+    return {det['name'].upper(): det for det in itertools.chain(*(s['detectors'].values() for s in sensors))}
+
+
+# For testing
 if __name__ == '__main__':
     import logging
     import csv

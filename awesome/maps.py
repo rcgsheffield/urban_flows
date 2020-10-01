@@ -89,10 +89,10 @@ def row_to_readings(row: dict, sensor_name: str, awesome_sensors: dict, reading_
     del row['site_id']
 
     # Each row contains several readings (columns)
-    for key, value in row.items():
+    for column_label, value in row.items():
         yield objects.Reading.new(
             sensor_id=awesome_sensor_id,
-            reading_type_id=reading_types[key],
+            reading_type_id=reading_types[column_label],
             value=value,
             created=time.isoformat(),
         )
