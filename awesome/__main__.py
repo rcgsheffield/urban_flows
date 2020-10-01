@@ -61,15 +61,16 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
         _sensor = assets.Sensor(sensor['name'])
         start_time = _sensor.latest_timestamp
 
+        # Default earliest time
         if not start_time:
-            start_time = datetime.datetime(2019, 1, 1)
+            start_time = settings.TIME_START
 
         # Update from the latest record in the database -- either keep a bookmark or run a MAX query
         query = dict(
             sensors={sensor['name']},
             time_period=[
                 start_time,
-                datetime.datetime.utcnow(),
+                datetime.datetime.now(datetime.timezone.utc),
             ],
 
         )
@@ -85,6 +86,10 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
                 # No more readings, so stop
                 except exceptions.EmptyValueError:
                     break
+
+            # Record progress through the stream
+            latest_timestamp = max([row['timestamp'] for row in chunk])
+            _sensor.latest_timestamp = latest_timestamp
 
 
 def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
@@ -258,12 +263,11 @@ def sync_aqi_readings(session, sites, locations: dict):
 
         location_id = locations[site['name']]
 
-        print(air_quality_index)
-
         readings = maps.aqi_readings(air_quality_index, aqi_standard_id=1, location_id=location_id)
 
-        # Sync readings
-        objects.AQIReading.store_bulk(session, readings)
+        # Sync readings (The aqi readings input must have between 1 and 100 items.)
+        for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+            objects.AQIReading.store_bulk(session, chunk)
 
         # Update bookmark on success
         new_timestamp = data.index.max()

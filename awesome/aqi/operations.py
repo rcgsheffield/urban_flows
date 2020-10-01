@@ -25,20 +25,13 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
     LOGGER.info("Getting data for Urban Flows site '%s'", site_id)
 
     # Default to live data
-    end = end or datetime.datetime.utcnow()
+    end = end or datetime.datetime.now(datetime.timezone.utc)
 
     # Get Urban Flows data
-    query = ufdex.UrbanFlowsQuery(
-        time_period=[start, end],
-        site_ids={site_id},
-    )
+    query = ufdex.UrbanFlowsQuery(time_period=[start, end], site_ids={site_id})
 
     # Pre-process input data
-
-    # data = pandas.DataFrame.from_dict(query())
-    data = pandas.DataFrame(
-        columns=['TIME_UTC_UNIX', 'ID_MAIN', 'site_id'],
-    )
+    data = pandas.DataFrame(columns=['TIME_UTC_UNIX', 'ID_MAIN', 'site_id'])
     for row in query():
         data = data.append(row, ignore_index=True)
     data = data.rename(columns={'ID_MAIN': 'sensor', 'TIME_UTC_UNIX': 'time'})

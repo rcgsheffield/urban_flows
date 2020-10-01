@@ -36,7 +36,7 @@ def delete(session: PortalSession):
         objects.Reading.delete_bulk(
             session=session,
             start=datetime.datetime.min.replace(tzinfo=datetime.timezone.utc),
-            end=datetime.datetime.utcnow(),
+            end=datetime.datetime.now(datetime.timezone.utc),
             reading_type_id=reading_type['id']
         )
 
