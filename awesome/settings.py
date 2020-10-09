@@ -8,7 +8,7 @@ SENSOR_BOOKMARK_PATH = CONFIG_PATH.joinpath('sensor_bookmarks.json')
 SITE_BOOKMARK_PATH = CONFIG_PATH.joinpath('site_bookmarks.json')
 
 # The beginning of data collection
-TIME_START = datetime.datetime(2020, 9, 20, tzinfo=datetime.timezone.utc)
+TIME_START = datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc)
 
 # Log config
 LOGGING = dict(
@@ -31,3 +31,6 @@ UF_COLUMN_RENAME = {
     'ID_MAIN': 'sensor',
     'TIME_UTC_UNIX': 'time',
 }
+
+# Assume there's only one AQI standard that has this identifier on the remote server
+AWESOME_AQI_STANDARD_ID = 62

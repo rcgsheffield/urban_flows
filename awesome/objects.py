@@ -25,6 +25,7 @@ class AwesomeObject(abc.ABC):
 
     def __init__(self, identifier):
         self.identifier = identifier
+        self._data = dict()
 
     def __repr__(self):
         return '{}({})'.format(self.__class__.__name__, self.identifier)
@@ -40,7 +41,7 @@ class AwesomeObject(abc.ABC):
 
     @property
     def url(self):
-        return self.build_url(self.identifier)
+        return self.build_url(self.identifier) + '/'
 
     @classmethod
     def list(cls, session, **kwargs) -> list:
@@ -63,8 +64,11 @@ class AwesomeObject(abc.ABC):
         url = cls.build_url(identifier)
         return session.call(url, **kwargs)
 
-    def get(self, session):
-        return self.show(session, self.identifier)
+    def get(self, session) -> dict:
+        """
+        Retrieve object data
+        """
+        return self.show(session, self.identifier)['data']
 
     @classmethod
     def store(cls, session, obj: dict, **kwargs) -> dict:
@@ -81,6 +85,7 @@ class AwesomeObject(abc.ABC):
             return dict()
 
     def update(self, session, obj, **kwargs):
+        LOGGER.info('Updating %s', self)
         return session.patch(self.url, json=obj, **kwargs)
 
     def delete(self, session, **kwargs):
@@ -95,6 +100,7 @@ class AwesomeObject(abc.ABC):
     @classmethod
     def add(cls, session, obj, **kwargs):
         """Create a new object in the database"""
+        LOGGER.info("Adding %s: %s", cls.__name__, obj)
         _obj = cls.new(**obj)
         return cls.store(session, _obj, **kwargs)
 
@@ -124,8 +130,11 @@ class Location(AwesomeObject):
         url = self.urljoin('sensors')
         return session.call(url)
 
+    def update(self, *args, **kwargs):
+        raise NotImplementedError
+
     @staticmethod
-    def new(name: str, lat: float, lon: float, elevation: int) -> dict:
+    def new(name: str, lat: str, lon: str, elevation: int) -> dict:
         """Construct a new Location object"""
         return dict(
             name=name,
@@ -178,11 +187,13 @@ class ReadingType(AwesomeObject):
 
     def add_reading_category(self, session, reading_category_id: int):
         """Add a Reading Type to a Reading Category"""
+        LOGGER.info("Adding reading category id %s to %s", reading_category_id, self)
         url = self.urljoin('add-reading-category')
-        return session.post(url, json=dict(reading_category_id=reading_category_id))
+        return session.post(url, json=dict(reading_category_id=int(reading_category_id)))
 
     def remove_reading_category(self, session, reading_category_id: int):
         """Remove a Reading Type from a Reading Category"""
+        LOGGER.info("Removing reading category id %s from %s", reading_category_id, self)
         url = self.urljoin('remove-reading-category')
         return session.post(url, json=dict(reading_category_id=reading_category_id))
 
@@ -314,4 +325,4 @@ class AQIReading(AwesomeObject):
         :return:
         """
         url = cls.build_url('bulk')
-        session.call(url, method='post', json=dict(aqi_readings=list(aqi_readings)))
+        return session.call(url, method='post', json=dict(aqi_readings=list(aqi_readings)))

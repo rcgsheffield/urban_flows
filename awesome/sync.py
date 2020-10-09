@@ -1,23 +1,25 @@
-import pathlib
 import datetime
-import logging
 import json
+import logging
+import pathlib
+import http
+from typing import Type, List, Union
 
-from typing import Type, List
-
+import requests
 import pandas
 
 import assets
-
+import exceptions
+import http_session
 import maps
 import objects
 import settings
 import ufdex
 import utils
-import http_session
-import exceptions
 
 LOGGER = logging.getLogger(__name__)
+
+Path = Union[pathlib.Path, str]
 
 
 def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: dict):
@@ -82,111 +84,158 @@ def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict
     """
     Convert UFO sites into Awesome locations.
 
-    Either update or create a new location for each site.
+    Create a new location for each site if it doesn't already exist. Locations cannot be updated.
+    then do nothing.
 
     :param session: Awesome portal HTTP session
     :param sites: UFO sites
-    :param locations: Map of Awesome location names to identifiers
+    :param locations: Map of remote Awesome location names to object data
     """
 
     for site in sites:
         LOGGER.debug("SITE %s", site)
 
-        # Convert to Awesome object
-        location = maps.site_to_location(site)
+        # Convert UFO site to Awesome object
+        local_location = maps.site_to_location(site)
 
-        try:
-            # Retrieve existing location
-            location_id = locations[site['name']]
-            loc = objects.Location(location_id)
-
-            # Amend existing location
-            loc.update(session, location)
-
-        # Location doesn't exist on in Awesome database
-        except KeyError:
-
+        # Does this location exist on the Awesome portal?
+        if site['name'] not in locations.keys():
             # Create new location
-            body = objects.Location.add(session, location)
+            body = objects.Location.add(session, local_location)
             new_location = body['data']
 
             # Store id of new location
             locations[new_location['name']] = new_location['id']
 
 
-def sync_sensors(session: http_session.PortalSession, sensors, awesome_sensors, locations: dict):
+def sync_sensors(session: http_session.PortalSession, sensors, awesome_sensors: dict, locations: dict):
     """
-    Either update or create a new location for each site
+    Either update (if changed) or create a new Awesome sensor for each Urban Flows sensor. For each sensor, if no
+    changes have been made to the UFO sensor metadata then do nothing.
 
     :param session: Awesome portal HTTP session
     :param sensors: UFO sensors
     :param awesome_sensors: Awesome portal sensors
-    :param locations: Map of Awesome location name to identifier
+    :param locations: Map of Awesome location name to object
     """
 
+    # Iterate over UFO sensors
     for sensor in sensors:
 
         # Convert to Awesome object
-        awe_sensor = maps.sensor_to_sensor(sensor, locations)
+        local_sensor = maps.sensor_to_sensor(sensor, locations)
 
         try:
-            sensor_id = awesome_sensors[sensor['name']]
-            sen = objects.Sensor(sensor_id)
-            sen.update(session, awe_sensor)
+            remote_sensor = awesome_sensors[sensor['name']]
 
         # Doesn't exist on in Awesome database
         except KeyError:
-            # Create new
-            body = objects.Sensor.add(session, awe_sensor)
+            # Create new sensor
+            body = objects.Sensor.add(session, local_sensor)
             new_sensor = body['data']
 
             # Store id of new sensor
             awesome_sensors[new_sensor['name']] = new_sensor['id']
 
+            continue
 
-def sync_reading_types(session: http_session.PortalSession, detectors: dict, reading_types: dict):
-    # Iterate over detectors
+        # Have changes been made?
+        # Adjust the data structure to match the local object
+        remote_sensor['location_id'] = remote_sensor['location']['id']
+        if maps.is_object_different(local_sensor, remote_sensor):
+            # Update the object on the Awesome portal
+            sen = objects.Sensor(remote_sensor['id'])
+            sen.update(session, local_sensor)
+
+
+def sync_reading_types(session: http_session.PortalSession, detectors: dict, reading_types: dict,
+                       remote_reading_category_ids: dict, reading_type_groups: list):
+    """
+    Map local Urban Flows Observatory "detectors" to remote "reading types" on the Awesome Portal.
+
+    :param session: Awesome portal HTTP connection
+    :param detectors: UFO metrics
+    :param reading_types: Awesome metrics
+    :param remote_reading_category_ids: Map of reading types to reading categories
+    :param reading_type_groups: The local configuration for groups of reading types
+    """
+    # Map reading types to reading categories from local configuration file
+    # This is the desired end-state configuration to sync to the remote server
+    reading_type_name_to_category_ids = maps.reading_type_to_reading_categories(
+        reading_type_groups=reading_type_groups,
+        awesome_reading_categories=remote_reading_category_ids)
+
+    # Iterate over UF detectors
     for detector_name, detector in detectors.items():
 
         LOGGER.info("DETECTOR %s %s", detector_name, detector)
 
-        obj = maps.detector_to_reading_type(detector)
+        local_reading_type = maps.detector_to_reading_type(detector)
 
         try:
-            reading_type_id = reading_types[detector['name']]
-
-            # Add/update a reading type
-            reading_type = objects.ReadingType(reading_type_id)
-            reading_type.update(session, obj)
+            # Does a reading type with this name exist in the database?
+            remote_reading_type = reading_types[detector_name]
 
         # Doesn't exist on in Awesome database
         except KeyError:
             # Create new
-            body = objects.ReadingType.add(session, obj)
+            body = objects.ReadingType.add(session, local_reading_type)
             new_reading_type = body['data']
-            reading_types[new_reading_type['name']] = new_reading_type['id']
+            reading_types[new_reading_type['name']] = new_reading_type
+            continue
 
+        # Add/update a reading type
+        reading_type = objects.ReadingType(remote_reading_type['id'])
+        reading_type.update(session, local_reading_type)
 
-def load_reading_category_config(path: pathlib.Path) -> list:
-    with pathlib.Path(path).open() as file:
-        return json.load(file)
+        # Reading categories
+        try:
+            remote_reading_category_ids = reading_type.get(session)['reading_categories']
+        except KeyError:
+            LOGGER.error(reading_type.get(session))
+            raise
+
+        try:
+            local_reading_category_ids = reading_type_name_to_category_ids[detector_name]
+
+        # No reading categories are configured for this reading type
+        except KeyError:
+            continue
+
+        # Add new reading categories to this reading type
+        for reading_category_id in set(local_reading_category_ids) - set(remote_reading_category_ids):
+            reading_type.add_reading_category(session, reading_category_id)
+
+        # Remove deleted items
+        for reading_category_id in set(remote_reading_category_ids) - set(local_reading_category_ids):
+            reading_type.remove_reading_category(session, reading_category_id)
 
 
 def sync_reading_categories(session, reading_categories: dict, reading_type_groups: list):
+    """
+    Sync reading categories (e.g. "Air Quality" is a category containing reading types PM 1, PM 2.5, PM 10.)
+
+    :param session: Awesome portal HTTP session
+    :param reading_categories: Map existing Awesome reading category names to their object data
+    :param reading_type_groups: Locally configured groups to be synced
+    """
     LOGGER.debug("READING CATEGORIES: %s", reading_categories)
 
     for read_cat in reading_type_groups:
-        obj = objects.ReadingCategory.new(name=read_cat['name'], icon_name=read_cat['icon_name'])
+        # Case insensitive
+        read_cat['name'] = read_cat['name'].upper()
+
+        local_reading_category = objects.ReadingCategory.new(name=read_cat['name'], icon_name=read_cat['icon_name'])
 
         try:
             # Update existing reading category
-            reading_category_id = reading_categories[read_cat['name']]
-            reading_category = objects.ReadingCategory(reading_category_id)
-            reading_category.update(session, obj=obj)
+            reading_category = reading_categories[read_cat['name']]
+            reading_category = objects.ReadingCategory(reading_category['id'])
+            reading_category.update(session, obj=local_reading_category)
 
         except KeyError:
             # Make new reading category
-            body = objects.ReadingCategory.add(session, obj)
+            body = objects.ReadingCategory.add(session, local_reading_category)
             new_reading_category = body['data']
             reading_categories[new_reading_category['name']] = new_reading_category['id']
 
@@ -203,25 +252,41 @@ def get_urban_flows_metadata() -> tuple:
 
 def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> dict:
     """
-    Map Awesome object names to identifiers
+    Map Awesome object names (case insensitive) to the object data
     """
     # Case-insensitive
-    return {obj['name'].upper(): obj['id'] for obj in cls.list_iter(session)}
+    return {obj['name'].upper(): obj for obj in cls.list_iter(session)}
 
 
-def load_aqi_standards(path: pathlib.Path) -> List[dict]:
-    with path.open() as file:
-        return json.load(file)
+def load_json_objects(path: Path) -> List[dict]:
+    """
+    Load the AQI standards that you want to sync to the remote server.
+    """
+    with pathlib.Path(path).open() as file:
+        return [dict(obj) for obj in json.load(file)]
 
 
-def sync_aqi_standards(session, aqi_standards_file):
-    standards = load_aqi_standards(aqi_standards_file)
+def sync_aqi_standards(session, aqi_standards_file: Path):
+    """
+    Assume there's only one AQI standard and sync it.
+    """
 
-    for standard in standards:
-        data = objects.AQIStandard.new(name=standard['name'], description=standard.get('description'),
-                                       breakpoints=standard['breakpoints'])
+    local_standards = load_json_objects(aqi_standards_file)
 
-        objects.AQIStandard.add(session, data)
+    # Get first local AQI standard definition
+    local_standard = local_standards[0]
+
+    try:
+        # Update the existing object
+        obj = objects.AQIStandard(settings.AWESOME_AQI_STANDARD_ID)
+        obj.update(session, local_standard)
+    except requests.exceptions.HTTPError as e:
+        # If it doesn't already exist then create it
+        if e.response.status_code == http.HTTPStatus.NOT_FOUND:
+            obj_data = objects.AQIStandard.new(**local_standard)
+            objects.AQIStandard.add(session, obj_data)
+        else:
+            raise
 
 
 def sync_aqi_readings(session, sites, locations: dict):
@@ -232,7 +297,7 @@ def sync_aqi_readings(session, sites, locations: dict):
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
-        LOGGER.info("Site %s, latest timestamp %s", site['name'], bookmark)
+        LOGGER.info("Site %s AQI readings. Latest timestamp %s", site['name'], bookmark)
 
         data = aqi.operations.get_urban_flows_data(site_id=site['name'], start=bookmark)
 
@@ -247,7 +312,8 @@ def sync_aqi_readings(session, sites, locations: dict):
 
         location_id = locations[site['name']]
 
-        readings = maps.aqi_readings(air_quality_index, aqi_standard_id=1, location_id=location_id)
+        readings = maps.aqi_readings(air_quality_index, aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
+                                     location_id=location_id)
 
         # Sync readings (The aqi readings input must have between 1 and 100 items.)
         for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
