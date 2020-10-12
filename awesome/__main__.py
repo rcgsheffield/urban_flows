@@ -54,7 +54,7 @@ def main():
 
         # Upper-case objects names are used so comparisons are case-insensitive
 
-        # sync.sync_aqi_standards(session, aqi_standards_file=args.aqi)
+        sync.sync_aqi_standards(session, aqi_standards_file=args.aqi)
 
         LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
         # sync.sync_sites(session, sites, locations=locations)
@@ -69,7 +69,7 @@ def main():
         LOGGER.info('Syncing reading types...')
         sync.sync_reading_types(session, detectors=detectors, reading_types=reading_types,
                                 remote_reading_category_ids=reading_categories, reading_type_groups=reading_type_groups)
-        exit()
+
         # Sync data
         sync.sync_aqi_readings(session, sites=sites, locations=locations)
         sync.sync_readings(session=session, reading_types=reading_types, sensors=sensors,

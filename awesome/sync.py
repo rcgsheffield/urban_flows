@@ -190,7 +190,7 @@ def sync_reading_types(session: http_session.PortalSession, detectors: dict, rea
 
         # Reading categories
         try:
-            remote_reading_category_ids = reading_type.get(session)['reading_categories']
+            remote_reading_category_ids = {rc['id'] for rc in reading_type.get(session)['reading_categories']}
         except KeyError:
             LOGGER.error(reading_type.get(session))
             raise
@@ -310,10 +310,10 @@ def sync_aqi_readings(session, sites, locations: dict):
         if air_quality_index.empty:
             continue
 
-        location_id = locations[site['name']]
+        location = locations[site['name']]
 
         readings = maps.aqi_readings(air_quality_index, aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
-                                     location_id=location_id)
+                                     location_id=location['id'])
 
         # Sync readings (The aqi readings input must have between 1 and 100 items.)
         for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
