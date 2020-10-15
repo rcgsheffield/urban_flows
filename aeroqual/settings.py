@@ -1,7 +1,8 @@
 import csv
 import pathlib
 
-DEFAULT_CONFIG_FILE = pathlib.Path.home().joinpath('configs', 'aeroqual.cfg')
+CONFIG_DIR = pathlib.Path.home().joinpath('configs')
+DEFAULT_CONFIG_FILE = CONFIG_DIR.joinpath('aeroqual.cfg')
 
 LOGGING = dict(
     # https://docs.python.org/3.8/library/logging.html#logrecord-attributes
