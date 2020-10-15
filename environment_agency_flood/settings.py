@@ -18,3 +18,5 @@ DEFAULT_MEASURES_FILE = 'measures.txt'
 DEFAULT_LATITUDE = 53.37
 DEFAULT_LONGITUDE = -1.47
 DEFAULT_DISTANCE = 30
+
+HEADERS = ['timestamp', 'station'] + list(PARAMETER_MAP.values())

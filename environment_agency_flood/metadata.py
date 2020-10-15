@@ -1,5 +1,6 @@
 import argparse
 import logging
+import json
 
 import assets
 import http_session
@@ -33,6 +34,7 @@ def get_args():
     parser.add_argument('-v', '--verbose', action='store_true', help='Debug logging')
     parser.add_argument('-s', '--sites', action='store_true', help='Generate Urban Flows metadata files')
     parser.add_argument('-n', '--sensors', action='store_true', help='Generate Urban Flows metadata files')
+    parser.add_argument('-c', '--csv', action='store_true', help='Show CSV headers')
 
     return parser, parser.parse_args()
 
@@ -73,7 +75,9 @@ def main():
 
     session = http_session.FloodSession()
 
-    if args.station_ids or args.measures or args.sites or args.sensors:
+    if args.csv:
+        print(json.dumps(settings.HEADERS, indent=2))
+    elif args.station_ids or args.measures or args.sites or args.sensors:
         measures = set()
 
         # Iterate over stations

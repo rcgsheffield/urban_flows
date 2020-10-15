@@ -129,7 +129,7 @@ def serialise(path, rows, write_header: bool = False):
     """
     Write the rows of clean data to a file in CSV format.
     """
-    headers = ['timestamp', 'station'] + list(settings.PARAMETER_MAP.values())
+    headers = settings.HEADERS
 
     LOGGER.info('CSV headers: %s', headers)
 
