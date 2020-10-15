@@ -4,7 +4,6 @@ CSV data serialisation
 
 import logging
 import csv
-import json
 
 import settings
 
