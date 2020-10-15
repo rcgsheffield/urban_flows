@@ -76,7 +76,7 @@ def main():
     session = http_session.FloodSession()
 
     if args.csv:
-        print(json.dumps(settings.HEADERS, indent=2))
+        print(settings.UrbanDialect.delimiter.join(settings.HEADERS))
     elif args.station_ids or args.measures or args.sites or args.sensors:
         measures = set()
 

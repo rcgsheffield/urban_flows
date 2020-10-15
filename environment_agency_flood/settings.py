@@ -1,3 +1,4 @@
+import csv
 from collections import OrderedDict
 
 # Map environment agency API labels to Urban Obs.
@@ -20,3 +21,8 @@ DEFAULT_LONGITUDE = -1.47
 DEFAULT_DISTANCE = 30
 
 HEADERS = ['timestamp', 'station'] + list(PARAMETER_MAP.values())
+
+
+class UrbanDialect(csv.excel):
+    """CSV output format"""
+    delimiter = '|'

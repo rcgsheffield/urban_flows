@@ -14,6 +14,8 @@ import settings
 import utils
 import arrow.factory
 
+from settings import UrbanDialect
+
 DESCRIPTION = """
 Environment Agency real-time flood monitoring API
 https://environment.data.gov.uk/flood-monitoring/doc/reference
@@ -27,11 +29,6 @@ and save the source data files to disk.
 LOGGER = logging.getLogger(__name__)
 
 warnings.simplefilter("ignore", arrow.factory.ArrowParseWarning)
-
-
-class UrbanDialect(csv.excel):
-    """CSV output format"""
-    delimiter = '|'
 
 
 def get_args() -> argparse.Namespace:
