@@ -61,13 +61,10 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: str = N
     logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING,
                         **settings.LOGGING)
 
-    # TODO subclass formatter to remove line breaks
-    # TODO write timestamp as seconds since 1970
-
     if error:
         # Error log file
-        handler = logging.FileHandler(filename=error, **settings.ERROR_HANDLER)
-        formatter = logging.Formatter(settings.LOGGING.get('format'))
+        handler = logging.FileHandler(filename=error)
+        formatter = logging.Formatter(fmt=settings.LOGGING.get('format'))
         handler.setFormatter(formatter)
         handler.setLevel(logging.ERROR)
 

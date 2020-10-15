@@ -12,8 +12,6 @@ import output
 
 from collections import OrderedDict
 
-from defra_sos_kvp.utils import configure_logging
-
 DESCRIPTION = """
 This is a harvester to retrieve data from the DEFRA UK-AIR Sensor Observation Service via their API using the key-value
 pair (KVP) binding.
@@ -236,7 +234,7 @@ def get_data_spatial(session):
 
 def main():
     args = get_args()
-    configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
+    utils.configure_logging(verbose=args.verbose, error=args.error, debug=args.debug)
 
     # Retrieve raw data
     session = http_session.SensorSession()
