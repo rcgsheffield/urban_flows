@@ -2,6 +2,8 @@ import argparse
 import csv
 import http
 import logging
+import warnings
+
 from collections import OrderedDict
 
 import requests
@@ -10,6 +12,7 @@ import http_session
 import objects
 import settings
 import utils
+import arrow.factory
 
 DESCRIPTION = """
 Environment Agency real-time flood monitoring API
@@ -23,6 +26,7 @@ and save the source data files to disk.
 
 LOGGER = logging.getLogger(__name__)
 
+warnings.simplefilter("ignore", arrow.factory.ArrowParseWarning)
 
 class UrbanDialect(csv.excel):
     """CSV output format"""
