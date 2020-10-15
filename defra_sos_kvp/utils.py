@@ -65,7 +65,7 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: str = N
     # TODO write timestamp as seconds since 1970
 
     if error:
-        # Daily error log files
+        # Error log file
         handler = logging.FileHandler(filename=error, **settings.ERROR_HANDLER)
         formatter = logging.Formatter(settings.LOGGING.get('format'))
         handler.setFormatter(formatter)
