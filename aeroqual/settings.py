@@ -1,3 +1,4 @@
+import csv
 import pathlib
 
 DEFAULT_CONFIG_FILE = pathlib.Path.home().joinpath('configs', 'aeroqual.cfg')
@@ -32,3 +33,13 @@ IGNORE_METRICS = {
 # Metadata assets
 DESC_URL = 'https://cloud.aeroqual.com'
 FAMILY = 'Aeroqual'
+
+
+class UrbanDialect(csv.excel):
+    """
+    CSV format for Urban Flows
+    """
+    delimiter = '|'
+
+
+API_BASE_URL = 'https://cloud.aeroqual.com/api/'

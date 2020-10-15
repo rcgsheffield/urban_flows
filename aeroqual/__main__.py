@@ -1,4 +1,3 @@
-import argparse
 import csv
 import datetime
 import logging
@@ -13,6 +12,7 @@ import http_session
 import settings
 import utils
 from objects import Instrument, Data
+from settings import UrbanDialect
 
 Rows = Iterable[Mapping]
 
@@ -36,13 +36,6 @@ class AeroqualDataArgumentParser(utils.AeroqualArgumentParser):
         self.add_argument('-a', '--averaging', help='period in minutes to average data – minimum 1 minute',
                           type=int, default=settings.DEFAULT_AVERAGING_PERIOD)
         self.add_argument('-j', '--journal', action='store_true', help='Include journal entries')
-
-
-class UrbanDialect(csv.excel):
-    """
-    CSV format for Urban Flows
-    """
-    delimiter = '|'
 
 
 def date(day: str) -> datetime.datetime:

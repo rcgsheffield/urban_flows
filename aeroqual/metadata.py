@@ -3,6 +3,7 @@ import logging
 
 import http_session
 import maps
+import settings
 
 from objects import Instrument
 
@@ -26,7 +27,7 @@ def main():
     session = http_session.AeroqualSession(config_file=args.config)
 
     if args.csv:
-        pass
+        print(settings.UrbanDialect.delimiter.join())
     elif args.sensors:
         for serial_number in Instrument.list(session):
             instrument = Instrument(serial_number)

@@ -7,11 +7,13 @@ from collections import OrderedDict
 
 import requests
 
+import settings
+
 LOGGER = logging.getLogger(__name__)
 
 
 class AeroqualSession(requests.Session):
-    BASE_URL = 'https://cloud.aeroqual.com/api/'
+    BASE_URL = settings.API_BASE_URL
 
     def __init__(self, config_file: pathlib.Path):
         super().__init__()
