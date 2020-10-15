@@ -28,6 +28,7 @@ LOGGER = logging.getLogger(__name__)
 
 warnings.simplefilter("ignore", arrow.factory.ArrowParseWarning)
 
+
 class UrbanDialect(csv.excel):
     """CSV output format"""
     delimiter = '|'
@@ -37,9 +38,11 @@ def get_args() -> argparse.Namespace:
     """Command-line arguments"""
 
     parser = argparse.ArgumentParser(description=DESCRIPTION)
+    parser.add_argument('-v', '--verbose', action='store_true', help="Enable debug log mode")
+    parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
+    parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-d', '--date', required=True, type=utils.date, help="ISO UTC date")
     parser.add_argument('-o', '--output', required=True, type=str, help="Output CSV file path")
-    parser.add_argument('-v', '--verbose', action='store_true', help="Enable debug log mode")
     parser.add_argument('-s', '--stations', help='File containing list of stations',
                         default=settings.DEFAULT_STATIONS_FILE)
 
@@ -170,7 +173,7 @@ def transform(rows: iter) -> iter:
 
 def main():
     args = get_args()
-    logging.basicConfig(level=logging.INFO if args.verbose else logging.WARNING)
+    utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
 
     # Connect to the Environment Agency API
     session = http_session.FloodSession()

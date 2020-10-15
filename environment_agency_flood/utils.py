@@ -59,3 +59,26 @@ def parse_multiple_values(values: str, sep: str = '|') -> float:
 
     # Take the mean average
     return statistics.mean(values)
+
+
+def configure_logging(verbose: bool = False, debug: bool = False, error: str = None):
+    """
+    Configure logging
+
+    :param verbose: Show extra information in logging stream
+    :param debug: Debug logging level
+    :param error: Error log file path
+    """
+    fmt = '%(asctime)s %(filename)s:%(lineno)s %(levelname)s %(message)s'
+    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARNING, format=fmt)
+
+    if error:
+        # Error log file
+        handler = logging.FileHandler(filename=error)
+        formatter = logging.Formatter(fmt)
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.ERROR)
+
+        # Capture message on all loggers
+        root_logger = logging.getLogger()
+        root_logger.handlers.append(handler)
