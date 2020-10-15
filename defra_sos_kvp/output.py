@@ -39,4 +39,4 @@ def serialise(rows, path, **kwargs):
 
 
 def print_csv_headers():
-    print(json.dumps(settings.OUTPUT_HEADERS, indent=2))
+    print(UrbanDialect.delimiter.join(settings.OUTPUT_HEADERS))
