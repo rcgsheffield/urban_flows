@@ -115,6 +115,8 @@ NGINX HTTP [Basic Authentication documentation](https://docs.nginx.com/nginx/adm
 $ yum install httpd-tools
 # Create a new password file and a first user (only use -c the first time)
 $ htpasswd -c /etc/nginx/.htpasswd dl001
+# Add a new user (omit -c flag)
+$ htpasswd /etc/nginx/.htpasswd dl002
 ```
 
 
