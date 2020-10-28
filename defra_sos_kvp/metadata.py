@@ -56,7 +56,8 @@ def get_args():
     parser.add_argument('-s', '--sampling', action='store_true', help='List sampling points')
     parser.add_argument('-f', '--features', action='store_true', help='List sampling features of interest')
     parser.add_argument('-m', '--meta', action='store_true', help='Get metadata objects')
-    parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST, help='Region of interest')
+    parser.add_argument('-r', '--region', type=int, default=settings.REGION_OF_INTEREST,
+                        help='Region of interest (integer)')
     parser.add_argument('-c', '--csv', action='store_true', help='Show CSV headers')
     parser.add_argument('-d', '--debug', action='store_true', help='Development mode')
 
