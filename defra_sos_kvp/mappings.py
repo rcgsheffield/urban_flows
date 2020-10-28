@@ -8,6 +8,8 @@ UNIT_MAP = {
     'http://dd.eionet.europa.eu/vocabulary/uom/concentration/ug.m-3': 'ug/m3',
     'http://dd.eionet.europa.eu/vocabulary/uom/concentration/ng.m-3': 'ng/m3',
     'http://dd.eionet.europa.eu/vocabulary/uom/concentration/mg.m-3': 'mg/m3',
+    # A simple count
+    'http://dd.eionet.europa.eu/vocabulary/uom/statistics/count': '',
 }
 
 # Data Dictionary
