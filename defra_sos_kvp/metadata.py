@@ -115,7 +115,7 @@ def map_unit(observed_property, unit_map) -> str:
         else:
             raise
 
-    unit = mappings.UNIT_MAP[unit_uri]
+    unit = mappings.UNIT_MAP.get(unit_uri, '')
 
     return unit
 
