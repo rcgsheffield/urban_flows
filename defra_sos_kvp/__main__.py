@@ -35,8 +35,6 @@ def get_args():
     parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
-    parser.add_argument('-f', '--features', help='Sampling features file path',
-                        default=settings.DEFAULT_SAMPLING_FEATURES_PATH)
 
     args = parser.parse_args()
 
@@ -241,12 +239,11 @@ def main():
 
     LOGGER.info('Retrieving raw data and storing in %s', args.raw)
 
-    # Load sources
-    sampling_features = set(metadata.load_sampling_features(args.features))
-    rows = get_data(session=session, date=args.date, sampling_features=sampling_features, directory=args.raw)
+    # Load sources    sam
+    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
 
     # Clean data
-    rows = filter_n(filter_row, rows, sampling_features=sampling_features)
+    rows = filter_n(filter_row, rows, sampling_features=settings.SAMPLING_FEATURES)
     rows = transform(rows)
     rows = filter_n(validate, rows)
     rows = pivot(rows)

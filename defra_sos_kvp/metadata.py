@@ -218,16 +218,6 @@ def get_sampling_features(session, region_id: int, bbox) -> iter:
         yield from session.get_site_sampling_features(site)
 
 
-def load_sampling_features(path: pathlib.Path = None) -> iter:
-    path = pathlib.Path(path) or settings.DEFAULT_SAMPLING_FEATURES_PATH
-    with path.open() as file:
-        for line in file:
-            # Strip whitespace
-            line = line.strip()
-            if line:
-                yield line
-
-
 def main():
     parser, args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO if args.verbose else logging.WARNING,
