@@ -2,7 +2,36 @@ import pathlib
 
 DATE_FORMAT = '%Y-%m-%d'
 USER_AGENT = 'Urban Flows Observatory'
-BOUNDING_BOX = 'sheffield_bounding_box_geojson.json'
+BOUNDING_BOX = [
+    [
+        [
+            -1.8285095692,
+            53.2157090929
+
+        ],
+        [
+            -1.0526001453,
+            53.2157090929
+
+        ],
+        [
+            -1.0526001453,
+            53.5939441073
+
+        ],
+        [
+            -1.8285095692,
+            53.5939441073
+
+        ],
+        [
+            -1.8285095692,
+            53.2157090929
+
+        ]
+
+    ]
+]
 
 # List generated using metadata utility script
 CONFIG_DIR = pathlib.Path.home().joinpath('configs')

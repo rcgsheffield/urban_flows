@@ -140,10 +140,9 @@ class SensorSession(requests.Session):
     def bounding_box(self) -> list:
         """GeoJSON bounding box"""
         if not self._bounding_box:
-            with open(settings.BOUNDING_BOX) as file:
-                geo_json_bbox = json.load(file)
-                # Get the first item in the nested list
-                self._bounding_box = geo_json_bbox[0]
+            geo_json_bbox = settings.BOUNDING_BOX
+            # Get the first item in the nested list
+            self._bounding_box = geo_json_bbox[0]
         return self._bounding_box
 
     @property

@@ -35,7 +35,7 @@ By running `python metadata.py --meta` the code will iterate over the sampling p
 
 ### Spatial filtering
 
-The bounding box used for spatial filtering is defined using a GeoJSON file specified in `settings.BOUNDING_BOX`. This file should contain a GeoJSON polygon definition for a rectangle covering the region of interest.
+The bounding box used for spatial filtering is defined using a GeoJSON object specified in `settings.BOUNDING_BOX`. This should contain a GeoJSON polygon definition for a rectangle covering the region of interest.
 
 ## Issues
 
