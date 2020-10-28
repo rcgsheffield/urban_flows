@@ -156,7 +156,7 @@ def parse(row: OrderedDict) -> OrderedDict:
 
 def transform_row(row: OrderedDict) -> OrderedDict:
     # Map to UFO values
-    row['unit_of_measurement'] = mappings.UNIT_MAP.get(row['unit_of_measurement'], '')
+    row['unit_of_measurement'] = mappings.UNIT_MAP[row['unit_of_measurement']]
     row['observed_property'] = mappings.OBSERVED_PROPERTY_MAP[row['observed_property']]
 
     # Remove unnecessary column
