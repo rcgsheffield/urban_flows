@@ -31,7 +31,6 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
-    parser.add_argument('-r', '--raw', help="Raw data storage directory")
     parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
@@ -52,7 +51,7 @@ def store_raw_data(sampling_feature, date, directory, data):
         LOGGER.info("Wrote '%s'", file.name)
 
 
-def download_data(session, date: datetime.date, sampling_feature: str, directory: str):
+def download_data(session, date: datetime.date, sampling_feature: str):
     """
     Call getObservation endpoint to retrieve observation data with a filter.
 
@@ -60,12 +59,11 @@ def download_data(session, date: datetime.date, sampling_feature: str, directory
     """
 
     data = session.get_observation_by_date_and_feature(date=date, sampling_features=[sampling_feature])
-    store_raw_data(sampling_feature=sampling_feature, date=date, directory=directory, data=data)
 
     return data
 
 
-def get_data(session, date: datetime.date, sampling_features: iter, directory: str) -> iter:
+def get_data(session, date: datetime.date, sampling_features: iter) -> iter:
     """
     :rtype: iter[OrderedDict]
     """
@@ -74,7 +72,7 @@ def get_data(session, date: datetime.date, sampling_features: iter, directory: s
     LOGGER.info("Querying %s sampling features", len(sampling_features))
 
     for sampling_feature in sampling_features:
-        data = download_data(session=session, date=date, sampling_feature=sampling_feature, directory=directory)
+        data = download_data(session=session, date=date, sampling_feature=sampling_feature)
 
         try:
             parser = parsers.AirQualityParser(data)
@@ -236,11 +234,7 @@ def main():
 
     # Retrieve raw data
     session = http_session.SensorSession()
-
-    LOGGER.info('Retrieving raw data and storing in %s', args.raw)
-
-    # Load sources    sam
-    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES, directory=args.raw)
+    rows = get_data(session=session, date=args.date, sampling_features=settings.SAMPLING_FEATURES)
 
     # Clean data
     rows = filter_n(filter_row, rows, sampling_features=settings.SAMPLING_FEATURES)
