@@ -31,7 +31,7 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
-    parser.add_argument('-r', '--raw', help="Raw data storage directory", default=settings.DEFAULT_RAW_DIR)
+    parser.add_argument('-r', '--raw', help="Raw data storage directory")
     parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')

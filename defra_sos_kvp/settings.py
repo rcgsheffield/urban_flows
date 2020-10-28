@@ -36,9 +36,6 @@ BOUNDING_BOX = [
 # List generated using metadata utility script
 CONFIG_DIR = pathlib.Path.home().joinpath('configs')
 
-# Build default serialisation directories
-DEFAULT_RAW_DIR = str(pathlib.Path('data').joinpath('raw'))
-
 OUTPUT_HEADERS = (
     'timestamp',
     'sensor',
