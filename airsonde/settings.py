@@ -2,7 +2,7 @@ import csv
 import pathlib
 
 DATE_FORMAT = '%Y-%m-%d'
-DEFAULT_CONFIG_FILE = str(pathlib.Path.home().joinpath('configs', 'oizom.cfg'))
+DEFAULT_CONFIG_FILE = str(pathlib.Path.home().joinpath('configs', 'airsonde.cfg'))
 FAMILY = 'EMS_AirSonde'
 DESC_URL = 'https://terminal.oizom.com/#/u/devices/info'
 
