@@ -1,3 +1,4 @@
+import csv
 import pathlib
 
 DATE_FORMAT = '%Y-%m-%d'
@@ -99,3 +100,8 @@ ERROR_HANDLER = dict(
     # Rotate error log file daily
     when='D',
 )
+
+
+class UrbanDialect(csv.excel):
+    """CSV format options"""
+    delimiter = '|'

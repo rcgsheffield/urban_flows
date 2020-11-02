@@ -1,7 +1,6 @@
 import argparse
 import logging
 
-import http_session
 import settings
 import utils
 from assets import Site, Sensor
@@ -26,7 +25,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-s', '--sites', action='store_true', help='Print site (location) information')
     parser.add_argument('-n', '--sensors', action='store_true', help='Print sensor (pod) information')
     parser.add_argument('-i', '--status', action='store_true', help='Show status of all devices')
-    parser.add_argument('--csv', action='store_true', help='Show CSV headers')
+    parser.add_argument('-d', '--csv', action='store_true', help='Show CSV headers')
     return parser.parse_args()
 
 
@@ -101,7 +100,7 @@ def main():
     elif args.sensors:
         print_sensors(session)
     elif args.csv:
-        print(settings.OUTPUT_COLUMNS)
+        print(settings.UrbanDialect.delimiter.join(settings.OUTPUT_COLUMNS))
     else:
         print_sites(session)
 

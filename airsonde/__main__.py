@@ -10,6 +10,7 @@ import utils
 import settings
 
 from objects import Device, Data
+from settings import UrbanDialect
 
 DESCRIPTION = """
 This is a data pipeline to ingest sensor data from a collection of Environmental Monitoring Solutions (EMS)
@@ -21,11 +22,6 @@ python -m ufoizom -d 2020-02-19 -o test.csv
 """
 
 LOGGER = logging.getLogger(__name__)
-
-
-class UrbanDialect(csv.excel):
-    """CSV format options"""
-    delimiter = '|'
 
 
 def parse_date(date: str) -> datetime.date:
