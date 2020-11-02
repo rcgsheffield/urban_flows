@@ -32,7 +32,8 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(usage=USAGE, description=DESCRIPTION)
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-g', '--debug', action='store_true')
-    parser.add_argument('-c', '--config', help='Configuration file', default=settings.DEFAULT_CONFIG_FILE)
+    parser.add_argument('-c', '--config', help='Configuration file', default=settings.DEFAULT_CONFIG_FILE,
+                        type=pathlib.Path)
     parser.add_argument('-e', '--error', help='Error log file path')
     parser.add_argument('-d', '--date', type=parse_date, required=True, help='YYYY-MM-DD')
     parser.add_argument('-o', '--output', help='Path of output file', required=True, type=pathlib.Path)

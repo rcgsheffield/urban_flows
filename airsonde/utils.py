@@ -1,20 +1,22 @@
 import logging
 import configparser
+import pathlib
 
 import http_session
 import settings
 
 
-def load_config(path) -> configparser.ConfigParser:
+def load_config(path: pathlib.Path) -> configparser.ConfigParser:
+    path = pathlib.Path(path)
     config = configparser.ConfigParser()
 
-    with open(path) as file:
+    with path.open() as file:
         config.read_file(file)
 
     return config
 
 
-def get_session(config_file):
+def get_session(config_file: pathlib.Path) -> http_session.OizumSession:
     config = load_config(config_file)
     return http_session.OizumSession(client_id=config['credentials']['client_id'],
                                      client_secret=config['credentials']['client_secret'])
