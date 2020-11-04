@@ -70,8 +70,12 @@ def main():
         sync.sync_reading_types(session, detectors=detectors, reading_types=reading_types,
                                 remote_reading_category_ids=reading_categories, reading_type_groups=reading_type_groups)
 
+        # Sync AQI data
+        LOGGER.info('Syncing AQI readings...')
+        sync.sync_aqi_readings(session, sites=sites, locations=locations)
+
         # Sync data
-        #sync.sync_aqi_readings(session, sites=sites, locations=locations)
+        LOGGER.info('Syncing readings...')
         sync.sync_readings(session=session, reading_types=reading_types, sensors=sensors,
                            awesome_sensors=awesome_sensors)
 
