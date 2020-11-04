@@ -62,7 +62,7 @@ def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
 def detector_to_reading_type(detector: dict) -> dict:
     return objects.ReadingType.new(
         # Case insensitive
-        name=detector['name'].upper(),
+        name=detector['o'].upper(),
         unit=detector['u'].casefold() or 'unit',
 
         # Absolute maximum values the reading can take.
@@ -87,15 +87,14 @@ def row_to_readings(row: dict, sensor_name: str, awesome_sensors: dict, reading_
     # Extract metadata (dimensions) common to all data columns
     time = row.pop('time')
     del row['sensor']
-    awesome_sensor_id = awesome_sensors[sensor_name]
 
     del row['site_id']
 
     # Each row contains several readings (columns)
     for column_label, value in row.items():
         yield objects.Reading.new(
-            sensor_id=awesome_sensor_id,
-            reading_type_id=reading_types[column_label],
+            sensor_id=awesome_sensors[sensor_name]['id'],
+            reading_type_id=reading_types[column_label]['id'],
             value=value,
             created=time.isoformat(),
         )

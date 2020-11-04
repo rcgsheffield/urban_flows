@@ -39,14 +39,18 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
                                             awesome_sensors=awesome_sensors)
 
     for sensor in sensors:
+
+        # Skip these, they seem to cause problems
         if ('[SCC]' in sensor['name']) or sensor['name'] == '21924':
+            # TODO don't skip SCC sensors
             LOGGER.warning("Skipping sensor %s", sensor['name'])
             continue
+
         LOGGER.info("Sensor %s", sensor['name'])
 
         # Get the beginning of the time period
-        _sensor = assets.Sensor(sensor['name'])
-        start_time = _sensor.latest_timestamp
+        sensor_asset = assets.Sensor(sensor['name'])
+        start_time = sensor_asset.latest_timestamp
 
         # Default earliest time
         if not start_time:
@@ -76,8 +80,9 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
                     break
 
             # Record progress through the stream
-            latest_timestamp = max([row['timestamp'] for row in chunk])
-            _sensor.latest_timestamp = latest_timestamp
+            # Get the greatest timestamp in that chunk (assuming all input data is chronological)
+            latest_timestamp = max([row['created'] for row in chunk])
+            sensor_asset.latest_timestamp = latest_timestamp
 
 
 def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):

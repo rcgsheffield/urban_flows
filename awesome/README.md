@@ -16,16 +16,16 @@ The metadata used to describe the sensor readings on each system is defined by a
 ## Urban Flows Observatory
 
 * Site: geographical location
-* Sensor: a collection of detectors that may exist at one site at a time
-* Detector: a data channel with a certain type of measurement
+  * Sensor: a collection of detectors that may exist at one site at a time
+    * Detector: a data channel with a certain type1 of measurement
 * Pair: one sensor at a location for a certain time period
 
 ## Awesome Portal
 
 * Location
-* Sensor
-* Reading Type: a physical phenomenon
+  * Sensor
 * Reading Category: a group of reading types
+  * Reading Type: a physical phenomenon
 
 ## Maps
 

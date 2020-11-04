@@ -71,7 +71,7 @@ def main():
                                 remote_reading_category_ids=reading_categories, reading_type_groups=reading_type_groups)
 
         # Sync data
-        sync.sync_aqi_readings(session, sites=sites, locations=locations)
+        #sync.sync_aqi_readings(session, sites=sites, locations=locations)
         sync.sync_readings(session=session, reading_types=reading_types, sensors=sensors,
                            awesome_sensors=awesome_sensors)
 

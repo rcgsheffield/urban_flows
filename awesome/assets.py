@@ -128,7 +128,8 @@ def get_detectors_from_sensors(sensors) -> dict:
     Each sensor pod contains multiple detectors (quantitative measurement channels)
     Different sensors may have detectors (channels) with the same name (but different properties perhaps)
     """
-    return {det['name'].upper(): det for det in itertools.chain(*(s['detectors'].values() for s in sensors))}
+    # The key is the metric title e.g. 'MET_RH' or 'AQ_PM1'
+    return {det['o'].upper(): det for det in itertools.chain(*(s['detectors'].values() for s in sensors))}
 
 
 # For testing
