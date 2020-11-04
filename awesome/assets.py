@@ -12,6 +12,7 @@ import pathlib
 import arrow.parser
 
 import settings
+import utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +24,9 @@ class BookmarkMixin:
     Serialise the latest timestamp successfully replicated from the data stream.
     """
     BOOKMARK_PATH = None
+
+    def __init__(self, name: str):
+        self.name = name
 
     @classmethod
     def load_sensor_bookmarks(cls) -> dict:
@@ -50,7 +54,7 @@ class BookmarkMixin:
     def latest_timestamp(self) -> datetime.datetime:
         timestamp = self._latest_timestamp
         try:
-            return arrow.get(timestamp).datetime
+            return utils.parse_timestamp(timestamp)
         # Ignore empty strings
         except arrow.parser.ParserError:
             if timestamp:
@@ -61,6 +65,7 @@ class BookmarkMixin:
         bookmarks = self.load_sensor_bookmarks()
         if not timestamp:
             raise ValueError('No timestamp specified')
+
         bookmarks[self.name] = timestamp.isoformat()
         self.save_sensor_bookmarks(bookmarks)
 
@@ -70,8 +75,7 @@ class Asset(BookmarkMixin):
     Urban Flows Observatory Asset
     """
 
-    def __init__(self, name: str):
-        self.name = name
+    pass
 
 
 class Sensor(Asset):

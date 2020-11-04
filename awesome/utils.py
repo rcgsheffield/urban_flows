@@ -1,8 +1,22 @@
 import pathlib
 import logging
 import itertools
+import datetime
+import warnings
+
+import arrow
+import arrow.factory
 
 import settings
+
+warnings.simplefilter('ignore', arrow.factory.ArrowParseWarning)
+
+
+def parse_timestamp(timestamp: str) -> datetime.datetime:
+    """
+    Parse ISO 8601/RFC3339 timestamp string to native Python object
+    """
+    return arrow.get(timestamp).datetime
 
 
 def iter_chunks(iterable: iter, chunk_size: int) -> iter:

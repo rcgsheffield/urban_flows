@@ -7,6 +7,7 @@ from typing import Type, List, Union
 
 import requests
 import pandas
+import arrow
 
 import assets
 import exceptions
@@ -81,8 +82,8 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
 
             # Record progress through the stream
             # Get the greatest timestamp in that chunk (assuming all input data is chronological)
-            latest_timestamp = max([row['created'] for row in chunk])
-            sensor_asset.latest_timestamp = latest_timestamp
+            latest_timestamp = max([row['created'] for row in chunk])  # the 'created' timestamp is a string
+            sensor_asset.latest_timestamp = utils.parse_timestamp(latest_timestamp)
 
 
 def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
