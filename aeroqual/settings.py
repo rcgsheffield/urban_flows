@@ -20,15 +20,15 @@ RENAME_COLUMNS = {
     'NO2': 'AQ_NO2',
     'O3': 'AQ_O3',
     'PM2.5': 'AQ_PM25',
+    'PM10': 'AQ_PM10',
     'TEMP': 'MET_TEMP',
     'RH': 'MET_RH',
     'DP': 'DEW_POINT',
-    'Ox': 'AQ_OX'  # OX = O3 + NO2
-}
+    'Ox': 'AQ_OX',  # OX = O3 + NO2
+    'O3 raw': 'AQ_O3_RAW',
+    'PM10 raw': 'AQ_PM10_RAW',
+    'PM2.5 raw': 'AQ_PM25_RAW',
 
-IGNORE_METRICS = {
-    'O3 raw',
-    'PM2.5 raw',
 }
 
 # Metadata assets

@@ -26,7 +26,8 @@ def sensor_to_detector(sensor: Mapping) -> dict:
 
     return dict(
         name=settings.RENAME_COLUMNS[sensor['name']],
-        unit=sensor['units'],
+        # Fix encoding error that occurs on Windows
+        unit=sensor['units'].replace('\xb3', '3'),
         # Nominal instrument error (10^-NDP)
         epsilon=10 ** (-sensor['decimalPlaces']),
     )
@@ -39,16 +40,11 @@ def instrument_to_sensor(instrument: Mapping) -> assets.Sensor:
 
     detectors = list()
     for s in instrument['sensors']:
-        try:
-            detectors.append(sensor_to_detector(s))
-        except KeyError:
-            if s['name'] in settings.IGNORE_METRICS:
-                continue
-            else:
-                raise
+        detectors.append(sensor_to_detector(s))
 
     return assets.Sensor(
         sensor_id=instrument['serial'],
+        serial_number=instrument['serial'],
         family=settings.FAMILY,
         detectors=detectors,
     )
