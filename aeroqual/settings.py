@@ -11,10 +11,7 @@ LOGGING = dict(
 
 DEFAULT_AVERAGING_PERIOD = 1
 
-TIME_ZONE_MAP = {
-    "(UTC+00:00) Dublin, Edinburgh, Lisbon, London": "Europe/London",
-}
-
+# Rename metrics from the values on the remote API to the UFO standard
 RENAME_COLUMNS = {
     'Time': 'timestamp',
     'NO2': 'AQ_NO2',
@@ -30,6 +27,16 @@ RENAME_COLUMNS = {
     'PM2.5 raw': 'AQ_PM25_RAW',
 
 }
+
+SELECTED_COLUMNS = [
+    'timestamp',
+    'AQ_NO2',
+    'AQ_O3',
+    'AQ_PM25',
+    'MET_TEMP',
+    'MET_RH',
+    'DEW_POINT',
+]
 
 # Metadata assets
 DESC_URL = 'https://cloud.aeroqual.com'

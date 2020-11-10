@@ -71,8 +71,8 @@ def main():
                                 remote_reading_category_ids=reading_categories, reading_type_groups=reading_type_groups)
 
         # Sync AQI data
-        LOGGER.info('Syncing AQI readings...')
-        sync.sync_aqi_readings(session, sites=sites, locations=locations)
+        # LOGGER.info('Syncing AQI readings...')
+        # sync.sync_aqi_readings(session, sites=sites, locations=locations)
 
         # Sync data
         LOGGER.info('Syncing readings...')

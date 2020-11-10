@@ -27,8 +27,7 @@ def main():
     session = http_session.AeroqualSession(config_file=args.config)
 
     if args.csv:
-        # TODO static list of columns
-        print(settings.UrbanDialect.delimiter.join(set()))
+        print(settings.UrbanDialect.delimiter.join(settings.SELECTED_COLUMNS))
     elif args.sensors:
         for serial_number in Instrument.list(session):
             instrument = Instrument(serial_number)

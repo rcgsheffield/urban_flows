@@ -45,12 +45,6 @@ def date(day: str) -> datetime.datetime:
     return datetime.datetime.strptime(day, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
 
-def parse_timestamp(timestamp: str, time_zone: str) -> datetime.datetime:
-    # Convert to IANA standard time zone name
-    _time_zone = settings.TIME_ZONE_MAP[time_zone]
-    return arrow.get(timestamp).to(_time_zone)
-
-
 def get_data(session, day: datetime.date, averaging_period: int, include_journal: bool = False) -> Rows:
     start = day
     end = day + datetime.timedelta(days=1)
@@ -64,14 +58,12 @@ def get_data(session, day: datetime.date, averaging_period: int, include_journal
         for key, value in sensor.items():
             LOGGER.info("Sensor '%s' %s: %s", serial_number, key, value)
 
-        time_zone = sensor['timeZone']
-
         data = Data(serial_number)
         rows = data.query(session, start=start, end=end, averagingperiod=averaging_period,
                           includejournal=include_journal)
 
         for row in rows:
-            row = transform(row, time_zone=time_zone)
+            row = transform(row)
 
             yield row
 
@@ -91,12 +83,12 @@ def write_csv(path: pathlib.Path, rows: Rows):
         LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
 
 
-def transform(row: dict, time_zone: str) -> dict:
-    # Parse timestamp
-    row['Time'] = parse_timestamp(row['Time'], time_zone=time_zone)
-
+def transform(row: dict) -> dict:
     # Rename columns
     row = OrderedDict(((settings.RENAME_COLUMNS.get(key, key), value) for key, value in row.items()))
+
+    # Select columns (exclude other columns
+    row = OrderedDict(((key, row.get(key, '')) for key in settings.SELECTED_COLUMNS))
 
     return row
 
