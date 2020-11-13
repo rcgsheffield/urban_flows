@@ -45,6 +45,16 @@ def date(day: str) -> datetime.datetime:
     return datetime.datetime.strptime(day, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
 
+def parse_timestamp(timestamp: str) -> datetime.datetime:
+    """
+    Parse timestamp and convert to UTC
+    """
+    # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
+    tz = timestamp.partition(')')[0][1:]
+
+    return arrow.get(timestamp).replace(tzinfo=tz).to('UTC')
+
+
 def get_data(session, day: datetime.date, averaging_period: int, include_journal: bool = False) -> Rows:
     start = day
     end = day + datetime.timedelta(days=1)
@@ -80,10 +90,16 @@ def write_csv(path: pathlib.Path, rows: Rows):
 
             writer.writerow(row)
 
+    # If no data was written then remove the file
+    if not row_count:
+        path.unlink()
+    else:
         LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
 
 
 def transform(row: dict) -> dict:
+    row['Time'] = parse_timestamp(row['Time'])
+
     # Rename columns
     row = OrderedDict(((settings.RENAME_COLUMNS.get(key, key), value) for key, value in row.items()))
 

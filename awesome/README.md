@@ -9,6 +9,10 @@ $ cd awesome
 $ python . --help
 ```
 
+# Air Quality Index
+
+DEFRA [What is the Daily Air Quality Index?](https://uk-air.defra.gov.uk/air-pollution/daqi?view=more-info)
+
 # Glossary
 
 The metadata used to describe the sensor readings on each system is defined by a collection of objects. There are loose mappings between the two metadata systems.
