@@ -7,6 +7,7 @@ from typing import Iterable, Mapping
 from collections import OrderedDict
 
 import arrow
+import dateutil.tz
 
 import http_session
 import settings
@@ -45,14 +46,16 @@ def date(day: str) -> datetime.datetime:
     return datetime.datetime.strptime(day, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
 
-def parse_timestamp(timestamp: str) -> datetime.datetime:
+def parse_timestamp(timestamp: str, timezone: str = None) -> datetime.datetime:
     """
     Parse timestamp and convert to UTC
     """
-    # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
-    tz = timestamp.partition(')')[0][1:]
 
-    return arrow.get(timestamp).replace(tzinfo=tz).to('UTC')
+    # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
+    timezone_string = timezone.partition(')')[0][1:]
+    timezone = dateutil.tz.gettz(timezone_string)
+
+    return arrow.get(timestamp).replace(tzinfo=timezone).to('UTC')
 
 
 def get_data(session, day: datetime.date, averaging_period: int, include_journal: bool = False) -> Rows:
@@ -65,15 +68,16 @@ def get_data(session, day: datetime.date, averaging_period: int, include_journal
         inst = Instrument(serial_number)
         sensor = inst.get(session)
 
+        # Sensor details
         for key, value in sensor.items():
-            LOGGER.info("Sensor '%s' %s: %s", serial_number, key, value)
+            LOGGER.debug("Sensor '%s' %s: %s", serial_number, key, value)
 
         data = Data(serial_number)
         rows = data.query(session, start=start, end=end, averagingperiod=averaging_period,
                           includejournal=include_journal)
 
         for row in rows:
-            row = transform(row)
+            row = transform(row, timezone=sensor['timeZone'])
 
             yield row
 
@@ -93,12 +97,13 @@ def write_csv(path: pathlib.Path, rows: Rows):
     # If no data was written then remove the file
     if not row_count:
         path.unlink()
+        LOGGER.info("Deleted '%s'", file.name)
     else:
         LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
 
 
-def transform(row: dict) -> dict:
-    row['Time'] = parse_timestamp(row['Time'])
+def transform(row: dict, timezone: str = None) -> dict:
+    row['Time'] = parse_timestamp(row['Time'], timezone=timezone)
 
     # Rename columns
     row = OrderedDict(((settings.RENAME_COLUMNS.get(key, key), value) for key, value in row.items()))

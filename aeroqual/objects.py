@@ -63,6 +63,6 @@ class Data(Object):
 
         # Log metadata
         for key, value in body.items():
-            LOGGER.info("%s: %s", key, value)
+            LOGGER.debug("%s: %s", key, value)
 
         yield from data
