@@ -50,12 +50,15 @@ def parse_timestamp(timestamp: str, timezone: str = None) -> datetime.datetime:
     """
     Parse timestamp and convert to UTC
     """
+    t = arrow.get(timestamp)
 
-    # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
-    timezone_string = timezone.partition(')')[0][1:]
-    timezone = dateutil.tz.gettz(timezone_string)
+    if timezone:
+        # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
+        timezone_string = timezone.partition(')')[0][1:]
+        timezone = dateutil.tz.gettz(timezone_string)
+        t = t.replace(tzinfo=timezone)
 
-    return arrow.get(timestamp).replace(tzinfo=timezone).to('UTC')
+    return t.to('UTC')
 
 
 def get_data(session, day: datetime.date, averaging_period: int, include_journal: bool = False) -> Rows:
