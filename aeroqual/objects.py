@@ -1,11 +1,11 @@
 import datetime
 import logging
 
-from typing import Iterable, Mapping
+from typing import Iterable, Dict
 
 from http_session import AeroqualSession
 
-Rows = Iterable[Mapping]
+Rows = Iterable[Dict]
 
 LOGGER = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class Object:
 
     @classmethod
     def list(cls, session: AeroqualSession, **kwargs):
-        return session.call(endpoint=cls.EDGE)
+        return session.call(endpoint=cls.EDGE, **kwargs)
 
     def get(self, session: AeroqualSession, **kwargs):
         return session.call(self.endpoint, **kwargs)
@@ -44,7 +44,8 @@ class Data(Object):
         Fetch instrument data.
 
         serial = serial number of instrument
-        start time = date/time of beginning of required data period (inclusive) – in instrument local time zone, format yyyy-mm-ddThh:mm:ss
+        start time = date/time of beginning of required data period (inclusive) – in instrument local time zone,
+            format yyyy-mm-ddThh:mm:ss
         end time = date/time of end of required data period (not inclusive)
         averaging period = period in minutes to average data – minimum 1 minute
         include journal = (optional) whether to include journal entries – true or false

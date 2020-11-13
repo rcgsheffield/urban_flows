@@ -62,8 +62,8 @@ def parse_timestamp(timestamp: str, timezone: str) -> datetime.datetime:
 
 
 def get_data(session, day: datetime.date, averaging_period: int, include_journal: bool = False) -> Rows:
-    start = day
-    end = day + datetime.timedelta(days=1)
+    start = datetime.datetime.combine(day, time=datetime.time.min)
+    end = start + datetime.timedelta(days=1)
 
     for serial_number in Instrument.list(session):
         LOGGER.info("Sensor serial number: %s", serial_number)
