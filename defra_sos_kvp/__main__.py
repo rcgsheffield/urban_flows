@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import logging.handlers
+import pathlib
 
 import http_session
 import parsers
@@ -31,7 +32,7 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help="Debug logging level")
     parser.add_argument('-d', '--date', type=utils.parse_date, required=True, help="YYYY-MM-DD")
-    parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True)
+    parser.add_argument('-o', '--output', help="Output (clean) data file path", required=True, type=pathlib.Path)
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
 
@@ -140,7 +141,8 @@ def parse(row: OrderedDict) -> OrderedDict:
         validity=int,
         verification=int,
         value=float,
-        timestamp=utils.parse_timestamp,
+        # Output timestamp in ISO 8601
+        timestamp=lambda s: utils.parse_timestamp(s).isoformat(),
     )
 
     # Cast to new data type (or default to string)

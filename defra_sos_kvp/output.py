@@ -3,7 +3,9 @@ CSV data serialisation
 """
 
 import logging
+import pathlib
 import csv
+from typing import Iterable, Dict
 
 import settings
 
@@ -15,26 +17,27 @@ class UrbanDialect(csv.excel):
     delimiter = settings.DEFAULT_SEPARATOR
 
 
-def serialise(rows, path, **kwargs):
+def serialise(rows: Iterable[Dict], path: pathlib.Path, **kwargs):
     """Write to CSV file"""
 
     fieldnames = settings.OUTPUT_HEADERS
 
     LOGGER.info("Writing CSV with headers: %s", fieldnames)
 
-    with open(path, 'w', newline='') as file:
+    with path.open('w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames, dialect=UrbanDialect, **kwargs)
 
-        n = 0
+        row_count = 0
         for row in rows:
-            # Output timestamp in ISO 8601
-            row['timestamp'] = row['timestamp'].isoformat()
-
             writer.writerow(row)
 
-            n += 1
+            row_count += 1
 
-        LOGGER.info("Wrote %s rows to '%s'", n, file.name)
+    if row_count:
+        LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
+    else:
+        path.unlink()
+        LOGGER.info("Deleted '%s'", file.name)
 
 
 def print_csv_headers():
