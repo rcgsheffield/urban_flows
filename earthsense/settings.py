@@ -1,7 +1,8 @@
 import pathlib
 from collections import OrderedDict
 
-DEFAULT_CONFIG_PATH = pathlib.Path.home().joinpath('earthsense.cfg')
+CONFIG_DIR = pathlib.Path.home().joinpath('configs')
+DEFAULT_CONFIG_PATH = CONFIG_DIR.joinpath('earthsense.cfg')
 
 # Map EarthSense fields to Urban Flows Observatory structure
 # The order of the items determines that of the columns in the output CSV file.

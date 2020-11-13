@@ -7,8 +7,10 @@ https://www.earthsense.co.uk/product-resources
 import argparse
 import csv
 import datetime
+import pathlib
 import logging
 from collections import OrderedDict
+from typing import Iterable, Dict
 
 import http_session
 import settings
@@ -101,12 +103,13 @@ def get_data(session, start_time, end_time):
             yield from rows
 
 
-def write_csv(path, rows):
-    # Iterate over all slots on all devices
-    with open(path, 'w', newline='') as file:
+def write_csv(path: pathlib.Path, rows: Iterable[Dict]):
+    with path.open('w', newline='') as file:
         writer = None
 
+        row_count = 0
         for row in rows:
+            row_count += 1
 
             if not writer:
                 headers = tuple(row.keys())
@@ -116,7 +119,11 @@ def write_csv(path, rows):
 
             writer.writerow(row)
 
-    LOGGER.info("Wrote '%s'", file.name)
+    if row_count:
+        LOGGER.info("Wrote '%s'", file.name)
+    else:
+        path.unlink()
+        LOGGER.info("Deleted '%s'", file.name)
 
 
 def date(date_string: str) -> datetime.date:
@@ -128,10 +135,11 @@ def get_args():
     """Command-line arguments"""
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
-    parser.add_argument('-o', '--output', help="Output file path", required=True)
+    parser.add_argument('-o', '--output', help="Output file path", required=True, type=pathlib.Path)
     parser.add_argument('-d', '--date', help="Date (UTC, ISO format)", type=date, required=True)
     parser.add_argument('-c', '--config', help="Config file", default=settings.DEFAULT_CONFIG_PATH)
-    parser.add_argument('-v', '--verbose', help="Debug logging level", action='store_true')
+    parser.add_argument('-v', '--verbose', help="Increased logging level", action='store_true')
+    parser.add_argument('-g', '--debug', help="Debug logging level", action='store_true')
 
     args = parser.parse_args()
 
@@ -140,7 +148,7 @@ def get_args():
 
 def main():
     args = get_args()
-    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    logging.basicConfig(level=logging.DEBUG if args.debug else logging.INFO if args.verbose else logging.WARNING)
 
     credentials = utils.get_credentials(args.config)
     session = http_session.ZephyrSession(username=credentials['username'], password=credentials['password'])
