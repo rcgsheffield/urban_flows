@@ -4,26 +4,17 @@ Utility functions
 
 import logging
 import datetime
-import os.path
 import statistics
 
 import arrow
 
-from settings import DATE_FORMAT, DEFAULT_STATIONS_FILE, DEFAULT_MEASURES_FILE
+from settings import DATE_FORMAT
 
 LOGGER = logging.getLogger(__name__)
 
 
 def date(s: str) -> datetime.date:
     return datetime.datetime.strptime(s, DATE_FORMAT).date()
-
-
-def make_dir(path: str):
-    """Build directories for a given path"""
-    directory = os.path.dirname(path)
-
-    if directory:
-        os.makedirs(directory, exist_ok=True)
 
 
 def load_lines(path: str) -> iter:
@@ -34,11 +25,6 @@ def load_lines(path: str) -> iter:
         # Strip whitespace
         for line in file:
             yield line.strip()
-
-
-def get_stations(path: str = None) -> iter:
-    path = path or DEFAULT_STATIONS_FILE
-    return load_lines(path)
 
 
 def parse_timestamp(timestamp: str) -> str:

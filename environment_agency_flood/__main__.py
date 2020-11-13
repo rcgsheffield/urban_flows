@@ -3,8 +3,9 @@ import csv
 import http
 import logging
 import warnings
-
+import pathlib
 from collections import OrderedDict
+from typing import Iterable, Dict
 
 import requests
 
@@ -39,9 +40,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-g', '--debug', action='store_true', help='Debug mode')
     parser.add_argument('-e', '--error', help='Error log file (optional)')
     parser.add_argument('-d', '--date', required=True, type=utils.date, help="ISO UTC date")
-    parser.add_argument('-o', '--output', required=True, type=str, help="Output CSV file path")
-    parser.add_argument('-s', '--stations', help='File containing list of stations',
-                        default=settings.DEFAULT_STATIONS_FILE)
+    parser.add_argument('-o', '--output', required=True, type=pathlib.Path, help="Output CSV file path")
 
     args = parser.parse_args()
 
@@ -122,7 +121,7 @@ def get_data(session, date, station_ids: set) -> iter:
                 yield row
 
 
-def serialise(path, rows, write_header: bool = False):
+def serialise(path: pathlib.Path, rows: Iterable[Dict], write_header: bool = False):
     """
     Write the rows of clean data to a file in CSV format.
     """
@@ -130,10 +129,11 @@ def serialise(path, rows, write_header: bool = False):
 
     LOGGER.info('CSV headers: %s', headers)
 
-    utils.make_dir(path)
+    # Ensure directory structure exists
+    path.parent.mkdir(parents=True, exist_ok=True)
 
     # File output
-    with open(path, 'w', newline='') as file:
+    with path.open('w', newline='') as file:
         # CSV formatting
         writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
 
@@ -141,19 +141,16 @@ def serialise(path, rows, write_header: bool = False):
         if write_header:
             writer.writeheader()
 
-        writer.writerows(rows)
+        row_count = 0
+        for row in rows:
+            row_count += 1
+            writer.writerow(row)
 
-        LOGGER.info("Wrote '%s'", file.name)
-
-
-def filter_rows(rows: iter, station_ids: set) -> iter:
-    """
-    Decide which rows to keep and which to discard
-    """
-    for row in rows:
-        # Only include selected stations
-        if row['station'] in station_ids:
-            yield row
+    if row_count:
+        LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
+    else:
+        path.unlink()
+        LOGGER.info("Deleted '%s'", file.name)
 
 
 def transform(rows: iter) -> iter:
@@ -175,14 +172,14 @@ def main():
     # Connect to the Environment Agency API
     session = http_session.FloodSession()
 
-    # Get list of stations to query
-    station_ids = set(utils.get_stations(args.stations))
-
     # Retrieve raw data
-    raw_rows = get_data(session, date=args.date, station_ids=station_ids)
+    rows = get_data(session, date=args.date, station_ids=settings.STATIONS)
+
+    # Only include selected stations
+    rows = filter(lambda row: row['station'] in settings.STATIONS, rows)
 
     # Process data
-    rows = sort(pivot(transform(filter_rows(raw_rows, station_ids=station_ids))))
+    rows = sort(pivot(transform(rows)))
 
     # Output to file
     serialise(args.output, rows=rows)
