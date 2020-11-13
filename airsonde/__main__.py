@@ -64,11 +64,19 @@ def transform(row: dict) -> dict:
 def write_csv(path: pathlib.Path, rows):
     headers = settings.OUTPUT_COLUMNS
     LOGGER.info('CSV headers %s', headers)
+    row_count = 0
     with path.open('w', newline='\n') as file:
         writer = csv.DictWriter(file, fieldnames=headers, dialect=UrbanDialect)
-        writer.writerows(rows)
 
-        LOGGER.info("Wrote '%s'", file.name)
+        for row in rows:
+            writer.writerow(row)
+            row_count += 1
+
+    if row_count:
+        LOGGER.info("Wrote %s rows to '%s'", row_count, file.name)
+    else:
+        path.unlink()
+        LOGGER.info("Deleted '%s'", file.name)
 
 
 def get_data(session, start, end, average) -> iter:
