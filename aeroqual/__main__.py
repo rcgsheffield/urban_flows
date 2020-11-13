@@ -46,17 +46,17 @@ def date(day: str) -> datetime.datetime:
     return datetime.datetime.strptime(day, '%Y-%m-%d').replace(tzinfo=datetime.timezone.utc)
 
 
-def parse_timestamp(timestamp: str, timezone: str = None) -> datetime.datetime:
+def parse_timestamp(timestamp: str, timezone: str) -> datetime.datetime:
     """
     Parse timestamp and convert to UTC
     """
     t = arrow.get(timestamp)
 
-    if timezone:
-        # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
-        timezone_string = timezone.partition(')')[0][1:]
-        timezone = dateutil.tz.gettz(timezone_string)
-        t = t.replace(tzinfo=timezone)
+    # Localise
+    # Extract time zone from string e.g. "(UTC+12:00) Auckland, Wellington" becomes "UTC+12:00"
+    timezone_string = timezone.partition(')')[0][1:]
+    timezone = dateutil.tz.gettz(timezone_string)
+    t = t.replace(tzinfo=timezone)
 
     return t.to('UTC')
 
