@@ -35,7 +35,7 @@ URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF0'
 
 LOGGER = logging.getLogger(__name__)
 
-NULL = -32768
+NULL = -32768.0
 
 
 class UrbanFlowsQuery:
@@ -101,7 +101,7 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    def stream(self) -> Iterable[Dict]:
+    def stream(self) -> Iterable[str]:
         """Retrieve raw data over HTTP"""
         with requests.Session() as session:
             for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
@@ -140,13 +140,16 @@ class UrbanFlowsQuery:
                 yield from response.iter_lines(decode_unicode=True)
 
     @staticmethod
-    def parse(lines: iter) -> iter:
-        """Process raw data and generate rows of useful data"""
+    def parse(lines: Iterable[str]) -> Iterable[Dict]:
+        """
+        Process raw data and generate rows of useful data
+        """
 
         for line in lines:
+            LOGGER.debug(line)
 
+            # Metadata comments
             if line.startswith('#'):
-                LOGGER.debug(line)
 
                 # New data set for each sensor
                 if line.startswith('# Begin CSV table'):
@@ -170,6 +173,10 @@ class UrbanFlowsQuery:
                 elif line.startswith('# site.id'):
                     site_id = line.split()[-1]
 
+                # TODO remove this
+                elif line.startswith('# situs.id'):
+                    site_id = line.split()[-1]
+
                 elif line.startswith('# End CSV table'):
 
                     # Check row count
@@ -191,6 +198,8 @@ class UrbanFlowsQuery:
 
                 row = OrderedDict(zip(headers, values))
 
+                if not site_id:
+                    raise ValueError('No site_id value')
                 row['site_id'] = site_id
 
                 yield row
@@ -200,17 +209,32 @@ class UrbanFlowsQuery:
     @staticmethod
     def remove_nulls(row: dict) -> dict:
         """Re-build dictionary without missing values"""
-        return {k: None if v == NULL else v for k, v in row.items()}
+        return {k: v for k, v in row.items() if v != NULL}
 
     @staticmethod
     def parse_timestamp(timestamp: float) -> datetime.datetime:
         """Parse UTX unix timestamp"""
         return datetime.datetime.utcfromtimestamp(timestamp)
 
+    @staticmethod
+    def parse_data_types(row: dict) -> dict:
+        """
+        Parse data types: values are floats
+        """
+        # Don't parse these columns
+        non_floats = {'site_id', 'ID_MAIN', 'TIME_UTC_UNIX'}
+        try:
+            row = {key: value if key in non_floats else float(value) for key, value in row.items()}
+        except (TypeError, ValueError):
+            LOGGER.error(row)
+            raise
+        return row
+
     @classmethod
     def transform(cls, row: dict) -> dict:
         row = cls.remove_nulls(row)
         row[cls.TIME_COLUMN] = cls.parse_timestamp(float(row[cls.TIME_COLUMN]))
+        row = cls.parse_data_types(row)
 
         return row
 

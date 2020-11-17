@@ -6,7 +6,7 @@ import ufdex
 LOGGER = logging.getLogger(__name__)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     # sites, families, pairs, sensors = assets.get_metadata()
     sensors = {'24298', '2006150', '2009150'}
