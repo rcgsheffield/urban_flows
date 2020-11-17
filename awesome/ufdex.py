@@ -173,10 +173,6 @@ class UrbanFlowsQuery:
                 elif line.startswith('# site.id'):
                     site_id = line.split()[-1]
 
-                # TODO remove this
-                elif line.startswith('# situs.id'):
-                    site_id = line.split()[-1]
-
                 elif line.startswith('# End CSV table'):
 
                     # Check row count
@@ -232,9 +228,9 @@ class UrbanFlowsQuery:
 
     @classmethod
     def transform(cls, row: dict) -> dict:
-        row = cls.remove_nulls(row)
         row[cls.TIME_COLUMN] = cls.parse_timestamp(float(row[cls.TIME_COLUMN]))
         row = cls.parse_data_types(row)
+        row = cls.remove_nulls(row)
 
         return row
 
