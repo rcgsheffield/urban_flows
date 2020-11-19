@@ -1,15 +1,20 @@
 import datetime
 import logging
+import argparse
 
 import ufdex
 
 LOGGER = logging.getLogger(__name__)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-v', '--verbose', action='store_true')
+    args = parser.parse_args()
+
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     # sites, families, pairs, sensors = assets.get_metadata()
-    sensors = {'24298', '2006150', '2009150'}
+    sensors = {'20926', '20927'}  # '24298', '2006150', '2009150'}
 
     now = datetime.datetime.now() - datetime.timedelta(days=1)
 
@@ -26,5 +31,6 @@ if __name__ == '__main__':
         query = ufdex.UrbanFlowsQuery(**query)
 
         # TODO sort chronologically
-        for row in query():
-            print(row)
+        for reading in query():
+            if args.verbose:
+                print(reading)

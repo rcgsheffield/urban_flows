@@ -17,16 +17,16 @@ Usage:
         }
     )
 
-    for row in run(query):
+    for reading in run(query):
         ...
 """
 
-import logging
-import requests
 import datetime
-
+import itertools
+import logging
 from typing import Iterable, Dict, Sequence
-from collections import OrderedDict
+
+import requests
 
 import settings
 
@@ -45,8 +45,11 @@ class UrbanFlowsQuery:
 
     # 2020-01-23T10:20:32
     TIME_FORMAT = '%Y-%m-%dT%H:%M:%S'
-
     TIME_COLUMN = 'TIME_UTC_UNIX'
+    DATA_TYPES = {
+        'float': float,
+        'int': int,
+    }
 
     def __init__(self, time_period: Sequence[datetime.datetime], site_ids: set = None,
                  sensors: set = None):
@@ -142,11 +145,19 @@ class UrbanFlowsQuery:
     @staticmethod
     def parse(lines: Iterable[str]) -> Iterable[Dict]:
         """
-        Process raw data and generate rows of useful data
+        Process raw data and generate one dictionary per reading
         """
+        # One item for each column
+        columns = list()
+        meta = dict()
+        n_rows = 0
 
         for line in lines:
             LOGGER.debug(line)
+
+            # Query fail
+            if line == 'mutis csvShow 0 sensors satisfy your conditions':
+                return
 
             # Metadata comments
             if line.startswith('#'):
@@ -154,24 +165,29 @@ class UrbanFlowsQuery:
                 # New data set for each sensor
                 if line.startswith('# Begin CSV table'):
                     # Reset variables
-                    site_id = None
-                    headers = list()
+                    meta = dict()
+                    columns = list()
                     number_of_points = None
                     n_rows = 0
 
                 elif line.startswith('# number of points:'):
                     number_of_points = int(line.partition(': ')[2])
 
+                # ColDescription: name / units / UCD / description / type / no-data-value
+                elif line.startswith('# ColDescription'):
+                    _, _, desc_str = line.partition(':')
+                    col_desc = tuple((s.strip() for s in desc_str.split('/')))
+
                 # Get column meta-data
                 elif line.startswith('# Column_'):
-                    # Parse comment
-                    # ColDescription: name / units / UCD / description / type / no-data-value
-                    # e.g. "Column_6 / data~airtemp / C / MET_TEMP / Air temperature / float / -32768"
-                    label = line[2:].split(' / ')[3]  # get the "UCD" value
-                    headers.append(label)
+                    # Column_1 / data.time / s / TIME_UTC_UNIX / Time in seconds since 1970.0, or UNIX time / utime / -32768
+                    # Column_2 / data.sensor /  / ID_MAIN / Sensor ID (numerical values) / int / -32768
+                    # Column_3 / data.CO / ppm / AQ_CO / Carbon Monoxide / float / -32768
 
-                elif line.startswith('# site.id'):
-                    site_id = line.split()[-1]
+                    # Skip "Column_n"
+                    col_labels = (s.strip() for s in line[2:].split('/')[1:])
+
+                    columns.append(dict(itertools.zip_longest(col_desc, col_labels)))
 
                 elif line.startswith('# End CSV table'):
 
@@ -179,65 +195,84 @@ class UrbanFlowsQuery:
                     if n_rows != number_of_points:
                         raise ValueError('Unexpected row count, expected %s but got %s' % number_of_points, n_rows)
 
+                # Other metadata
+                elif line.startswith('# sensor') or line.startswith('# site'):
+                    key, _, value = line[2:].partition(': ')
+                    meta[key] = value
+
             elif line:
+                time = None
 
                 # Skip HTML
-                if line.startswith('<pre>'):
+                if line.startswith('<'):
                     continue
 
                 # Build dictionary
                 values = line.split(',')
 
                 # Check column count
-                if len(values) != len(headers):
+                if len(values) != len(columns):
+                    for col in columns:
+                        LOGGER.error(col)
+                    LOGGER.error(values)
                     raise ValueError('Unexpected number of data values')
 
-                row = OrderedDict(zip(headers, values))
+                for i, value in enumerate(values):
+                    reading = columns[i].copy()
+                    reading.update(meta)
+                    reading['value'] = value
 
-                if not site_id:
-                    raise ValueError('No site_id value')
-                row['site_id'] = site_id
-
-                yield row
+                    if reading['name'] == 'data.time':
+                        time = reading['value']
+                    elif reading['name'] == 'data.sensor':
+                        pass
+                    else:
+                        assert time
+                        reading['time'] = time
+                        yield reading
 
                 n_rows += 1
 
-    @staticmethod
-    def remove_nulls(row: dict) -> dict:
-        """Re-build dictionary without missing values"""
-        return {k: v for k, v in row.items() if v != NULL}
+        LOGGER.info("Retrieved %s rows", n_rows)
 
-    @staticmethod
-    def parse_timestamp(timestamp: float) -> datetime.datetime:
-        """Parse UTX unix timestamp"""
-        return datetime.datetime.utcfromtimestamp(timestamp)
-
-    @staticmethod
-    def parse_data_types(row: dict) -> dict:
+    @classmethod
+    def parse_data_types(cls, reading: dict) -> dict:
         """
         Parse data types: values are floats
         """
-        # Don't parse these columns
-        non_floats = {'site_id', 'ID_MAIN', 'TIME_UTC_UNIX'}
+
+        data_type = cls.DATA_TYPES.get(reading['type'], str)
+
         try:
-            row = {key: value if key in non_floats else float(value) for key, value in row.items()}
+            reading['value'] = data_type(reading['value'])
+            reading['no-data-value'] = data_type(reading['no-data-value'])
+            reading['time'] = datetime.datetime.utcfromtimestamp(int(reading['time']))
         except (TypeError, ValueError):
-            LOGGER.error(row)
+            LOGGER.error(data_type)
+            LOGGER.error(reading)
             raise
-        return row
+
+        return reading
 
     @classmethod
-    def transform(cls, row: dict) -> dict:
-        row[cls.TIME_COLUMN] = cls.parse_timestamp(float(row[cls.TIME_COLUMN]))
-        row = cls.parse_data_types(row)
-        row = cls.remove_nulls(row)
+    def transform(cls, reading: dict) -> dict:
+        reading = cls.parse_data_types(reading)
 
-        return row
+        return reading
 
     def __call__(self, *args, **kwargs):
-        row_count = 0
-        for row in self.parse(self.stream()):
-            yield self.transform(row)
-            row_count += 1
+        reading_count = 0
+        null_count = 0
+        for reading in self.parse(self.stream()):
+            reading = self.transform(reading)
 
-        LOGGER.info("Generated %s rows", row_count)
+            # Filter nulls
+            if reading['value'] == float():
+                null_count += 1
+                continue
+
+            yield reading
+
+            reading_count += 1
+
+        LOGGER.info("Generated %s readings (removed %s nulls)", reading_count, null_count)

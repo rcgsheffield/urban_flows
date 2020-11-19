@@ -1,4 +1,4 @@
-import aqi
+import aqi.conversion
 
 
 class Band:
@@ -26,6 +26,21 @@ class DailyAirQualityIndex(aqi.AirQualityIndex):
         'AQ_NO2': 'nitrogen_dioxide',
         'AQ_SO2': 'sulphur_dioxide',
         'AQ_O3': 'ozone',
+    }
+
+    UNITS = dict(
+        particles_25='ug/m3',
+        particles_10='ug/m3',
+        nitrogen_dioxide='ug/m3',
+        sulphur_dioxide='ug/m3',
+        ozone='ug/m3',
+    )
+
+    CONVERSION_FACTOR = {
+        'nitrogen_dioxide': {
+            'ppb': lambda x: aqi.conversion.ppb_to_ugm3(x, molar_mass=46.0055),
+            'ug/m3': 1,
+        },
     }
 
     BANDS = {

@@ -4,9 +4,8 @@ import logging
 import numpy
 import pandas
 
-import ufdex
 import aqi.daqi
-import settings
+import ufdex
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,34 +30,77 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
     query = ufdex.UrbanFlowsQuery(time_period=[start, end], site_ids={site_id})
 
     # Pre-process input data
-    data = pandas.DataFrame(columns=['TIME_UTC_UNIX', 'ID_MAIN', 'site_id'])
-    for row in query():
-        data = data.append(row, ignore_index=True)
-    data = data.rename(columns=settings.UF_COLUMN_RENAME)
-    data = data.drop(['sensor', 'site_id'], axis=1)
-    data['time'] = pandas.to_datetime(data['time'], utc=True)
-    data = data.set_index('time')
-    data = data.astype('float')
-    data = data.sort_index()
 
-    # There may be multiple sensors at the same site, so take an average because the time frequency of the measurements
-    # will not be consistent. This smooths out the data.
-    try:
-        data = data.groupby(pandas.Grouper(freq=settings.AQI_TIME_AVERAGE_FREQUENCY)).mean().dropna(axis=0, how='all')
-    except pandas.core.base.DataError:
-        if not data.empty:
-            raise
+    # Ensure consistent data frame shape
+    data = pandas.DataFrame(
+        columns=['time', 'sensor.id', 'UCD', 'value', 'pollutant', 'units', 'converted_value', 'converted_units'])
+
+    readings = query()
+    readings = map(transform, readings)
+
+    # Collect data
+    for reading in readings:
+        data = data.append(reading, ignore_index=True)
+
+    # Prepare data frame
+    data = data.dropna(subset=['pollutant'])
+    LOGGER.info("%s pollutant readings", len(data.index))
+    data['time'] = pandas.to_datetime(data['time'], utc=True)
+    data['value'] = data['value'].astype('float')
+
+    if data.empty:
+        return pandas.DataFrame()
+
+    print(data.sample(min(5, len(data.index))))
+
+    # If multiple sensors on this site, get the worst value
+    s = data.groupby(['time', 'pollutant'])['converted_value'].max()
+    data = s.unstack()
+    data = data.sort_index()
 
     return data
 
 
+def transform(reading: dict) -> dict:
+    # Rename
+    reading['pollutant'] = aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.get(reading['UCD'])
+
+    # Round to nearest minute because there may be multiple different sensors at a site, so merge them together
+    reading['time'] = reading['time'].replace(minute=0, second=0, microsecond=0)
+
+    reading['value'] = float(reading['value'])
+
+    reading = convert_units(reading)
+    return reading
+
+
+def convert_units(reading: dict) -> dict:
+    try:
+        func = aqi.daqi.DailyAirQualityIndex.CONVERSION_FACTOR[reading['pollutant']][reading['units']]
+        reading['converted_value'] = func(reading['value'])
+        reading['converted_units'] = aqi.daqi.DailyAirQualityIndex.UNITS[reading['pollutant']]
+
+    except KeyError:
+        pass
+
+    return reading
+
+
 def calculate_air_quality(data: pandas.DataFrame) -> pandas.DataFrame:
-    # Calculate rolling average for each pollutant
+    # Prepare data frame
     avg = pandas.DataFrame(index=data.index)
-    for uf_col, pollutant in aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.items():
+
+    # No data, abort
+    if data.empty:
+        return avg
+
+    # Calculate rolling average for each pollutant
+    for pollutant, values in data.iteritems():
+        # Time frequency to take the rolling average
         window = aqi.daqi.DailyAirQualityIndex.RUNNING_AVERAGE_WINDOWS[pollutant]
+
         try:
-            avg[pollutant] = data[uf_col].rolling(window).mean()
+            avg[pollutant] = values.rolling(window).mean()
         except KeyError:
             avg[pollutant] = numpy.nan
 
