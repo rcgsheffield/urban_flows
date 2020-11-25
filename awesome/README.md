@@ -34,3 +34,7 @@ The metadata used to describe the sensor readings on each system is defined by a
 ## Maps
 
 * 
+
+# Awesome API
+
+Readings by sensor `/sensors/{id}/readings`

@@ -1,3 +1,7 @@
+"""
+Awesome Portal API objects
+"""
+
 import logging
 import urllib.parse
 import datetime
@@ -166,6 +170,12 @@ class Sensor(AwesomeObject):
             sensor_type_id=sensor_type_id,
             active=active,
         )
+
+    def readings(self, session) -> dict:
+        return session.call(self.urljoin('readings'))
+
+    def readings_iter(self, session) -> Iterable[dict]:
+        yield from session.get_iter(self.urljoin('readings'))
 
 
 class ReadingCategory(AwesomeObject):
