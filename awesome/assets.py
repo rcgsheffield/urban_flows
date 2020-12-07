@@ -78,13 +78,6 @@ class Asset(BookmarkMixin):
     pass
 
 
-class Sensor(Asset):
-    """
-    Urban Flows Observatory Sensor
-    """
-    BOOKMARK_PATH = pathlib.Path(settings.SENSOR_BOOKMARK_PATH)
-
-
 class Site(Asset):
     """
     Urban Flows Observatory Site

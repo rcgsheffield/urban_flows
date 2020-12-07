@@ -172,10 +172,14 @@ class Sensor(AwesomeObject):
         )
 
     def readings(self, session) -> dict:
+        """Undocumented endpoint giving the latest reading for this sensor"""
         return session.call(self.urljoin('readings'))
 
-    def readings_iter(self, session) -> Iterable[dict]:
-        yield from session.get_iter(self.urljoin('readings'))
+    def latest_reading(self, session) -> dict:
+        try:
+            return self.readings(session)['data'][0]
+        except IndexError:
+            pass
 
 
 class ReadingCategory(AwesomeObject):

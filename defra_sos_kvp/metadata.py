@@ -1,8 +1,8 @@
 import argparse
 import logging
 import requests
-import json
-import pathlib
+
+from typing import Iterable, Tuple
 
 import settings
 import assets
@@ -43,7 +43,7 @@ def get_pollutant_info(session):
     return parsers.CodelistParser(data=response.content)
 
 
-def build_unit_map(session) -> iter:
+def build_unit_map(session) -> Iterable[Tuple[str, str]]:
     parser = get_pollutant_info(session)
     for concept in parser.concepts:
         yield concept.id, concept.recommended_unit
@@ -236,6 +236,9 @@ def main():
         # Get units of measurement
         with requests.Session() as session:
             unit_map = dict(build_unit_map(session=session))
+
+            for key, value in unit_map.items():
+                LOGGER.debug("UNIT %s => %s", key, value)
 
         # Get a list of all the chosen sampling points
         with http_session.DefraMetaSession() as session:

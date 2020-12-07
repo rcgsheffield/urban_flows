@@ -1,13 +1,13 @@
 import datetime
+import http
+import time
 import json
 import logging
 import pathlib
-import http
 from typing import Type, List, Union
 
-import requests
 import pandas
-import arrow
+import requests
 
 import assets
 import exceptions
@@ -25,65 +25,59 @@ Path = Union[pathlib.Path, str]
 
 def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: dict):
     """
-    Bulk store readings
+    Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
+    portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
+    duplication.
     """
 
-    def rename(row: dict, key_map: dict) -> dict:
-        for old_key, new_key in key_map.items():
-            row[new_key] = row.pop(old_key)
-        return row
-
-    def map_row_to_readings(_rows, sensor_name: str) -> iter:
-        for row in _rows:
-            # Convert rows of portal data into portal readings
-            yield from maps.row_to_readings(row, sensor_name=sensor_name, reading_types=reading_types,
-                                            awesome_sensors=awesome_sensors)
-
+    # TODO iterate over sensor families to optimise query on UFO
     for sensor in sensors:
+        awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
-        # Skip these, they seem to cause problems
-        if ('[SCC]' in sensor['name']) or sensor['name'] == '21924':
-            # TODO don't skip SCC sensors
-            LOGGER.warning("Skipping sensor %s", sensor['name'])
-            continue
+        LOGGER.info("Syncing UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
 
-        LOGGER.info("Sensor %s", sensor['name'])
+        # Get the most recent reading for this sensor on the remote database
+        latest_awesome_reading = objects.Sensor(awesome_sensor_id).latest_reading(session)
 
-        # Get the beginning of the time period
-        sensor_asset = assets.Sensor(sensor['name'])
-        start_time = sensor_asset.latest_timestamp
-
-        # Default earliest time
-        if not start_time:
+        # Start syncing after the time of this most recent data point
+        try:
+            start_time = utils.parse_timestamp(latest_awesome_reading['created'])
+        # No timestamp found
+        except TypeError:
+            # Default earliest time
             start_time = settings.TIME_START
 
-        # Update from the latest record in the database -- either keep a bookmark or run a MAX query
-        query = dict(
+        # Query UFO database
+        query = ufdex.UrbanFlowsQuery(
             sensors={sensor['name']},
-            time_period=[
-                start_time,
-                datetime.datetime.now(datetime.timezone.utc),
-            ],
-
+            time_period=[start_time, datetime.datetime.now(datetime.timezone.utc)]
         )
-        query = ufdex.UrbanFlowsQuery(**query)
-        rows = query()
-        rows = (rename(row, key_map=settings.UF_COLUMN_RENAME) for row in rows)
+        readings = query()
 
-        # Iterate over data chunks
-        for chunk in utils.iter_chunks(map_row_to_readings(rows, sensor_name=sensor['name']),
-                                       chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+        # Convert from UFO readings to Awesome readings
+        readings = (maps.reading_to_reading(reading, reading_types=reading_types, awesome_sensors=awesome_sensors) for
+                    reading in readings)
+
+        # Iterate over data chunks because the Awesome portal API accepts a maximum number of rows per call.
+        for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
             if chunk:
-                try:
-                    objects.Reading.store_bulk(session, readings=chunk)
-                # No more readings, so stop
-                except exceptions.EmptyValueError:
-                    break
-
-            # Record progress through the stream
-            # Get the greatest timestamp in that chunk (assuming all input data is chronological)
-            latest_timestamp = max([row['created'] for row in chunk])  # the 'created' timestamp is a string
-            sensor_asset.latest_timestamp = utils.parse_timestamp(latest_timestamp)
+                # Loop to retry if rate limit exceeded
+                while True:
+                    # Limit request rate
+                    time.sleep(10)
+                    try:
+                        objects.Reading.store_bulk(session, readings=chunk)
+                        break
+                    # No more readings, so stop
+                    except exceptions.EmptyValueError:
+                        break
+                    # HTTP error
+                    except requests.HTTPError as exc:
+                        # HTTP status code 429 too many requests (server-side rate limit)
+                        if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
+                            time.sleep(60)
+                        else:
+                            raise
 
 
 def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
@@ -272,15 +266,13 @@ def load_json_objects(path: Path) -> List[dict]:
         return [dict(obj) for obj in json.load(file)]
 
 
-def sync_aqi_standards(session, aqi_standards_file: Path):
+def sync_aqi_standards(session):
     """
     Assume there's only one AQI standard and sync it.
     """
 
-    local_standards = load_json_objects(aqi_standards_file)
-
     # Get first local AQI standard definition
-    local_standard = local_standards[0]
+    local_standard = settings.AQI_STANDARDS[0]
 
     try:
         # Update the existing object

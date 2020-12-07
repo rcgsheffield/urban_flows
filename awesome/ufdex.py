@@ -153,7 +153,6 @@ class UrbanFlowsQuery:
         n_rows = 0
 
         for line in lines:
-            LOGGER.debug(line)
 
             # Query fail
             if line == 'mutis csvShow 0 sensors satisfy your conditions':

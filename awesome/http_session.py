@@ -104,9 +104,7 @@ class PortalSession(requests.Session):
                 else:
                     break
 
-            for key, value in body['meta'].items():
-                LOGGER.debug("META %s: %s", key, value)
-
             yield from body['data']
 
+            # Go to next page
             url = body['links']['next']

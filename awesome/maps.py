@@ -3,6 +3,7 @@ Map Urban Flows assets to Awesome portal objects.
 """
 
 import logging
+from typing import List
 
 import pandas
 
@@ -73,36 +74,30 @@ def detector_to_reading_type(detector: dict) -> dict:
     )
 
 
-def row_to_readings(row: dict, sensor_name: str, awesome_sensors: dict, reading_types) -> iter:
+def reading_to_reading(reading: dict, awesome_sensors: dict, reading_types: dict) -> iter:
     """
     Convert a row of UFO data into multiple Awesome portal readings.
 
-    :param row: UFO data row
-    :param sensor_name: UFO sensor name
+    :param reading: UFO data row
     :param reading_types: Awesome reading types
     :param awesome_sensors: Map Awesome sensor name to identifier
     :return: Generate readings
     """
 
-    # Extract metadata (dimensions) common to all data columns
-    time = row.pop('time')
-    del row['sensor']
+    # Get detector name e.g. "data.airtemp" => "AIRTEMP"
+    _, _, detector_name = reading['name'].upper().partition('.')
 
-    del row['site_id']
-
-    # Each row contains several readings (columns)
-    for column_label, value in row.items():
-        yield objects.Reading.new(
-            sensor_id=awesome_sensors[sensor_name]['id'],
-            reading_type_id=reading_types[column_label]['id'],
-            value=value,
-            created=time.isoformat(),
-        )
+    return objects.Reading.new(
+        sensor_id=awesome_sensors[reading['sensor.id']]['id'],
+        reading_type_id=reading_types[detector_name]['id'],
+        value=float(reading['value']),
+        created=reading['time'].isoformat(),
+    )
 
 
-def aqi_readings(air_quality_index: pandas.Series, aqi_standard_id: int, location_id: int) -> list:
+def aqi_readings(air_quality_index: pandas.Series, aqi_standard_id: int, location_id: int) -> List[dict]:
     """
-
+    Convert Air Quality Index values (calculated locally) to AQI Readings for the Awesome portal.
     """
     return [
         dict(
