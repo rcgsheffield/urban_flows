@@ -1,56 +1,28 @@
 import logging
-import urllib.parse
-import requests
+import argparse
 import json
 
-BASE_URL = 'https://www.nomisweb.co.uk/api/v01/'
+import objects
+import http_session
+
 LOGGER = logging.getLogger(__name__)
 
-SESSION = requests.Session()
+
+def json_print(obj: object):
+    print(json.dumps(obj, indent=2))
 
 
-def build_url(endpoint: str) -> str:
-    return urllib.parse.urljoin(BASE_URL, endpoint)
+def get_parser():
+    parser = argparse.ArgumentParser()  #
+    parser.add_argument('-v', '--verbose', action='store_true')
 
-
-def call(endpoint: str, **kwargs) -> dict:
-    """
-    Request API endpoint and process HTTP response
-    """
-    url = build_url(endpoint)
-
-    # Log query parameters
-    try:
-        LOGGER.debug("PARAMS %s", kwargs['params'])
-    except KeyError:
-        pass
-
-    response = SESSION.get(url, **kwargs)
-    try:
-        response.raise_for_status()
-    except requests.HTTPError:
-        LOGGER.error(response.text)
-        raise
-
-    try:
-        data = response.json()
-    except json.JSONDecodeError:
-        LOGGER.error(response.text)
-        raise
-
-    # Check response data structure
-    if set(data.keys()) != {'structure'}:
-        LOGGER.error(data.keys())
-        raise ValueError('Unexpected response contents', data.keys())
-
-    for header, value in data['structure']['header'].items():
-        LOGGER.debug("HEADER %s: %s", header, value)
-
-    return data
+    return parser
 
 
 def main():
-    logging.basicConfig(level=logging.DEBUG)
+    args = get_parser().parse_args()
+    logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
+    session = http_session.NomisSession()
 
     # Discover data
     # url = build_url('dataset/def.sdmx.json?search=*business*')
@@ -76,16 +48,25 @@ def main():
     # url = build_url('dataset/NM_189_1/def.sdmx.json')
     # params = dict(time='latest', geography='default')
 
+    # NM_189_1 Business Register and Employment Survey : open access
+
+    data = objects.KeyFamily('NM_189_1').get(session)
+    json_print(data)
+
+    exit()
+
     # NM_189_1 Business Register and Employment Survey
     key_family_uri = 'NM_189_1'
+
     endpoint = 'dataset/{}/def.sdmx.json'.format(key_family_uri)
-    data = call(endpoint)
+    data = session.call(endpoint)
 
     # Code lists
     try:
         for code_list in data['structure']['codelists']['codelist']:
             print('Agency:', code_list['agencyid'])
-            for code in code_list['code']:
+            for code in code_list['code' \
+                                  '']:
                 print(code['value'], code['description']['value'])
     except KeyError:
         pass
