@@ -44,29 +44,29 @@ def main():
         reading_types = sync.build_awesome_object_map(session, objects.ReadingType)
         reading_categories = sync.build_awesome_object_map(session, objects.ReadingCategory)
 
-        # LOGGER.info('Syncing air quality standards...')
-        # sync.sync_aqi_standards(session)
-        #
-        # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-        # sync.sync_sites(session, sites, locations=locations)
-        #
-        # LOGGER.info('Syncing sensors...')
-        # sync.sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
-        #
-        # LOGGER.info('Syncing reading categories...')
-        # sync.sync_reading_categories(session, reading_categories=reading_categories,
-        #                              reading_type_groups=settings.READING_TYPE_GROUPS)
-        #
-        # LOGGER.info('Syncing reading types...')
-        # sync.sync_reading_types(session, detectors=detectors, reading_types=reading_types,
-        #                         remote_reading_category_ids=reading_categories,
-        #                         reading_type_groups=settings.READING_TYPE_GROUPS)
-        #
-        # # Sync AQI data
-        # LOGGER.info('Syncing AQI readings...')
-        # sync.sync_aqi_readings(session, sites=sites, locations=locations)
+        # Sync metadat
+        LOGGER.info('Syncing air quality standards...')
+        sync.sync_aqi_standards(session)
+
+        LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+        sync.sync_sites(session, sites, locations=locations)
+
+        LOGGER.info('Syncing sensors...')
+        sync.sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)
+
+        LOGGER.info('Syncing reading categories...')
+        sync.sync_reading_categories(session, reading_categories=reading_categories,
+                                     reading_type_groups=settings.READING_TYPE_GROUPS)
+
+        LOGGER.info('Syncing reading types...')
+        sync.sync_reading_types(session, detectors=detectors, reading_types=reading_types,
+                                remote_reading_category_ids=reading_categories,
+                                reading_type_groups=settings.READING_TYPE_GROUPS)
 
         # Sync data
+        LOGGER.info('Syncing AQI readings...')
+        sync.sync_aqi_readings(session, sites=sites, locations=locations)
+
         LOGGER.info('Syncing readings...')
         sync.sync_readings(session=session, reading_types=reading_types, sensors=sensors,
                            awesome_sensors=awesome_sensors)

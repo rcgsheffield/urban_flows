@@ -30,8 +30,7 @@ import requests
 
 import settings
 
-# URL = 'https://sheffield-portal.urbanflows.ac.uk/uflobin/ufdex'
-URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF0'
+URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 LOGGER = logging.getLogger(__name__)
 
