@@ -1,0 +1,90 @@
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): www.nomisweb.co.uk:443
+DEBUG:urllib3.connectionpool:https://www.nomisweb.co.uk:443 "GET /api/v01/dataset/NM_1_1/geography/2092957699.def.sdmx.json HTTP/1.1" 200 2749
+DEBUG:__main__:HEADER id: NM_1_1
+DEBUG:__main__:HEADER prepared: 2020-12-08T14:20:16Z
+DEBUG:__main__:HEADER sender: {'contact': {'email': 'support@nomisweb.co.uk', 'name': 'Nomis', 'telephone': '+44(0) 191 3342680', 'uri': 'https://www.nomisweb.co.uk'}, 'id': 'NOMIS'}
+DEBUG:__main__:HEADER test: false
+Agency: NOMIS
+2092957699 England
+2092957699TYPE1 1991 frozen wards within England
+2092957699TYPE8 parliamentary constituencies 1983 revision within England
+2092957699TYPE18 tecs / lecs as of 1989 within England
+2092957699TYPE27 english learning partnerships within England
+2092957699TYPE33 1981 frozen wards within England
+2092957699TYPE45 parliamentary constituencies 1983 revision within England
+2092957699TYPE61 postcode towns within England
+2092957699TYPE62 postcode districts within England
+2092957699TYPE63 postcode sectors within England
+2092957699TYPE65 jobcentre plus offices within England
+2092957699TYPE66 jobcentre plus districts prior to April 2011 within England
+2092957699TYPE83 jobcentre plus group as of April 2019 within England
+2092957699TYPE84 jobcentre plus district as of April 2019 within England
+2092957699TYPE86 live jobcentre plus offices within England
+2092957699TYPE236 2011 census frozen wards within England
+2092957699TYPE247 2011 output area classification group within England
+2092957699TYPE248 2011 output area classification sub group within England
+2092957699TYPE249 2011 output area classification super group within England
+2092957699TYPE267 built-up areas including subdivisions within England
+2092957699TYPE269 built-up areas within England
+2092957699TYPE297 2011 super output areas - middle layer within England
+2092957699TYPE298 2011 super output areas - lower layer within England
+2092957699TYPE304 2001 super output areas - lower layer within England
+2092957699TYPE305 2001 super output areas - middle layer within England
+2092957699TYPE312 2003 CAS wards within England
+2092957699TYPE324 2005 statistical wards within England
+2092957699TYPE331 travel to work areas 2001-based within England
+2092957699TYPE337 2009 statistical wards within England
+2092957699TYPE338 output area classification group within England
+2092957699TYPE339 output area classification sub group within England
+2092957699TYPE340 output area classification super group within England
+2092957699TYPE342 english index of multiple deprivation 2010 - deciles within England
+2092957699TYPE395 2019 electoral ward within England
+2092957699TYPE396 2018 electoral ward within England
+2092957699TYPE397 2017 electoral ward within England
+2092957699TYPE399 2015 electoral ward within England
+2092957699TYPE400 2014 electoral ward within England
+2092957699TYPE431 local authorities: county / unitary within England
+2092957699TYPE432 local authorities: district / unitary within England
+2092957699TYPE433 local authorities: county / unitary (as of April 2019) within England
+2092957699TYPE434 local authorities: district / unitary (as of April 2019) within England
+2092957699TYPE437 nuts 2016 level 3 within England
+2092957699TYPE438 nuts 2016 level 2 within England
+2092957699TYPE439 nuts 2016 level 1 within England
+2092957699TYPE440 local administrative units 2016 level 1 within England
+2092957699TYPE441 major towns and cities within England
+2092957699TYPE442 combined authorities within England
+2092957699TYPE444 travel to work areas 2001-based within England
+2092957699TYPE446 local authorities: county / unitary (as of April 2015) within England
+2092957699TYPE447 travel to work areas 2011-based within England
+2092957699TYPE448 local authorities: district / unitary (as of April 2015) within England
+2092957699TYPE449 nuts 2013 level 3 within England
+2092957699TYPE450 nuts 2013 level 2 within England
+2092957699TYPE451 nuts 2013 level 1 within England
+2092957699TYPE454 nuts 2010 level 1 within England
+2092957699TYPE455 nuts 2010 level 2 within England
+2092957699TYPE456 nuts 2010 level 3 within England
+2092957699TYPE459 local enterprise partnerships (as of April 2020) within England
+2092957699TYPE460 parliamentary constituencies 2010 within England
+2092957699TYPE462 former metropolitan counties within England
+2092957699TYPE463 local authorities: county / unitary (prior to April 2015) within England
+2092957699TYPE464 local authorities: district / unitary (prior to April 2015) within England
+2092957699TYPE468 parliamentary constituencies 2005 revision within England
+2092957699TYPE469 english counties within England
+2092957699TYPE476 english local learning and skills councils within England
+2092957699TYPE477 nuts 2003 level 1 within England
+2092957699TYPE478 nuts 2003 level 2 within England
+2092957699TYPE479 nuts 2003 level 3 within England
+2092957699TYPE480 regions within England
+2092957699TYPE481 travel to work areas 1984 revision within England
+2092957699TYPE482 pre-2009 local authorities: county / unitary within England
+2092957699TYPE483 new deal units of delivery within England
+2092957699TYPE484 parliamentary constituencies 1995 revision within England
+2092957699TYPE486 pre-2009 local authorities: district / unitary within England
+2092957699TYPE487 unitary authority areas within England
+2092957699TYPE488 travel to work areas 1998 revision within England
+2092957699TYPE489 tecs / lecs within England
+2092957699TYPE490 government office regions tec / lec based within England
+2092957699TYPE491 government office regions (former inc. Merseyside) within England
+2092957699TYPE492 standard statistical regions within England
+2092957699TYPE496 pre-1996 local authority districts within England
+2092957699TYPE498 pre-1996 counties / scottish regions within England

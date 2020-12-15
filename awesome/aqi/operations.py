@@ -51,8 +51,6 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
     if data.empty:
         return pandas.DataFrame()
 
-    print(data.sample(min(5, len(data.index))))
-
     # If multiple sensors on this site, get the worst value
     s = data.groupby(['time', 'pollutant'])['converted_value'].max()
     data = s.unstack()

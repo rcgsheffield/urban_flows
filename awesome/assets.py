@@ -5,23 +5,91 @@ Urban Flows Observatory assets
 import itertools
 import logging
 import requests
+import datetime
+import json
+import pathlib
+
+import arrow.parser
+
+import settings
+import utils
 
 LOGGER = logging.getLogger(__name__)
 
 METADATA_URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 
-class Asset:
+class BookmarkMixin:
+    """
+    Serialise the latest timestamp successfully replicated from the data stream.
+    """
+    BOOKMARK_PATH = None
+
+    def __init__(self, name: str):
+        self.name = name
+
+    @classmethod
+    def load_sensor_bookmarks(cls) -> dict:
+        try:
+            with cls.BOOKMARK_PATH.open() as file:
+                return dict(json.load(file))
+        except FileNotFoundError:
+            return dict()
+
+    @classmethod
+    def save_sensor_bookmarks(cls, bookmarks: dict):
+        with cls.BOOKMARK_PATH.open('w') as file:
+            json.dump(bookmarks, file, indent=2)
+            LOGGER.debug("Wrote '%s'", file.name)
+
+    @property
+    def _latest_timestamp(self) -> str:
+        try:
+            return self.load_sensor_bookmarks()[self.name]
+        # No entry exists
+        except KeyError:
+            return ''
+
+    @property
+    def latest_timestamp(self) -> datetime.datetime:
+        timestamp = self._latest_timestamp
+        try:
+            return utils.parse_timestamp(timestamp)
+        # Ignore empty strings
+        except arrow.parser.ParserError:
+            if timestamp:
+                raise
+
+    @latest_timestamp.setter
+    def latest_timestamp(self, timestamp: datetime.datetime):
+        bookmarks = self.load_sensor_bookmarks()
+        if not timestamp:
+            raise ValueError('No timestamp specified')
+
+        bookmarks[self.name] = timestamp.isoformat()
+        self.save_sensor_bookmarks(bookmarks)
+
+
+class Asset(BookmarkMixin):
     """
     Urban Flows Observatory Asset
     """
 
-    @classmethod
-    def validate(cls, metadata: dict):
-        for site_id, site in metadata['sites'].items():
-            assert site_id == site['name']
-            assert isinstance(site['activity'], list)
-            assert len(site['activity']) > 0
+    pass
+
+
+class Site(Asset):
+    """
+    Urban Flows Observatory Site
+    """
+    BOOKMARK_PATH = pathlib.Path(settings.SITE_BOOKMARK_PATH)
+
+
+def validate(metadata: dict):
+    for site_id, site in metadata['sites'].items():
+        assert site_id == site['name']
+        assert isinstance(site['activity'], list)
+        assert len(site['activity']) > 0
 
 
 def _get_metadata() -> dict:
@@ -35,7 +103,7 @@ def _get_metadata() -> dict:
         response.raise_for_status()
         metadata = response.json()
 
-    Asset.validate(metadata)
+    validate(metadata)
 
     return metadata
 

@@ -7,10 +7,14 @@ import aqi.operations
 LOGGER = logging.getLogger(__name__)
 
 
-def main():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     start = datetime.datetime(2020, 11, 1)

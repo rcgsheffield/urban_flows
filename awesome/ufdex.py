@@ -24,7 +24,7 @@ Usage:
 import datetime
 import itertools
 import logging
-from typing import Iterable, Dict, Sequence
+from typing import Iterable, Dict, Sequence, Set
 
 import requests
 
@@ -50,8 +50,8 @@ class UrbanFlowsQuery:
         'int': int,
     }
 
-    def __init__(self, time_period: Sequence[datetime.datetime], site_ids: set = None,
-                 sensors: set = None):
+    def __init__(self, time_period: Sequence[datetime.datetime], site_ids: Set[str] = None,
+                 sensors: Set[str] = None, families: Set[str] = None):
         """
         :param time_period: tuple[datetime, datetime]
         :param site_ids: Filter locations
@@ -59,6 +59,7 @@ class UrbanFlowsQuery:
         self.time_period = time_period
         self.site_ids = set(site_ids or set())
         self.sensors = set(sensors or set())
+        self.families = set(families or set())
 
     @property
     def time_period(self):
@@ -117,11 +118,15 @@ class UrbanFlowsQuery:
                     tok='generic',
                 )
 
-                if self.sensors:
-                    params['bySensor'] = ','.join(self.sensors)
-
-                if self.site_ids:
-                    params['bySite'] = ','.join(self.site_ids)
+                # Build filters via HTTP query parameters e.g. "byFamily=AMfixed,luftdaten"
+                filters = {
+                    'bySensor': self.sensors,
+                    'bySite': self.site_ids,
+                    'byFamily': self.families,
+                }
+                for query, values in filters.items():
+                    if values:
+                        params[query] = ','.join(values)
 
                 # Streaming Requests
                 # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
