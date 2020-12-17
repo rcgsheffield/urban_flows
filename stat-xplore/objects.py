@@ -1,3 +1,6 @@
+from typing import List
+
+
 class StatObject:
     EDGE = str()
 
@@ -13,7 +16,7 @@ class StatObject:
         return session.call(cls.EDGE, params=params)
 
     @classmethod
-    def show(cls, session, identifier: str, **params) -> dict:
+    def show(cls, session, identifier, **params) -> dict:
         return session.call(cls.urljoin(identifier), params=params)
 
     def get(self, session, **params) -> dict:
@@ -27,16 +30,16 @@ class Schema(StatObject):
 class Table(StatObject):
     EDGE = 'table'
 
-    def show(self, session, identifier, measures: list, dimensions: list, recodes: dict = None, **kwargs) -> dict:
+    def query(self, session, measures: List[str], dimensions: List[list], recodes: dict = None, **params) -> dict:
         """
         The /table endpoint allows you to submit table queries and receive the results.
 
         https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API-Table.html
         """
         request_body = dict(
-            database=identifier,
+            database=self.identifier,
             measures=measures,
             recodes=recodes,
             dimensions=dimensions,
         )
-        return session.call(self.EDGE, json=request_body)
+        return session.call('POST', self.EDGE, json=request_body, params=params)
