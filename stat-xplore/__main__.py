@@ -1,4 +1,5 @@
 import logging
+import json
 import argparse
 import pathlib
 from pprint import pprint
@@ -6,6 +7,10 @@ from pprint import pprint
 import http_session
 import objects
 import settings
+
+
+def jprint(obj):
+    print(json.dumps(obj, indent=2))
 
 
 def load_api_key(path: pathlib.Path = None) -> str:
@@ -27,15 +32,15 @@ def main():
 
     session = http_session.StatSession(api_key=args.api_key or load_api_key())
 
-    # pprint(objects.Schema.list(session))
-    # pprint(objects.Schema('str:folder:fuc').get(session))
     # pprint(objects.Schema('str:database:UC_Monthly').get(session))
+
     data = objects.Table('str:database:UC_Monthly').query(
         session,
         measures=['str:count:UC_Monthly:V_F_UC_CASELOAD_FULL'],
-        dimensions=[['str:field:UC_Monthly:F_UC_DATE:DATE_NAME']],
+        dimensions=[
+            ['str:field:UC_Monthly:F_UC_DATE:DATE_NAME'], ['str:group:UC_Monthly:X_Geography+%28residence-based%29']],
     )
-    pprint(data)
+    jprint(data)
 
 
 if __name__ == '__main__':

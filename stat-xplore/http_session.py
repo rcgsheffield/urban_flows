@@ -21,7 +21,7 @@ class StatSession(requests.Session):
     def build_url(self, endpoint: str) -> str:
         return urllib.parse.urljoin(self.BASE_URL, endpoint)
 
-    def call(self, method: str = 'GET', endpoint: str = '', **kwargs):
+    def call(self, endpoint: str, method: str = 'GET', **kwargs):
         url = self.build_url(endpoint)
         response = self.request(method=method, url=url, **kwargs)
 

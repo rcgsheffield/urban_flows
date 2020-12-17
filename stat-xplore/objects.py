@@ -42,4 +42,4 @@ class Table(StatObject):
             recodes=recodes,
             dimensions=dimensions,
         )
-        return session.call('POST', self.EDGE, json=request_body, params=params)
+        return session.call(self.EDGE, method='POST', json=request_body, params=params)
