@@ -3,6 +3,12 @@ import requests
 
 
 class StatSession(requests.Session):
+    """
+    Stat-Xplore : Open Data API
+
+    https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API.html
+    """
+
     BASE_URL = 'https://stat-xplore.dwp.gov.uk/webapi/rest/v1/'
 
     def __init__(self, api_key: str):
