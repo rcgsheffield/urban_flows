@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 
@@ -30,7 +31,8 @@ class Schema(StatObject):
 class Table(StatObject):
     EDGE = 'table'
 
-    def query(self, session, measures: List[str], dimensions: List[list], recodes: dict = None, database: str = None,
+    @classmethod
+    def query(cls, session, measures: List[str], dimensions: List[list], database: str, recodes: dict = None,
               **params) -> dict:
         """
         The /table endpoint allows you to submit table queries and receive the results.
@@ -40,9 +42,17 @@ class Table(StatObject):
         To generate query JSON: https://stackoverflow.com/a/65341265/8634200
         """
         request_body = dict(
-            database=database or self.identifier,
+            database=database,
             measures=measures,
             recodes=recodes,
             dimensions=dimensions,
         )
-        return session.call(self.EDGE, method='POST', json=request_body, params=params)
+        return session.call(cls.EDGE, method='POST', json=request_body, params=params)
+
+    @classmethod
+    def query_json(cls, session, query: str, **params) -> dict:
+        query_dict = dict(json.loads(query))
+        return cls.query(session=session, **query_dict, **params)
+
+    def run_query(self, session, **kwargs):
+        return self.query(session=session, database=self.identifier, **kwargs)
