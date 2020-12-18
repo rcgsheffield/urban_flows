@@ -38,29 +38,32 @@ def generate_rows(data: dict) -> Iterable[dict]:
     for i, (uri, label) in enumerate(dim_labels.items()):
         LOGGER.info("DIMENSION %s: %s => %s", i, uri, label)
 
+    # Display cube info
     for (uid, cube), measure in zip(data['cubes'].items(), data['measures']):
         LOGGER.info('Cube %s precision %s', uid, cube['precision'])
         LOGGER.info("Measure %s", measure)
 
-        # Iterate over dimensions
-        values = flatten(cube['values'])
+    # Get all measures for each cell
+    # Iterate over dimensions
+    call_values = zip(*(flatten(cube['values']) for cube in data['cubes'].values()))
 
-        # Build dimension labels for each cell
-        cell_labels = itertools.product(*(field['items'] for field in data['fields']))
+    # Build dimension labels for each cell
+    cell_labels = itertools.product(*(field['items'] for field in data['fields']))
 
-        # Iterate over cells
-        for labels, value in zip(cell_labels, values):
-            # Generate rows of data
-            row = OrderedDict()
+    # Iterate over cells
+    for labels, values in zip(cell_labels, call_values):
+        # Generate rows of data
+        row = OrderedDict()
 
-            # Dimensions
-            for label, item in zip(dim_labels.values(), labels):
-                row[label] = item['labels'][0]
+        # Dimensions
+        for label, item in zip(dim_labels.values(), labels):
+            row[label] = item['labels'][0]
 
-            # Metric
+        # Metric
+        for measure, value in zip(data['measures'], values):
             row[measure['label']] = value
 
-            yield row
+        yield row
 
 
 def flatten(iterable: Iterable) -> Iterable[object]:
