@@ -30,14 +30,17 @@ class Schema(StatObject):
 class Table(StatObject):
     EDGE = 'table'
 
-    def query(self, session, measures: List[str], dimensions: List[list], recodes: dict = None, **params) -> dict:
+    def query(self, session, measures: List[str], dimensions: List[list], recodes: dict = None, database: str = None,
+              **params) -> dict:
         """
         The /table endpoint allows you to submit table queries and receive the results.
 
         https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API-Table.html
+
+        To generate query JSON: https://stackoverflow.com/a/65341265/8634200
         """
         request_body = dict(
-            database=self.identifier,
+            database=database or self.identifier,
             measures=measures,
             recodes=recodes,
             dimensions=dimensions,

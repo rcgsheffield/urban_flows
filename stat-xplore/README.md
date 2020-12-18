@@ -1,6 +1,6 @@
 # DWP Harvester
 
-This is a data harvester for the Department for Work and Pensions (DWP) [Stat-Explore](https://stat-xplore.dwp.gov.uk/) system. See [Stat-Xplore : Open Data API](https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API.html) documentation.
+This is a data harvester for the Department for Work and Pensions (DWP) [Stat-Explore](https://stat-xplore.dwp.gov.uk/) system. See [Stat-Xplore : Open Data API](https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API.html) documentation. This API is based on the [SuperSTAR 9.5 Open Data API](https://docs.wingarc.com.au/superstar95/9.5/open-data-api) by [WingArc1st](https://wingarc.com.au/).
 
 # Usage
 
