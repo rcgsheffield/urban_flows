@@ -10,26 +10,13 @@ from typing import Iterable
 
 import http_session
 import objects
-import settings
+import utils
 
 LOGGER = logging.getLogger(__name__)
 
 
 class UrbanDialect(csv.excel):
     delimiter = '|'
-
-
-def jprint(obj):
-    print(json.dumps(obj, indent=2))
-
-
-def load_api_key(path: pathlib.Path = None) -> str:
-    """
-    Read API access token from diskn
-    """
-    path = path or settings.TOKEN_PATH
-    with path.open() as file:
-        return file.read().strip()
 
 
 def generate_rows(data: dict) -> Iterable[OrderedDict]:
@@ -117,7 +104,7 @@ def main():
     args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    session = http_session.StatSession(api_key=args.api_key or load_api_key())
+    session = http_session.StatSession(api_key=args.api_key or utils.load_api_key())
 
     # Load query
     with args.query.open() as file:
