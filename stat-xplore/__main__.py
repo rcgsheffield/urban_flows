@@ -7,7 +7,6 @@ import itertools
 from collections import OrderedDict
 
 from typing import Iterable
-from pprint import pprint
 
 import http_session
 import objects
@@ -33,7 +32,12 @@ def load_api_key(path: pathlib.Path = None) -> str:
         return file.read().strip()
 
 
-def generate_rows(data: dict) -> Iterable[dict]:
+def generate_rows(data: dict) -> Iterable[OrderedDict]:
+    """
+    Convert data cube into rows of data
+    """
+
+    # Get dimension labels
     dim_labels = OrderedDict((field['uri'], field['label']) for field in data['fields'])
     for i, (uri, label) in enumerate(dim_labels.items()):
         LOGGER.info("DIMENSION %s: %s => %s", i, uri, label)
@@ -92,49 +96,33 @@ def write_csv(buffer, rows: Iterable[OrderedDict]):
     LOGGER.info("Wrote %s CSV rows", n_rows)
 
 
-def main():
+def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+
+    # Define arguments
     parser.add_argument('-k', '--api_key', help='API key')
     parser.add_argument('-v', '--verbose', action='store_true')
-    parser.add_argument('-o', '--output', type=pathlib.Path, help='CSV output path', required=True)
-    args = parser.parse_args()
+    parser.add_argument('-q', '--query', type=pathlib.Path, help='Open data API query JSON file path', required=True)
+    parser.add_argument('-o', '--output', type=pathlib.Path, help='CSV output file path', required=True)
 
+    return parser.parse_args()
+
+
+def main():
+    args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     session = http_session.StatSession(api_key=args.api_key or load_api_key())
 
-    query = dict(
-        measures=['str:count:UC_Monthly:V_F_UC_CASELOAD_FULL'],
-        dimensions=[
-            ['str:field:UC_Monthly:F_UC_DATE:DATE_NAME'],
-            ['str:field:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE'],
-            ['str:field:UC_Monthly:V_F_UC_CASELOAD_FULL:EMPLOYMENT_CODE'],
+    # Load query
+    with args.query.open() as file:
+        query = json.load(file)
 
-        ],
-        recodes={
-            'str:field:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE': {
-                "map": [
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14001028"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000919"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000542"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000667"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000668"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000669"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000876"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000903"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000904"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000920"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000921"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000922"],
-                    ["str:value:UC_Monthly:V_F_UC_CASELOAD_FULL:PARLC_CODE:V_C_MASTERGEOG11_PARLC_TO_REGION:E14000923"],
-                ],
-            }
-        },
-    )
-
-    data = objects.Table('str:database:UC_Monthly').query(session, **query)
+    # Run query
+    data = objects.Table.query(session, **query)
     rows = generate_rows(data)
 
+    # Output
     with args.output.open('w', newline='\n') as file:
         write_csv(file, rows)
 
