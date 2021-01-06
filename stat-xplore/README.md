@@ -4,6 +4,26 @@ This is a data harvester for the Department for Work and Pensions (DWP) [Stat-Ex
 
 # Usage
 
+To view the available commands and options, run the following command:
+
+```bash
+$ python . --help
+```
+
+Run the following command to execute a query and output the result to a CSV file:
+
+```bash
+$ python . -o test.csv -q queries\relative-low-income-by-year-sheffield.json
+```
+
+Where `-o` (`--output`) is the output CSV file path, `-q` (`--query`) is the query JSON file.
+
+To generate the CSV headers that will result from a particular query, use the `--csv` (`-c`) flag:
+
+```bash
+python . -o test.csv -q queries\relative-low-income-by-year-sheffield.json -c
+```
+
 An authenticated HTTP session is required to communicate with the API.
 
 ```python

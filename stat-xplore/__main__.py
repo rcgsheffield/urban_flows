@@ -81,7 +81,7 @@ def flatten(iterable: Iterable) -> Iterable[object]:
             yield elem
 
 
-def write_csv(buffer, rows: Iterable[OrderedDict]):
+def write_csv(buffer, rows: Iterable[OrderedDict], only_headers: bool = False):
     writer = None
 
     n_rows = 0
@@ -91,6 +91,10 @@ def write_csv(buffer, rows: Iterable[OrderedDict]):
             fieldnames = row.keys()
             writer = csv.DictWriter(buffer, fieldnames=fieldnames, dialect=UrbanDialect)
             LOGGER.info("CSV headers: %s", fieldnames)
+
+            if only_headers:
+                print(UrbanDialect.delimiter.join(fieldnames))
+                return
 
         writer.writerow(row)
     LOGGER.info("Wrote %s CSV rows", n_rows)
@@ -104,6 +108,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-v', '--verbose', action='store_true')
     parser.add_argument('-q', '--query', type=pathlib.Path, help='Open data API query JSON file path', required=True)
     parser.add_argument('-o', '--output', type=pathlib.Path, help='CSV output file path', required=True)
+    parser.add_argument('-c', '--csv', action='store_true', help='Show CSV headers')
 
     return parser.parse_args()
 
@@ -124,7 +129,7 @@ def main():
 
     # Output
     with args.output.open('w', newline='\n') as file:
-        write_csv(file, rows)
+        write_csv(file, rows, only_headers=args.csv)
 
 
 if __name__ == '__main__':
