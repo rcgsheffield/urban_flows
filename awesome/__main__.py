@@ -44,7 +44,7 @@ def main():
         reading_types = sync.build_awesome_object_map(session, objects.ReadingType)
         reading_categories = sync.build_awesome_object_map(session, objects.ReadingCategory)
 
-        # Sync metadat
+        # Sync metadata
         LOGGER.info('Syncing air quality standards...')
         sync.sync_aqi_standards(session)
 

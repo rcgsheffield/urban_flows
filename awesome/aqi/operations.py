@@ -35,8 +35,7 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
     data = pandas.DataFrame(
         columns=['time', 'sensor.id', 'UCD', 'value', 'pollutant', 'units', 'converted_value', 'converted_units'])
 
-    readings = query()
-    readings = map(transform, readings)
+    readings = (transform(reading) for reading in query())
 
     # Collect data
     for reading in readings:

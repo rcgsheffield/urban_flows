@@ -30,6 +30,7 @@ import requests
 
 import settings
 
+# URL = 'http://uffront01.shef.ac.uk/uflobin/ufdex'
 URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 LOGGER = logging.getLogger(__name__)
