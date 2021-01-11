@@ -8,9 +8,7 @@ if __name__ == '__main__':
     for location in Location.list_iter(session):
         print(location)
 
-        loc = Location(location['id'])
-        loc_data = loc.get(session)
-
-        print(loc_data)
-
-        exit()
+        # More detailed info (including sensors)
+        # loc = Location(location['id'])
+        # loc_data = loc.get(session)
+        # print(loc_data)
