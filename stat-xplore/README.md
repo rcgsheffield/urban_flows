@@ -10,6 +10,10 @@ To view the available commands and options, run the following command:
 $ python . --help
 ```
 
+## Querying
+
+To get a query specification in JSON format, visit [Stat-Xplore](https://stat-xplore.dwp.gov.uk), log in and select a data set. Choose a table and click "Open Table." You may customise the rows and columns as needed. Next, click the "Download Table" field and select "Open Data API Query (.json)" This JSON file can be used to define a query as shown below.
+
 Run the following command to execute a query and output the result to a CSV file:
 
 ```bash
@@ -23,6 +27,8 @@ To generate the CSV headers that will result from a particular query, use the `-
 ```bash
 python . -o test.csv -q queries\relative-low-income-by-year-sheffield.json -c
 ```
+
+# Code documentation
 
 An authenticated HTTP session is required to communicate with the API.
 
@@ -81,3 +87,6 @@ query = """{
 data = objects.Table.query_json(session, query)
 ```
 
+# Resources
+
+* Stack Overflow [How to easily generate the query JSON for the Stat-Xplore API](https://stackoverflow.com/a/65341265)
