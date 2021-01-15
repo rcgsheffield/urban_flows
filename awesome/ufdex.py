@@ -91,6 +91,9 @@ class UrbanFlowsQuery:
         return t.replace(microsecond=0).strftime(cls.TIME_FORMAT)
 
     def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[tuple]:
+        """
+        Break the time period into chunks of size `freq`
+        """
         start, end = self.time_period
         t0, t1 = start, start + freq
 
@@ -128,6 +131,9 @@ class UrbanFlowsQuery:
                 for query, values in filters.items():
                     if values:
                         params[query] = ','.join(values)
+
+                # Generate arguments for command-line version of udex
+                LOGGER.debug(' '.join(("'{}={}'".format(key, value) for key, value in params.items())))
 
                 # Streaming Requests
                 # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests

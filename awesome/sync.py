@@ -4,7 +4,7 @@ import time
 import json
 import logging
 import pathlib
-from typing import Type, List, Union
+from typing import Type, List, Union, Iterable
 
 import pandas
 import requests
@@ -17,6 +17,7 @@ import objects
 import settings
 import ufdex
 import utils
+import aqi.operations
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,7 +81,7 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
                             raise
 
 
-def sync_sites(session: http_session.PortalSession, sites: iter, locations: dict):
+def sync_sites(session: http_session.PortalSession, sites: Iterable[dict], locations: dict):
     """
     Convert UFO sites into Awesome locations.
 
@@ -287,9 +288,16 @@ def sync_aqi_standards(session):
             raise
 
 
-def sync_aqi_readings(session, sites, locations: dict):
-    import aqi.operations
+def sync_aqi_readings(session, sites: Iterable[dict], locations: dict):
+    """
+    Upload air quality index data to the remote system.
 
+    :param session: HTTP session for the Awesome portal
+    :param sites: A list of UFO sites
+    :param locations: A map of UFO sites to Awesome locations
+    """
+
+    # Iterate over sites because there may be multiple relevant sensor families at one location
     for site in sites:
         # Get the latest timestamp that was successfully synced (or the default start date)
         site_obj = assets.Site(site['name'])
