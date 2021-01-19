@@ -2,9 +2,10 @@ import argparse
 import logging
 import itertools
 import json
+from typing import Iterable
 from collections import OrderedDict
 
-import netCDF4
+from netCDF4 import Dataset
 
 import remote
 
@@ -23,31 +24,40 @@ def get_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def get_data(host: remote.RemoteHost) -> Iterable[OrderedDict]:
+    # Get full paths of all netCDF files
+    for path in host.execute_decode_lines('ls -d /home/uflo/data/dbData/**/**/**/*.nc'):
+        LOGGER.info(path)
+
+        # Save remote data to memory as binary object
+        buffer = bytes().join(host.execute('cat {}'.format(path)))
+
+        # Create data set
+        dataset = Dataset('in-mem-file', mode='r', memory=buffer)
+
+        # Show metadata
+        LOGGER.info("Metadata: %s", json.dumps(dataset.__dict__))
+        LOGGER.info('Dimensions: %s', json.dumps(list(dataset.dimensions.keys())))
+
+        # Column headers (variable names)
+        keys = dataset.variables.keys()
+
+        row_count = 0
+        for values in tuple(itertools.zip_longest(*dataset.variables.values())):
+            row = OrderedDict(zip(keys, values))
+            yield row
+            row_count += 1
+
+        LOGGER.info("Generated %s rows", row_count)
+
+
 def main():
     args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     with remote.RemoteHost(args.host, args.port, username=args.username, timeout=args.timeout) as host:
-        # Get full paths of all netCDF files
-        for path in itertools.islice(host.execute_decode_lines('ls -d /home/uflo/data/dbData/**/**/**/*.nc'), 1, 2):
-            LOGGER.info(path)
-
-            # Save remote data to memory as binary object
-            buffer = bytes().join(host.execute('cat {}'.format(path)))
-
-            # Create data set
-            dataset = netCDF4.Dataset('in-mem-file', mode='r', memory=buffer)
-
-            # Show metadata
-            LOGGER.info("Metadata: %s", json.dumps(dataset.__dict__))
-            LOGGER.info('Dimensions: %s', json.dumps(list(dataset.dimensions.keys())))
-
-            keys = dataset.variables.keys()
-
-            for values in tuple(itertools.zip_longest(*dataset.variables.values())):
-                row = OrderedDict(zip(keys, values))
-
-                print(row)
+        for _ in get_data(host):
+            pass
 
 
 if __name__ == '__main__':
