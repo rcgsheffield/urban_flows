@@ -1,6 +1,5 @@
-import socket
 import logging
-
+import socket
 from getpass import getpass
 from typing import Iterable, Tuple
 
@@ -121,16 +120,7 @@ class RemoteHost:
 
     def execute_decode(self, *args, **kwargs) -> Iterable[str]:
         """
-        Decode response data into a string
+        Decode response data into strings
         """
         for data in self.execute(*args, **kwargs):
             yield data.decode()
-
-    def execute_decode_lines(self, *args, **kwargs) -> Iterable[str]:
-        """
-        Generate one string per output line in the response.
-
-        This may be used to break apart all returned ls lines and build a single list.
-        """
-        for s in self.execute_decode(*args, **kwargs):
-            yield from s.split()
