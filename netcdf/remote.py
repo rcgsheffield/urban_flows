@@ -22,7 +22,6 @@ class RemoteHost:
         self.timeout = timeout or 0
         self._socket = None
         self._session = None
-        self._channel = None
 
     def __enter__(self):
         return self
@@ -69,17 +68,8 @@ class RemoteHost:
 
         return self._session
 
-    @property
-    def channel(self):
-        if not self._channel:
-            self._channel = self.session.open_session()
-        return self._channel
-
-    @channel.deleter
-    def channel(self):
-        self._channel = None
-
-    def read(self, stderr: bool = False) -> Iterable[bytes]:
+    @classmethod
+    def read(cls, channel: ssh2.channel.Channel, stderr: bool = False) -> Iterable[bytes]:
         """
         Read (stream) channel response
 
@@ -88,7 +78,7 @@ class RemoteHost:
         total_size = 0
 
         while True:
-            size, data = self.channel.read_stderr() if stderr else self.channel.read()
+            size, data = channel.read_stderr() if stderr else channel.read()
 
             # Negative values are error codes.
             if size < 0:
@@ -104,30 +94,30 @@ class RemoteHost:
 
     def execute(self, command: str) -> iter:
         """
-        Run a commmand
+        Run a command.
         """
+
+        # Open one channel per command (to run parallel commands in a single session)
+        channel = self.session.open_session()
 
         LOGGER.debug("Command %s", repr(command))
 
-        self.channel.execute(command)
+        channel.execute(command)
 
-        self._channel.wait_eof()
-        self._channel.close()
-        self._channel.wait_closed()
+        channel.wait_eof()
+        channel.close()
+        channel.wait_closed()
 
-        exit_status = self.channel.get_exit_status()
+        exit_status = channel.get_exit_status()
         LOGGER.debug("Exit status: %s", exit_status)
 
         # Errors
         if exit_status:
-            for line in self.read(stderr=True):
+            for line in self.read(channel, stderr=True):
                 LOGGER.error(line)
             raise RuntimeError(exit_status)
 
-        yield from self.read()
-
-        # Remove channel object so a new one is created next time
-        del self.channel
+        yield from self.read(channel)
 
     def execute_decode(self, *args, **kwargs) -> Iterable[str]:
         """

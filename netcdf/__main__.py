@@ -1,5 +1,8 @@
 import argparse
 import logging
+import itertools
+import json
+from collections import OrderedDict
 
 import netCDF4
 
@@ -26,7 +29,7 @@ def main():
 
     with remote.RemoteHost(args.host, args.port, username=args.username, timeout=args.timeout) as host:
         # Get full paths of all netCDF files
-        for path in host.execute_decode_lines('ls -d /home/uflo/data/dbData/**/**/**/*.nc'):
+        for path in itertools.islice(host.execute_decode_lines('ls -d /home/uflo/data/dbData/**/**/**/*.nc'), 1, 2):
             LOGGER.info(path)
 
             # Save remote data to memory as binary object
@@ -34,9 +37,17 @@ def main():
 
             # Create data set
             dataset = netCDF4.Dataset('in-mem-file', mode='r', memory=buffer)
-            LOGGER.info(dataset)
-            break
 
+            # Show metadata
+            LOGGER.info("Metadata: %s", json.dumps(dataset.__dict__))
+            LOGGER.info('Dimensions: %s', json.dumps(list(dataset.dimensions.keys())))
+
+            keys = dataset.variables.keys()
+
+            for values in tuple(itertools.zip_longest(*dataset.variables.values())):
+                row = OrderedDict(zip(keys, values))
+
+                print(row)
 
 if __name__ == '__main__':
     main()
