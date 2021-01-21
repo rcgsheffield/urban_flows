@@ -1,10 +1,10 @@
 # PHE Fingertips harvester
 
-Public Health England (PHE) Public Health Profiles data accessed via [Fingertips](https://fingertips.phe.org.uk/) API.
+Public Health England (PHE) [https://fingertips.phe.org.uk](https://fingertips.phe.org.uk) data accessed via the Fingertips API.
 
 ## Resources
 
-* [API docs](https://fingertips.phe.org.uk/api).
+* [API docs](https://fingertips.phe.org.uk/api)
 * [Technical Guidance](https://fingertips.phe.org.uk/profile/guidance)
 
 # Usage
@@ -14,4 +14,37 @@ To view the command-line arguments, run:
 ```bash
 $ python . --help
 ```
+
+# API
+
+This code contains Python objects which correspond to entities on the remote system. More information is contained in the docstrings of the classes. A HTTP transport layer is required to communicate with that server for most actions.
+
+The base class is `objects.FingertipObject` which implements a `list(session)` class method to get all the objects of that class, where `session` is a HTTP session (an instance of `http_session.FingertipsSession`). This class also contains various useful functions to assist working with the API.
+
+Each entity is implemented, such as National Public Health Profiles as shown below:
+
+```python
+import objects
+
+help(objects.Profile)
+objects.Profile(100)
+```
+
+To retrieve a list of objects from the remote server:
+
+```python
+import http_session
+
+session = http_session.FingertipsSession()
+objects.Profile.list(session)
+```
+
+# Glossary
+
+The objects in the API are also documented in the docstrings of the Python classes.
+
+* Profile: Collections of data sets. It contains groups of data (the tabs on the GUI display.) For example, the profile with identifier 100 is "Wider Impacts of COVID-19 on Health."
+* Geospatial concepts
+  * Area Type: geographical systems e.g. categories governmental regions, etc. For example, area type 201 is "Lower tier local authorities (4/19 - 3/20)"
+    * Area: A specific geospatial 2D place e.g. "Sheffield"
 

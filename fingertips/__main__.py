@@ -1,5 +1,6 @@
 import logging
 import argparse
+import json
 
 import http_session
 import objects
@@ -37,18 +38,28 @@ def main():
     # Profile ID 100 "Wider Impacts of COVID-19 on Health"
     # GroupMetadata 1938133359 "Impact on mortality"
 
-    # profile = objects.Profile(100)
-    # utils.jprint(profile.get(session))
-    #
+    profile = objects.Profile(100)
+    LOGGER.info(json.dumps(profile.get(session)))
+
     # group = objects.Group(1938133359)
     # utils.jprint(group.get(session))
 
     # indicators = group.indicators(session)
-    # utils.jprint(indicators)
 
-    # Healthy life expectancy at birth
+    # Indicator 90362 "Healthy life expectancy at birth" (under profile 100)
     indicator = objects.Indicator(90362)
-    utils.jprint(indicator.get(session))
+    LOGGER.info(json.dumps(indicator.get(session)))
+
+    # List area types
+    # for area_type in profile.area_types(session):
+    #     #if 'county' in area_type['Name'].casefold():
+    #     utils.jprint(area_type)
+
+    # Area type 201 "Lower tier local authorities (4/19 - 3/20)"
+
+    # Get that sweet, sweet data
+    data = indicator.data(session, child_area_type_id=201, parent_area_type_id=)
+    print(data)
 
 
 if __name__ == '__main__':
