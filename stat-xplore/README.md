@@ -6,6 +6,8 @@ This is a data harvester for the Department for Work and Pensions (DWP) [Stat-Ex
 
 ## Authentication
 
+The harvester authenticates against the remote server using an access token.
+
 To use the harvester you must register an account on [Stat-Xplore](https://stat-xplore.dwp.gov.uk). When you're logged in, click the menu button (the three dots in the top-right corner) and click "Account". The string under "Open Data API Access" which is your API access key/token. 
 
 This token must be input to the harvester either in the command line or from a file (the default path is `~/configs/stat_explore.txt`) as shown below:
