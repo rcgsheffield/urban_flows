@@ -2,6 +2,20 @@
 
 This is a data harvester for the Department for Work and Pensions (DWP) [Stat-Explore](https://stat-xplore.dwp.gov.uk/) system. See [Stat-Xplore : Open Data API](https://stat-xplore.dwp.gov.uk/webapi/online-help/Open-Data-API.html) documentation. This API is based on the [SuperSTAR 9.5 Open Data API](https://docs.wingarc.com.au/superstar95/9.5/open-data-api) by [WingArc1st](https://wingarc.com.au/).
 
+# Installation
+
+## Authentication
+
+To use the harvester you must register an account on [Stat-Xplore](https://stat-xplore.dwp.gov.uk). When you're logged in, click the menu button (the three dots in the top-right corner) and click "Account". The string under "Open Data API Access" which is your API access key/token. 
+
+This token must be input to the harvester either in the command line or from a file (the default path is `~/configs/stat_explore.txt`) as shown below:
+
+```bash
+python . --api_key <my_access_token>
+# or
+python . --api_key_path <~/configs/stat_explore.txt>
+```
+
 # Usage
 
 To view the available commands and options, run the following command:

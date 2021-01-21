@@ -11,6 +11,7 @@ from typing import Iterable
 import http_session
 import objects
 import utils
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -92,6 +93,7 @@ def get_args() -> argparse.Namespace:
 
     # Define arguments
     parser.add_argument('-k', '--api_key', help='API key')
+    parser.add_argument('-p', '--api_key_path', help='API key file path', default=settings.TOKEN_PATH)
     parser.add_argument('-v', '--verbose', action='store_true', help='More logging information')
     parser.add_argument('-d', '--debug', action='store_true', help='Extra verbose logging')
     parser.add_argument('-e', '--error', help='Error log file path', default='error.log')
@@ -106,7 +108,7 @@ def main():
     args = get_args()
     utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
 
-    session = http_session.StatSession(api_key=args.api_key or utils.load_api_key())
+    session = http_session.StatSession(api_key=args.api_key or utils.load_api_key(args.api_key_path))
 
     # Load query
     with args.query.open() as file:

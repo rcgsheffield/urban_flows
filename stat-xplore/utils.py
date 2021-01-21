@@ -12,7 +12,7 @@ def load_api_key(path: pathlib.Path = None) -> str:
     """
     Read API access token from diskn
     """
-    path = path or settings.TOKEN_PATH
+    path = pathlib.Path(path)
     with path.open() as file:
         return file.read().strip()
 
