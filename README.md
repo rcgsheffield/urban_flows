@@ -6,7 +6,7 @@ Contact: IT Services [Research & Innovation IT](https://www.sheffield.ac.uk/it-s
 
 ## Installation
 
-For package dependencies and requirements see `environment.yml`, which is a [Conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) file.
+For package dependencies and requirements see [`environment.yml`](environment.yaml), which is a [Conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) file.
 
 # Common problems
 
