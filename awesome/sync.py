@@ -58,6 +58,8 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
         # Convert from UFO readings to Awesome readings
         readings = (maps.reading_to_reading(reading, reading_types=reading_types, awesome_sensors=awesome_sensors) for
                     reading in readings)
+        
+        # TODO filter null readings?
 
         # Iterate over data chunks because the Awesome portal API accepts a maximum number of rows per call.
         for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):

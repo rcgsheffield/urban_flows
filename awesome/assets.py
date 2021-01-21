@@ -112,7 +112,7 @@ def get_metadata() -> tuple:
     metadata = _get_metadata()
 
     pairs = list(metadata['pairs'].values())
-    families = list(metadata['families'].values())
+    families = metadata['families']
     sites = list(metadata['sites'].values())
     sensors = list(metadata['sensors'].values())
 

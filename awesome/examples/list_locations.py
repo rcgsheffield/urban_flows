@@ -1,3 +1,7 @@
+"""
+List Awesome locations
+"""
+
 import http_session
 
 from objects import Location
