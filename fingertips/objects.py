@@ -83,6 +83,17 @@ class Profile(FingertipObject):
     def parent_area_types(self, session):
         return AreaType.parent_area_types(session, profile_id=self.identifier)
 
+    @classmethod
+    def containing_indicators(cls, session, indicator_ids: Set[int], area_type_id: int = None) -> Dict[int, List[dict]]:
+        """
+        Find all the profiles containing these indicators.
+
+        :returns: A dictionary of indicator ID to a list of profiles
+        """
+        # https://fingertips.phe.org.uk/api#!/Profiles/Profiles_GetProfilesPerIndicator
+        params = dict(indicator_ids=cls.cat(indicator_ids), area_type_id=area_type_id)
+        return session.call(cls.build_url('profiles_containing_indicators'), params=params)
+
 
 class Group(FingertipObject):
     """
@@ -131,6 +142,12 @@ class AreaType(FingertipObject):
         params = dict(profile_id=profile_id, template_profile_id=template_profile_id)
         return session.call(cls.build_url('area_types/parent_area_types'), params=params)
 
+    def indicators(self, session):
+        """
+        Get the indicators available for this area type
+        """
+        return Data.available_data(session, area_type_id=self.identifier)
+
 
 class Area(FingertipObject):
     """
@@ -161,16 +178,26 @@ class Indicator(FingertipObject):
     EDGE = 'indicator_metadata/all'
 
     @classmethod
-    def search(cls, session, search_text: str, **kwargs) -> Dict[int, List[int]]:
+    def search(cls, session, search_text: str, restrict_to_profile_ids: Set[int]) -> Dict[int, List[int]]:
         """
         Words can be combined with AND / OR
 
         Returns a hash of area type IDs that each map to a list of IDs of indicators for which the metadata matches the
         search text.
         """
-        url = cls.build_url('indicator_search')
-        params = dict(search_text=search_text, **kwargs.get('params', dict()))
-        return session.call(url, params=params, **kwargs)
+        # https://fingertips.phe.org.uk/api#!/IndicatorMetadata/IndicatorMetadata_GetIndicatorsThatMatchTextByAreaTypeId
+        params = dict(search_text=search_text, restrict_to_profile_ids=cls.cat(restrict_to_profile_ids))
+        return session.call(cls.build_url('indicator_search'), params=params)
+
+    @classmethod
+    def search_list(cls, session, search_text: str) -> List[dict]:
+        """
+        Words can be combined with AND / OR
+
+        Returns a list of the indicators in the order of how well they match the search text.
+        """
+        # https://fingertips.phe.org.uk/api#!/IndicatorMetadata/IndicatorMetadata_GetIndicatorsThatMatchTextAsList
+        return session.call(cls.build_url('indicator_search_list_indicators'), params=dict(search_text=search_text))
 
     @classmethod
     def by_group_id(cls, session, group_ids: Iterable[int], include_definition: bool = False,
@@ -200,6 +227,12 @@ class Indicator(FingertipObject):
     def data(self, session, **kwargs):
         return Data.by_indicator_id(session, indicator_ids={self.identifier}, **kwargs)
 
+    def area_types(self, session):
+        """
+        Get area types available for this indicator
+        """
+        return Data.available_data(session, indicator_id=self.identifier)
+
 
 class Data(FingertipObject):
     """
@@ -208,8 +241,8 @@ class Data(FingertipObject):
     EDGE = 'available_data'
 
     @classmethod
-    def _by_indicator_id(cls, session, indicator_ids: Set[int], child_area_type_id: int, parent_area_type_id: int,
-                         profile_id: int = None, parent_area_code: str = None):
+    def by_indicator_id(cls, session, indicator_ids: Set[int], child_area_type_id: int, parent_area_type_id: int,
+                        profile_id: int = None, parent_area_code: str = None):
         """
         https://fingertips.phe.org.uk/api#!/Data/Data_GetDataFileForIndicatorList
 
@@ -226,13 +259,6 @@ class Data(FingertipObject):
         yield from session.call_iter(cls.build_url('all_data/csv/by_indicator_id'), params=params)
 
     @classmethod
-    def by_indicator_id(cls, *args, **kwargs) -> Iterable[dict]:
-        """
-        Parse CSV data into rows
-        """
-        yield from utils.parse_csv(cls._by_indicator_id(*args, **kwargs))
-
-    @classmethod
     def by_profile_id(cls, session, child_area_type_id: int, parent_area_type_id: int, profile_id: int,
                       parent_area_code: str = None):
         params = dict(
@@ -242,6 +268,18 @@ class Data(FingertipObject):
             parent_area_code=parent_area_code,
         )
         yield from session.call_iter(cls.build_url('all_data/csv/by_profile_id'), params=params)
+
+    @classmethod
+    def available_data(cls, session, indicator_id: int = None, area_type_id: int = None):
+        """
+        Get the area types that are available for each indicator, or the indicators that are available for each area
+        type.
+
+        If only the indicator ID is specified then the results will be returned for every area type for which data is
+        available.
+        """
+        # https://fingertips.phe.org.uk/api#!/Data/Data_GetAvailableDataForGrouping
+        return session.call('available_data', params=dict(indicator_id=indicator_id, area_type_id=area_type_id))
 
 
 class AreaCategory(FingertipObject):

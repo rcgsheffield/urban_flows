@@ -10,6 +10,10 @@ import settings
 LOGGER = logging.getLogger(__name__)
 
 
+class UrbanDialect(csv.excel):
+    delimiter = '|'
+
+
 def jprint(obj, *args, indent: int = 2, **kwargs):
     """
     Show object in JSON format
@@ -63,3 +67,12 @@ def parse_csv(lines: Iterable[str]) -> Iterable[dict]:
     fieldnames = next(csv.reader(lines))
     # Parse rows of CSV into dictionaries
     yield from csv.DictReader(lines, fieldnames=fieldnames)
+
+
+def write_csv(rows: Iterable[dict]):
+    writer = None
+    for row in rows:
+        if writer is None:
+            writer = csv.DictWriter(sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
+            writer.writeheader()
+        writer.writerow(row)

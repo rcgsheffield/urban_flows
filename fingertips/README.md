@@ -9,10 +9,37 @@ Public Health England (PHE) [https://fingertips.phe.org.uk](https://fingertips.p
 
 # Usage
 
+## Data retrieval
+
 To view the command-line arguments, run:
 
 ```bash
-$ python . --help
+python . --help
+```
+
+Life expectancy at birth (part of the Local Authority Health Profile) by district and region:
+
+```bash
+python . --verbose --profile_id 26 --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6
+```
+
+## Metadata
+
+This script may be used to navigate the metadata.
+
+```bash
+python metadata.py --help
+```
+
+Examples:
+
+```
+# List health data profiles
+python metadata.py --profiles
+# List area types
+python metadata.py --area_types
+# Search for indicators (metrics) by name
+python metadata.py -s "life exp"
 ```
 
 # API
