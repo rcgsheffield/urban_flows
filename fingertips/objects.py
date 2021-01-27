@@ -80,6 +80,9 @@ class Profile(FingertipObject):
     def data(self, session, **kwargs):
         return Data.by_profile_id(session, profile_id=self.identifier, **kwargs)
 
+    def parent_area_types(self, session):
+        return AreaType.parent_area_types(session, profile_id=self.identifier)
+
 
 class Group(FingertipObject):
     """
@@ -118,6 +121,15 @@ class AreaType(FingertipObject):
             if area_type['Id'] == self.identifier:
                 return area_type
         raise ValueError("Area type not found")
+
+    @classmethod
+    def parent_area_types(cls, session, profile_id: int = None, template_profile_id: int = None) -> List[dict]:
+        """
+        Returns a list of area types each with a list of available parent area types
+        """
+        # https://fingertips.phe.org.uk/api#!/Areas/Areas_GetAreaTypesWithParentAreaTypes
+        params = dict(profile_id=profile_id, template_profile_id=template_profile_id)
+        return session.call(cls.build_url('area_types/parent_area_types'), params=params)
 
 
 class Area(FingertipObject):

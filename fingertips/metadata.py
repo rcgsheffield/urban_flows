@@ -20,11 +20,13 @@ def get_args():
 def main():
     parser, args = get_args()
     logging.basicConfig()
-    with http_session.FingertipsSession() as session:
-        if args.profiles:
-            utils.jprint(objects.Profile.list(session))
-        else:
-            parser.print_help()
+    session = http_session.FingertipsSession()
+
+    # Profiles
+    if args.profiles:
+        utils.jprint(objects.Profile.list(session))
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

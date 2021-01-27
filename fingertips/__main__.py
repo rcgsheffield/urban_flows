@@ -1,6 +1,6 @@
 import logging
 import argparse
-import json
+import itertools
 
 import http_session
 import objects
@@ -36,20 +36,43 @@ def main():
 
     # pprint(objects.Data.list(session))
 
-    # for profile in objects.Profile.list(session):
-    #     if 'local auth' in profile['Name'].casefold():
-    #         print(profile['Id'], profile['Name'])
-
     # Profile ID 100 "Wider Impacts of COVID-19 on Health"
     # 26 Local Authority Health Profiles
     # GroupMetadata 1938133359 "Impact on mortality"
     profile = objects.Profile(PROFILE_ID)
     profile_data = profile.get(session)
-    LOGGER.info("Profile %s", json.dumps(profile_data))
+    LOGGER.info("Profile %s %s", profile.identifier, profile_data['Name'])
 
-    profile_groups = objects.ProfileGroup.list(session, group_ids=profile_data['GroupIds'])
-    utils.jprint(profile_groups)
-    exit()
+    for parent_area_type in profile.parent_area_types(session):
+        LOGGER.info("Parent area type: %s %s", parent_area_type['Id'], parent_area_type['Name'])
+
+    for area_type in profile.area_types(session):
+        LOGGER.info("Area type: %s %s", area_type['Id'], area_type['Name'])
+
+    for x in profile.data(session, child_area_type_id=201, parent_area_type_id=6):
+        print(x)
+
+    #
+    # Iterate over profiles
+    # for profile in objects.Profile.list(session):
+    #     LOGGER.info("Profile %s %s", profile['Id'], profile['Name'])
+    #
+    #     # Get areas in this profile
+    #     profile = objects.Profile(profile['Id'])
+    #     parent_area_types = profile.parent_area_types(session)
+    #     area_types = profile.area_types(session)
+    #
+    #     for parent_area_type, area_type in itertools.product(parent_area_types, area_types):
+    #         LOGGER.info("Parent area type: %s %s", parent_area_type['Id'], parent_area_type['Name'])
+    #         LOGGER.info("Area type: %s %s", area_type['Id'], area_type['Name'])
+    #         for x in profile.data(session, child_area_type_id=area_type['Id'],
+    #                               parent_area_type_id=parent_area_type['Id']):
+    #             print(x)
+    #         exit()
+
+    # profile_groups = objects.ProfileGroup.list(session, group_ids=profile_data['GroupIds'])
+    # utils.jprint(profile_groups)
+    # exit()
 
     # group = objects.Group(1938133359)
     # utils.jprint(group.get(session))
@@ -57,8 +80,8 @@ def main():
     # indicators = group.indicators(session)
 
     # Indicator 90362 "Healthy life expectancy at birth" (under profile 100)
-    indicator = objects.Indicator(90362)
-    LOGGER.info("Indicator %s", json.dumps(indicator.get(session)))
+    # indicator = objects.Indicator(90362)
+    # LOGGER.info("Indicator %s", json.dumps(indicator.get(session)))
 
     # List area types
     # for area_type in profile.area_types(session):
@@ -77,9 +100,9 @@ def main():
     # Get that sweet, sweet data
     # England by region (works!)
     # data = indicator.data(session, child_area_type_id=6, parent_area_type_id=15, profile_id=100)
-    data = indicator.data(session, child_area_type_id=201, parent_area_type_id=6, profile_id=PROFILE_ID)
-    for line in data:
-        utils.jprint(line, indent=None)
+    # data = indicator.data(session, child_area_type_id=201, parent_area_type_id=6, profile_id=PROFILE_ID)
+    # for line in data:
+    #     utils.jprint(line, indent=None)
 
 
 if __name__ == '__main__':
