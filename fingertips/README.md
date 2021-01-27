@@ -1,11 +1,11 @@
 # PHE Fingertips harvester
 
-Public Health England (PHE) [https://fingertips.phe.org.uk](https://fingertips.phe.org.uk) data accessed via the Fingertips API.
+Public Health England (PHE) data accessed via the [Fingertips](https://fingertips.phe.org.uk) API.
 
 ## Resources
 
-* [API docs](https://fingertips.phe.org.uk/api)
-* [Technical Guidance](https://fingertips.phe.org.uk/profile/guidance)
+* The [API docs](https://fingertips.phe.org.uk/api) show the arguments for each endpoint with very brief notes.
+* The [Technical Guidance](https://fingertips.phe.org.uk/profile/guidance) is for users of the graphical user interface on the PHE website.
 
 # Usage
 

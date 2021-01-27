@@ -1,6 +1,6 @@
 import logging
 import argparse
-import itertools
+import pathlib
 
 import http_session
 import objects
@@ -13,12 +13,17 @@ Public Health England (PHE) Fingertips harvester
 LOGGER = logging.getLogger(__name__)
 
 
+def path(s: str) -> pathlib.Path:
+    return pathlib.Path(s)
+
+
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
 
     parser.add_argument('-v', '--verbose', action='store_true', help='More logging information')
     parser.add_argument('-d', '--debug', action='store_true', help='Extra verbose logging')
     parser.add_argument('-e', '--error', help='Error log file path', default='error.log')
+    parser.add_argument('-o', '--output', type=path, help='Output CSV file path')
 
     # Data filters
     parser.add_argument('-p', '--profile_id', type=int, help='National health profile identifier', required=True)
@@ -48,9 +53,12 @@ def main():
     profile = objects.Profile(args.profile_id)
     lines = profile.data(session, child_area_type_id=args.area_type_id, parent_area_type_id=args.parent_area_type_id)
     rows = utils.parse_csv(lines)
+    # Filter
     rows = (row for row in rows if row_filter(row, args=args))
 
-    utils.write_csv(rows)
+    # Serialise
+    with args.output.open('w', newline='\n') as file:
+        utils.write_csv(rows, buffer=file)
 
 
 if __name__ == '__main__':

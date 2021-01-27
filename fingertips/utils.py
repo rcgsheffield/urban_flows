@@ -69,10 +69,10 @@ def parse_csv(lines: Iterable[str]) -> Iterable[dict]:
     yield from csv.DictReader(lines, fieldnames=fieldnames)
 
 
-def write_csv(rows: Iterable[dict]):
+def write_csv(rows: Iterable[dict], buffer=None):
     writer = None
     for row in rows:
         if writer is None:
-            writer = csv.DictWriter(sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
+            writer = csv.DictWriter(buffer or sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
             writer.writeheader()
         writer.writerow(row)
