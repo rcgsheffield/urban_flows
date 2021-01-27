@@ -1,17 +1,20 @@
 import json
 import sys
 import logging
+import csv
+
+from typing import Iterable
 
 import settings
 
 LOGGER = logging.getLogger(__name__)
 
 
-def jprint(obj, *args, **kwargs):
+def jprint(obj, *args, indent: int = 2, **kwargs):
     """
     Show object in JSON format
     """
-    print(json.dumps(obj, indent=2), *args, **kwargs)
+    print(json.dumps(obj, indent=indent), *args, **kwargs)
 
 
 def handle_exception(exc_type, exc_value, exc_traceback):
@@ -53,3 +56,10 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: str = N
 
     # Log any uncaught exceptions
     sys.excepthook = handle_exception
+
+
+def parse_csv(lines: Iterable[str]) -> Iterable[dict]:
+    # Get CSV headers
+    fieldnames = next(csv.reader(lines))
+    # Parse rows of CSV into dictionaries
+    yield from csv.DictReader(lines, fieldnames=fieldnames)

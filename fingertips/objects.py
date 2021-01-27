@@ -1,5 +1,6 @@
-import csv
 from typing import Dict, List, Iterable, Set
+
+import utils
 
 
 class FingertipObject:
@@ -49,6 +50,14 @@ class FingertipObject:
         return "{}({})".format(self.__class__.__name__, self.identifier)
 
 
+class ProfileGroup(FingertipObject):
+    EDGE = 'group_metadata'
+
+    @classmethod
+    def list(cls, session, group_ids: Iterable[int]):
+        super().list(session, group_ids=cls.cat(group_ids))
+
+
 class Profile(FingertipObject):
     """
     National Public Health Profiles are a source of indicators across a
@@ -67,6 +76,9 @@ class Profile(FingertipObject):
         Get the area types used in this health profile.
         """
         return AreaType.list(session, profile_ids={self.identifier})
+
+    def data(self, session, **kwargs):
+        return Data.by_profile_id(session, profile_id=self.identifier, **kwargs)
 
 
 class Group(FingertipObject):
@@ -151,12 +163,12 @@ class Indicator(FingertipObject):
     @classmethod
     def by_group_id(cls, session, group_ids: Iterable[int], include_definition: bool = False,
                     include_system_content: bool = False):
-        return session.call(cls.build_url('indicator_metadata/by_group_id'),
-                            params=dict(group_ids=cls.cat(group_ids),
-                                        include_definition=cls.bool(include_definition),
-                                        include_system_content=cls.bool(include_system_content),
-                                        )
-                            )
+        params = dict(
+            group_ids=cls.cat(group_ids),
+            include_definition=cls.bool(include_definition),
+            include_system_content=cls.bool(include_system_content),
+        )
+        return session.call(cls.build_url('indicator_metadata/by_group_id'), params=params)
 
     @classmethod
     def list(cls, session, indicator_ids: Set[int] = None, restrict_to_profile_ids: Set[int] = None,
@@ -185,9 +197,12 @@ class Data(FingertipObject):
 
     @classmethod
     def _by_indicator_id(cls, session, indicator_ids: Set[int], child_area_type_id: int, parent_area_type_id: int,
-                         profile_id: int = None, parent_area_code: str = None) -> Iterable[dict]:
+                         profile_id: int = None, parent_area_code: str = None):
         """
         https://fingertips.phe.org.uk/api#!/Data/Data_GetDataFileForIndicatorList
+
+        :param child_area_type_id: Area type
+        :param parent_area_type_id: Areas grouped by
         """
         params = dict(
             indicator_ids=cls.cat(indicator_ids),
@@ -203,9 +218,23 @@ class Data(FingertipObject):
         """
         Parse CSV data into rows
         """
+        yield from utils.parse_csv(cls._by_indicator_id(*args, **kwargs))
 
-        lines = cls._by_indicator_id(*args, **kwargs)
+    @classmethod
+    def by_profile_id(cls, session, child_area_type_id: int, parent_area_type_id: int, profile_id: int,
+                      parent_area_code: str = None):
+        params = dict(
+            child_area_type_id=child_area_type_id,
+            parent_area_type_id=parent_area_type_id,
+            profile_id=profile_id,
+            parent_area_code=parent_area_code,
+        )
+        yield from session.call_iter(cls.build_url('all_data/csv/by_profile_id'), params=params)
 
-        # Get CSV headers
-        fieldnames = next(csv.reader(lines))
-        yield from csv.DictReader(lines, fieldnames=fieldnames)
+
+class AreaCategory(FingertipObject):
+    EDGE = 'area_categories'
+
+
+class Category(FingertipObject):
+    EDGE = 'categories'

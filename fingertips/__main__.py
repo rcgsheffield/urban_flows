@@ -12,6 +12,8 @@ Public Health England (PHE) Fingertips harvester
 
 LOGGER = logging.getLogger(__name__)
 
+PROFILE_ID = 26
+
 
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
@@ -28,18 +30,26 @@ def main():
     utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
     session = http_session.FingertipsSession()
 
+    # utils.jprint(objects.AreaCategory.list(session))
+
     # utils.jprint(objects.AreaType.list(session))
 
     # pprint(objects.Data.list(session))
 
     # for profile in objects.Profile.list(session):
-    #     utils.jprint(profile)
+    #     if 'local auth' in profile['Name'].casefold():
+    #         print(profile['Id'], profile['Name'])
 
     # Profile ID 100 "Wider Impacts of COVID-19 on Health"
+    # 26 Local Authority Health Profiles
     # GroupMetadata 1938133359 "Impact on mortality"
+    profile = objects.Profile(PROFILE_ID)
+    profile_data = profile.get(session)
+    LOGGER.info("Profile %s", json.dumps(profile_data))
 
-    profile = objects.Profile(100)
-    LOGGER.info(json.dumps(profile.get(session)))
+    profile_groups = objects.ProfileGroup.list(session, group_ids=profile_data['GroupIds'])
+    utils.jprint(profile_groups)
+    exit()
 
     # group = objects.Group(1938133359)
     # utils.jprint(group.get(session))
@@ -52,8 +62,7 @@ def main():
 
     # List area types
     # for area_type in profile.area_types(session):
-    # if 'county' in area_type['Name'].casefold():
-    # utils.jprint(area_type)
+    #     utils.jprint(area_type)
 
     # Area type 6 "Region"
     # Area type 201 "District & UA (4/19-3/20)" i.e. "Lower tier local authorities (4/19 - 3/20)"
@@ -66,9 +75,11 @@ def main():
     # {"AreaTypeId": 170,"Short": "Sheffield","Name": "Sheffield","Code": "E08000019"}
 
     # Get that sweet, sweet data
-    data = indicator.data(session, child_area_type_id=6, parent_area_type_id=15, profile_id=100)
+    # England by region (works!)
+    # data = indicator.data(session, child_area_type_id=6, parent_area_type_id=15, profile_id=100)
+    data = indicator.data(session, child_area_type_id=201, parent_area_type_id=6, profile_id=PROFILE_ID)
     for line in data:
-        print(line)
+        utils.jprint(line, indent=None)
 
 
 if __name__ == '__main__':
