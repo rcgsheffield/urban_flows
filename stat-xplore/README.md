@@ -15,7 +15,7 @@ This token must be input to the harvester either in the command line or from a f
 ```bash
 python . --api_key <my_access_token>
 # or
-python . --api_key_path <~/configs/stat_explore.txt>
+python . --api_key_path ~/configs/stat_explore.txt
 ```
 
 # Usage

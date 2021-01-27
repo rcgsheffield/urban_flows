@@ -1,3 +1,4 @@
+import csv
 from typing import Dict, List, Iterable, Set
 
 
@@ -98,12 +99,13 @@ class AreaType(FingertipObject):
         return super().list(session, profile_ids=cls.cat(profile_ids), **params)
 
     def areas(self, session, **kwargs):
-        """
-
-        :param session:
-        :return:
-        """
         return Area.list(session, area_type_id=self.identifier, **kwargs)
+
+    def get(self, session) -> dict:
+        for area_type in self.list(session):
+            if area_type['Id'] == self.identifier:
+                return area_type
+        raise ValueError("Area type not found")
 
 
 class Area(FingertipObject):
@@ -112,7 +114,8 @@ class Area(FingertipObject):
     """
     EDGE = 'areas/by_area_type'
 
-    def list(self, session, area_type_id: int, profile_id: int = None, template_profile_id: int = None,
+    @classmethod
+    def list(cls, session, area_type_id: int, profile_id: int = None, template_profile_id: int = None,
              retrieve_ignored_areas: bool = False):
         """
         Get a list of areas of a specific area type
@@ -121,6 +124,10 @@ class Area(FingertipObject):
         """
         return super().list(session, area_type_id=area_type_id, profile_id=profile_id,
                             template_profile_id=template_profile_id, retrieve_ignored_areas=retrieve_ignored_areas)
+
+    def address(self, session):
+        area = self.get(session)
+        return session.call('area_address', params=dict(area_code=area['Code']))
 
 
 class Indicator(FingertipObject):
@@ -177,8 +184,8 @@ class Data(FingertipObject):
     EDGE = 'available_data'
 
     @classmethod
-    def by_indicator_id(cls, session, indicator_ids: Set[int], child_area_type_id: int, parent_area_type_id: int,
-                        profile_id: int = None, parent_area_code: str = None):
+    def _by_indicator_id(cls, session, indicator_ids: Set[int], child_area_type_id: int, parent_area_type_id: int,
+                         profile_id: int = None, parent_area_code: str = None) -> Iterable[dict]:
         """
         https://fingertips.phe.org.uk/api#!/Data/Data_GetDataFileForIndicatorList
         """
@@ -189,4 +196,16 @@ class Data(FingertipObject):
             profile_id=profile_id,
             parent_area_code=parent_area_code,
         )
-        return session.call(cls.build_url('all_data/csv/by_indicator_id'), params=params)
+        yield from session.call_iter(cls.build_url('all_data/csv/by_indicator_id'), params=params)
+
+    @classmethod
+    def by_indicator_id(cls, *args, **kwargs) -> Iterable[dict]:
+        """
+        Parse CSV data into rows
+        """
+
+        lines = cls._by_indicator_id(*args, **kwargs)
+
+        # Get CSV headers
+        fieldnames = next(csv.reader(lines))
+        yield from csv.DictReader(lines, fieldnames=fieldnames)

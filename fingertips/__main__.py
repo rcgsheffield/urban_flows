@@ -48,18 +48,27 @@ def main():
 
     # Indicator 90362 "Healthy life expectancy at birth" (under profile 100)
     indicator = objects.Indicator(90362)
-    LOGGER.info(json.dumps(indicator.get(session)))
+    LOGGER.info("Indicator %s", json.dumps(indicator.get(session)))
 
     # List area types
     # for area_type in profile.area_types(session):
-    #     #if 'county' in area_type['Name'].casefold():
-    #     utils.jprint(area_type)
+    # if 'county' in area_type['Name'].casefold():
+    # utils.jprint(area_type)
 
-    # Area type 201 "Lower tier local authorities (4/19 - 3/20)"
+    # Area type 6 "Region"
+    # Area type 201 "District & UA (4/19-3/20)" i.e. "Lower tier local authorities (4/19 - 3/20)"
+    # Area type 15 = England
+    # utils.jprint(objects.AreaType(6).get(session))
+
+    # List areas of type Distict
+    # utils.jprint(objects.Area.list(session, area_type_id=201))
+    # Sheffield area ID 170
+    # {"AreaTypeId": 170,"Short": "Sheffield","Name": "Sheffield","Code": "E08000019"}
 
     # Get that sweet, sweet data
-    data = indicator.data(session, child_area_type_id=201, parent_area_type_id=)
-    print(data)
+    data = indicator.data(session, child_area_type_id=6, parent_area_type_id=15, profile_id=100)
+    for line in data:
+        print(line)
 
 
 if __name__ == '__main__':
