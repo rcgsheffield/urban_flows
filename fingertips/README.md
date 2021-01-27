@@ -20,13 +20,19 @@ python . --help
 Life expectancy at birth (part of the Local Authority Health Profile) by district and region:
 
 ```bash
-python . --verbose --profile_id 26 --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6
+python . --verbose --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6
 ```
 
 The same query, filtered for Sheffield only:
 
 ```bash
-python . --verbose --profile_id 26 --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6 --area_code E08000019
+python . --verbose --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6 --area_code E08000019
+```
+
+All data in the Local Authority Health Profiles, broken down by district and region:
+
+```bash
+python . --verbose --profile_id 26 --area_type_id 201 --parent_area_type_id 6
 ```
 
 ## Metadata
@@ -37,15 +43,28 @@ This script may be used to navigate the metadata.
 python metadata.py --help
 ```
 
-Examples:
+List health data profiles
 
-```
-# List health data profiles
+```bash
 python metadata.py --profiles
-# List area types
+```
+
+List area types
+
+```bash
 python metadata.py --area_types
-# Search for indicators (metrics) by name
+```
+
+Search for indicators (metrics) by name
+
+```bash
 python metadata.py -s "life exp"
+```
+
+Show the details of a single indicator
+
+```bash
+python metadata.py -n 90366
 ```
 
 # API

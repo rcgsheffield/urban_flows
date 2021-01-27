@@ -2,6 +2,8 @@ import json
 import sys
 import logging
 import csv
+import itertools
+from collections import OrderedDict
 
 from typing import Iterable
 
@@ -62,17 +64,23 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: str = N
     sys.excepthook = handle_exception
 
 
-def parse_csv(lines: Iterable[str]) -> Iterable[dict]:
+def parse_csv(lines: Iterable[str]) -> Iterable[OrderedDict]:
+    reader = csv.reader(lines)
     # Get CSV headers
-    fieldnames = next(csv.reader(lines))
+    headers = next(reader)
     # Parse rows of CSV into dictionaries
-    yield from csv.DictReader(lines, fieldnames=fieldnames)
+    for values in reader:
+        yield OrderedDict(itertools.zip_longest(headers, values))
 
 
 def write_csv(rows: Iterable[dict], buffer=None):
     writer = None
+    row_count = 0
     for row in rows:
         if writer is None:
             writer = csv.DictWriter(buffer or sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
             writer.writeheader()
         writer.writerow(row)
+        row_count += 1
+
+    LOGGER.info('Generated %s rows of CSV data', row_count)

@@ -26,8 +26,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-o', '--output', type=path, help='Output CSV file path')
 
     # Data filters
-    parser.add_argument('-p', '--profile_id', type=int, help='National health profile identifier', required=True)
-    parser.add_argument('-i', '--indicator_id', type=int, help='Indicator identifier', required=True)
+    parser.add_argument('-p', '--profile_id', type=int, help='National health profile identifier', required=False)
+    parser.add_argument('-i', '--indicator_id', type=int, help='Indicator identifier', required=False)
     parser.add_argument('-a', '--area_type_id', type=int, help='Area type identifier', required=True)
     parser.add_argument('-r', '--parent_area_type_id', type=int, help='Parent area type identifier', required=True)
     parser.add_argument('-c', '--area_code', type=str, help='Area code', required=False)
@@ -38,9 +38,12 @@ def get_args() -> argparse.Namespace:
 def row_filter(row: dict, args: argparse.Namespace) -> bool:
     # Filter by area code (if specified)
     if args.area_code:
-        if row['Area Code'] != args.area_code:
-            return False
-
+        try:
+            if row['Area Code'] != args.area_code:
+                return False
+        except KeyError:
+            LOGGER.error(row)
+            raise
     return True
 
 
@@ -50,8 +53,17 @@ def main():
     session = http_session.FingertipsSession()
 
     # Get data
-    profile = objects.Profile(args.profile_id)
-    lines = profile.data(session, child_area_type_id=args.area_type_id, parent_area_type_id=args.parent_area_type_id)
+    if args.indicator_id:
+        lines = objects.Data.by_indicator_id(session, indicator_ids={args.indicator_id},
+                                             child_area_type_id=args.area_type_id,
+                                             parent_area_type_id=args.parent_area_type_id)
+
+    elif args.profile_id:
+        lines = objects.Data.by_profile_id(session, child_area_type_id=args.area_type_id,
+                                           parent_area_type_id=args.parent_area_type_id, profile_id=args.profile_id)
+    else:
+        raise argparse.ArgumentError(None, 'Either indicator_id or profile_id are required')
+
     rows = utils.parse_csv(lines)
     # Filter
     rows = (row for row in rows if row_filter(row, args=args))
@@ -59,6 +71,7 @@ def main():
     # Serialise
     with args.output.open('w', newline='\n') as file:
         utils.write_csv(rows, buffer=file)
+        LOGGER.info("Wrote '%s'", file.name)
 
 
 if __name__ == '__main__':
