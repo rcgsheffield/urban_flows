@@ -23,6 +23,12 @@ Life expectancy at birth (part of the Local Authority Health Profile) by distric
 python . --verbose --profile_id 26 --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6
 ```
 
+The same query, filtered for Sheffield only:
+
+```bash
+python . --verbose --profile_id 26 --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6 --area_code E08000019
+```
+
 ## Metadata
 
 This script may be used to navigate the metadata.
