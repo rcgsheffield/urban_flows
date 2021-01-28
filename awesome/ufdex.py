@@ -64,10 +64,10 @@ class UrbanFlowsQuery:
         self.sensors = set(sensors or set())
         self.families = set(families or set())
 
-    def __call__(self, *args, use_http: bool = False, **kwargs):
+    def __call__(self, *args, use_ssh: bool = False, **kwargs):
         reading_count = 0
         null_count = 0
-        for reading in self.parse(self.stream(use_http=use_http)):
+        for reading in self.parse(self.stream(use_ssh=use_ssh)):
             reading = self.transform(reading)
 
             # Filter nulls
@@ -127,7 +127,7 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    def stream(self, use_http: bool = False) -> Iterable[str]:
+    def stream(self, use_ssh: bool = False) -> Iterable[str]:
         """Retrieve raw data over HTTP"""
 
         for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
@@ -151,10 +151,10 @@ class UrbanFlowsQuery:
                 if values:
                     params[query] = ','.join(values)
 
-            if use_http:
-                yield from self.stream_http(params=params)
-            else:
+            if use_ssh:
                 yield from self.stream_ssh(params=params)
+            else:
+                yield from self.stream_http(params=params)
 
     @staticmethod
     def stream_http(**kwargs) -> Iterable[str]:
