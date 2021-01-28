@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 Path = Union[pathlib.Path, str]
 
 
-def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: dict):
+def sync_readings(session, sensors: dict, awesome_sensors: dict, reading_types: dict):
     """
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
@@ -32,7 +32,7 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
     """
 
     # TODO iterate over sensor families to optimise query on UFO
-    for sensor in sensors:
+    for sensor_id, sensor in sensors.items():
         awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
         LOGGER.info("Syncing UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
@@ -58,7 +58,7 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
         # Convert from UFO readings to Awesome readings
         readings = (maps.reading_to_reading(reading, reading_types=reading_types, awesome_sensors=awesome_sensors) for
                     reading in readings)
-        
+
         # TODO filter null readings?
 
         # Iterate over data chunks because the Awesome portal API accepts a maximum number of rows per call.
@@ -83,7 +83,7 @@ def sync_readings(session, sensors: list, awesome_sensors: dict, reading_types: 
                             raise
 
 
-def sync_sites(session: http_session.PortalSession, sites: Iterable[dict], locations: dict):
+def sync_sites(session: http_session.PortalSession, sites: dict, locations: dict):
     """
     Convert UFO sites into Awesome locations.
 
@@ -95,8 +95,8 @@ def sync_sites(session: http_session.PortalSession, sites: Iterable[dict], locat
     :param locations: Map of remote Awesome location names to object data
     """
 
-    for site in sites:
-        LOGGER.debug("SITE %s", site)
+    for site_id, site in sites.items():
+        LOGGER.debug("SITE %s", site_id)
 
         # Convert UFO site to Awesome object
         local_location = maps.site_to_location(site)
@@ -111,7 +111,7 @@ def sync_sites(session: http_session.PortalSession, sites: Iterable[dict], locat
             locations[new_location['name']] = new_location['id']
 
 
-def sync_sensors(session: http_session.PortalSession, sensors, awesome_sensors: dict, locations: dict):
+def sync_sensors(session: http_session.PortalSession, sensors: dict, awesome_sensors: dict, locations: dict):
     """
     Either update (if changed) or create a new Awesome sensor for each Urban Flows sensor. For each sensor, if no
     changes have been made to the UFO sensor metadata then do nothing.
@@ -123,7 +123,8 @@ def sync_sensors(session: http_session.PortalSession, sensors, awesome_sensors: 
     """
 
     # Iterate over UFO sensors
-    for sensor in sensors:
+    for sensor_id, sensor in sensors.items():
+        LOGGER.info('Sensor %s', sensor_id)
 
         # Convert to Awesome object
         local_sensor = maps.sensor_to_sensor(sensor, locations)
@@ -290,7 +291,7 @@ def sync_aqi_standards(session):
             raise
 
 
-def sync_aqi_readings(session, sites: Iterable[dict], locations: dict):
+def sync_aqi_readings(session, sites: dict, locations: dict):
     """
     Upload air quality index data to the remote system.
 
@@ -300,7 +301,7 @@ def sync_aqi_readings(session, sites: Iterable[dict], locations: dict):
     """
 
     # Iterate over sites because there may be multiple relevant sensor families at one location
-    for site in sites:
+    for site_id, site in sites.items():
         # Get the latest timestamp that was successfully synced (or the default start date)
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START

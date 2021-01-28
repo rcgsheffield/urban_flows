@@ -63,13 +63,13 @@ def main():
                                 remote_reading_category_ids=reading_categories,
                                 reading_type_groups=settings.READING_TYPE_GROUPS)
 
-        # Sync data
-        LOGGER.info('Syncing AQI readings...')
-        sync.sync_aqi_readings(session, sites=sites, locations=locations)
-
         LOGGER.info('Syncing readings...')
         sync.sync_readings(session=session, reading_types=reading_types, sensors=sensors,
                            awesome_sensors=awesome_sensors)
+
+        # Sync data
+        LOGGER.info('Syncing AQI readings...')
+        sync.sync_aqi_readings(session, sites=sites, locations=locations)
 
 
 if __name__ == '__main__':

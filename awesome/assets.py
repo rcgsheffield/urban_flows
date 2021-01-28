@@ -8,6 +8,7 @@ import requests
 import datetime
 import json
 import pathlib
+from typing import Tuple
 
 import arrow.parser
 
@@ -108,25 +109,26 @@ def _get_metadata() -> dict:
     return metadata
 
 
-def get_metadata() -> tuple:
+def get_metadata() -> Tuple[dict, dict, dict, dict]:
     metadata = _get_metadata()
 
-    pairs = list(metadata['pairs'].values())
-    families = metadata['families']
-    sites = list(metadata['sites'].values())
-    sensors = list(metadata['sensors'].values())
+    pairs = dict(metadata['pairs'])
+    families = dict(metadata['families'])
+    sites = dict(metadata['sites'])
+    sensors = dict(metadata['sensors'])
 
     return sites, families, pairs, sensors
 
 
-def get_detectors_from_sensors(sensors) -> dict:
+def get_detectors_from_sensors(sensors: dict) -> dict:
     """
     Get a mapping of all detectors on all sensors
     Each sensor pod contains multiple detectors (quantitative measurement channels)
     Different sensors may have detectors (channels) with the same name (but different properties perhaps)
     """
     # The key is the metric title e.g. 'MET_RH' or 'AQ_PM1'
-    return {det['o'].upper(): det for det in itertools.chain(*(s['detectors'].values() for s in sensors))}
+    return {det['o'].upper(): det for det in itertools.chain(*(sensor['detectors'].values()
+                                                               for sensor_id, sensor in sensors.items()))}
 
 
 # For testing
