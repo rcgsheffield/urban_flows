@@ -17,6 +17,7 @@ LOGGING = dict(
 # The maximum number of readings to upload at once to /api/reading/bulk. The limit is 100.
 BULK_READINGS_CHUNK_SIZE = 100
 
+# Awesome portal API URL
 BASE_URL = 'http://ufportal.shef.ac.uk/api/'
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'

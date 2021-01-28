@@ -67,3 +67,13 @@ The metadata used to describe the sensor readings on each system is defined by a
 # Awesome API
 
 Readings by sensor `/sensors/{id}/readings`
+
+# Development
+
+## Unit tests
+
+To execute the automated unit tests, run this command:
+
+```bash
+python -m unittest --failfast --verbose
+```

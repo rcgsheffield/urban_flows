@@ -25,13 +25,21 @@ class DAQITestCase(unittest.TestCase):
 
     def test_banding(self):
         for pollutant in DAQI_POLLUTANTS.keys():
-            value = getattr(self.aqi, pollutant)
+            value = self.aqi.pollutant_indexes[pollutant]
 
             LOGGER.info("%s = %s", pollutant, value)
 
             self.assertIsInstance(value, int)
             self.assertGreaterEqual(value, 1)
             self.assertLessEqual(value, 10)
+
+    def test_pollutants(self):
+        for pollutant in DAQI_POLLUTANTS.keys():
+            value = self.aqi.pollutants[pollutant]
+
+            LOGGER.info("%s = %s", pollutant, value)
+
+            self.assertIsInstance(value, (int, float))
 
     def test_index(self):
         value = self.aqi.index

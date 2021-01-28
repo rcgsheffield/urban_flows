@@ -24,14 +24,16 @@ Usage:
 import datetime
 import itertools
 import logging
-from typing import Iterable, Dict, Sequence, Set
+from typing import Iterable, Dict, Sequence, Set, Tuple
 
 import requests
 
+import remote
 import settings
 
 # URL = 'http://uffront01.shef.ac.uk/uflobin/ufdex'
-URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
+HOST = 'ufdev.shef.ac.uk'
+URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
 
 LOGGER = logging.getLogger(__name__)
 
@@ -62,6 +64,23 @@ class UrbanFlowsQuery:
         self.sensors = set(sensors or set())
         self.families = set(families or set())
 
+    def __call__(self, *args, use_http: bool = False, **kwargs):
+        reading_count = 0
+        null_count = 0
+        for reading in self.parse(self.stream(use_http=use_http)):
+            reading = self.transform(reading)
+
+            # Filter nulls
+            if reading['value'] == float():
+                null_count += 1
+                continue
+
+            yield reading
+
+            reading_count += 1
+
+        LOGGER.info("Generated %s readings (removed %s nulls)", reading_count, null_count)
+
     @property
     def time_period(self):
         return self._time_period
@@ -90,7 +109,7 @@ class UrbanFlowsQuery:
     def format_timestamp(cls, t: datetime.datetime) -> str:
         return t.replace(microsecond=0).strftime(cls.TIME_FORMAT)
 
-    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[tuple]:
+    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[Tuple[datetime.datetime]]:
         """
         Break the time period into chunks of size `freq`
         """
@@ -108,50 +127,99 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    def stream(self) -> Iterable[str]:
+    def stream(self, use_http: bool = False) -> Iterable[str]:
         """Retrieve raw data over HTTP"""
+
+        for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
+
+            # Prepare query parameters
+            params = dict(
+                Tfrom=self.format_timestamp(start),
+                Tto=self.format_timestamp(end),
+                aktion='CSV_show',
+                freqInMin=5,
+                tok='generic',
+            )
+
+            # Build filters via HTTP query parameters e.g. "byFamily=AMfixed,luftdaten"
+            filters = {
+                'bySensor': self.sensors,
+                'bySite': self.site_ids,
+                'byFamily': self.families,
+            }
+            for query, values in filters.items():
+                if values:
+                    params[query] = ','.join(values)
+
+            if use_http:
+                yield from self.stream_http(params=params)
+            else:
+                yield from self.stream_ssh(params=params)
+
+    @staticmethod
+    def stream_http(**kwargs) -> Iterable[str]:
         with requests.Session() as session:
-            for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
+            # Streaming Requests
+            # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
+            response = session.get(URL, stream=True, **kwargs)
 
-                # Prepare query parameters
-                params = dict(
-                    Tfrom=self.format_timestamp(start),
-                    Tto=self.format_timestamp(end),
-                    aktion='CSV_show',
-                    freqInMin=5,
-                    tok='generic',
-                )
+            # Raise HTTP errors
+            try:
+                response.raise_for_status()
+            except requests.HTTPError:
+                LOGGER.error(response.text)
+                raise
 
-                # Build filters via HTTP query parameters e.g. "byFamily=AMfixed,luftdaten"
-                filters = {
-                    'bySensor': self.sensors,
-                    'bySite': self.site_ids,
-                    'byFamily': self.families,
-                }
-                for query, values in filters.items():
-                    if values:
-                        params[query] = ','.join(values)
+            # Provide a fallback encoding in the event the server doesn't provide one
+            if not response.encoding:
+                response.encoding = 'utf-8'
 
-                # Generate arguments for command-line version of udex
-                LOGGER.debug(' '.join(("'{}={}'".format(key, value) for key, value in params.items())))
+            # Generate lines of data
+            yield from response.iter_lines(decode_unicode=True)
 
-                # Streaming Requests
-                # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
-                response = session.get(URL, stream=True, params=params)
+    @staticmethod
+    def readlines(data: Iterable[bytes], sep: str = '\n', encoding: str = 'utf-8') -> Iterable[str]:
+        """
+        Read a stream of bytes and yield one string per line
+        """
 
-                # Raise HTTP errors
-                try:
-                    response.raise_for_status()
-                except requests.HTTPError:
-                    LOGGER.error(response.text)
-                    raise
+        line = str()
 
-                # Provide a fallback encoding in the event the server doesn't provide one
-                if not response.encoding:
-                    response.encoding = 'utf-8'
+        # Iterate over chunks of binary data
+        for chunk in data:
+            # Decode chunk of data into a string, which may contain line break(s)
+            # Iterate over characters
+            for c in chunk.decode(encoding):
+                # Is this a line break?
+                if c == sep:
+                    # Give the line of text
+                    yield line
+                    # Reset line buffer
+                    line = str()
+                else:
+                    # Keep building the line of text
+                    # Concatenate character onto the string
+                    line += c
 
-                # Generate lines of data
-                yield from response.iter_lines(decode_unicode=True)
+        # Yield the last line if anything remains in the buffer and no finishing line break was found
+        if line:
+            yield line
+
+    @staticmethod
+    def stream_ssh(*args, params: dict = None, **kwargs) -> iter:
+        params = params or dict()
+        # Generate arguments for command-line version of udex
+        args = ' '.join(("'{}={}'".format(key, value) for key, value in params.items()))
+
+        LOGGER.debug(args)
+
+        # Example command:
+        # /home/uflo/www/cgi-bin/ufdexF1 'Tfrom=2021-01-07T09:39:57' 'Tto=2021-01-07T12:39:57' 'aktion=json_META' 'freqInMin=5' 'tok=generic' 'unittest=s'
+        command = '/home/uflo/www/cgi-bin/ufdexF1 {args}'.format(args=args)
+
+        username = input('Enter username for {host}: '.format(host=HOST))
+        with remote.RemoteHost(host=HOST, username=username) as remote_host:
+            yield from UrbanFlowsQuery.readlines((remote_host.execute(command)))
 
     @staticmethod
     def parse(lines: Iterable[str]) -> Iterable[Dict]:
@@ -164,6 +232,7 @@ class UrbanFlowsQuery:
         n_rows = 0
 
         for line in lines:
+            LOGGER.debug(line)
 
             # Query fail
             if line == 'mutis csvShow 0 sensors satisfy your conditions':
@@ -269,20 +338,3 @@ class UrbanFlowsQuery:
         reading = cls.parse_data_types(reading)
 
         return reading
-
-    def __call__(self, *args, **kwargs):
-        reading_count = 0
-        null_count = 0
-        for reading in self.parse(self.stream()):
-            reading = self.transform(reading)
-
-            # Filter nulls
-            if reading['value'] == float():
-                null_count += 1
-                continue
-
-            yield reading
-
-            reading_count += 1
-
-        LOGGER.info("Generated %s readings (removed %s nulls)", reading_count, null_count)
