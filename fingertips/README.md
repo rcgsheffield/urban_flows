@@ -105,6 +105,7 @@ objects.Profile.list(session)
 The objects in the API are also documented in the docstrings of the Python classes.
 
 * Profile: Collections of data sets. It contains groups of data (the tabs on the GUI display.) For example, the profile with identifier 100 is "Wider Impacts of COVID-19 on Health."
+  * Indicator: A quantitative metric or measurement of a phenomenon
 * Geospatial concepts
   * Area Type: geographical systems e.g. categories governmental regions, etc. For example, area type 201 is "Lower tier local authorities (4/19 - 3/20)"
     * Area: A specific geospatial 2D place e.g. "Sheffield"
