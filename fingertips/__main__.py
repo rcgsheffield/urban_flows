@@ -25,6 +25,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument('-d', '--debug', action='store_true', help='Extra verbose logging')
     parser.add_argument('-e', '--error', help='Error log file path', default='error.log')
     parser.add_argument('-o', '--output', type=path, help='Output CSV file path')
+    parser.add_argument('-w', '--write_header', action='store_true', help='Write CSV header row')
 
     # Data filters
     parser.add_argument('-p', '--profile_id', type=int, help='National health profile identifier', required=False)
@@ -71,7 +72,7 @@ def main():
 
     # Write to file (or to screen)
     buffer = args.output.open('w', newline='\n') if args.output else sys.stdout
-    utils.write_csv(rows, buffer=buffer)
+    utils.write_csv(rows, buffer=buffer, write_header=args.write_header)
 
 
 if __name__ == '__main__':

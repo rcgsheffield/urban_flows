@@ -73,13 +73,14 @@ def parse_csv(lines: Iterable[str]) -> Iterable[OrderedDict]:
         yield OrderedDict(itertools.zip_longest(headers, values))
 
 
-def write_csv(rows: Iterable[dict], buffer=None):
+def write_csv(rows: Iterable[dict], buffer=None, write_header: bool = False):
     writer = None
     row_count = 0
     for row in rows:
         if writer is None:
             writer = csv.DictWriter(buffer or sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
-            writer.writeheader()
+            if write_header:
+                writer.writeheader()
         writer.writerow(row)
         row_count += 1
 
