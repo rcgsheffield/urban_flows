@@ -1,6 +1,7 @@
 import logging
 import argparse
 import pathlib
+import sys
 
 import http_session
 import objects
@@ -68,10 +69,9 @@ def main():
     # Filter
     rows = (row for row in rows if row_filter(row, args=args))
 
-    # Serialise
-    with args.output.open('w', newline='\n') as file:
-        utils.write_csv(rows, buffer=file)
-        LOGGER.info("Wrote '%s'", file.name)
+    # Write to file (or to screen)
+    buffer = args.output.open('w', newline='\n') if args.output else sys.stdout
+    utils.write_csv(rows, buffer=buffer)
 
 
 if __name__ == '__main__':
