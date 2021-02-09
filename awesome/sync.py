@@ -66,8 +66,6 @@ def sync_readings(session, sensors: dict, awesome_sensors: dict, reading_types: 
             if chunk:
                 # Loop to retry if rate limit exceeded
                 while True:
-                    # Limit request rate
-                    time.sleep(10)
                     try:
                         objects.Reading.store_bulk(session, readings=chunk)
                         break
