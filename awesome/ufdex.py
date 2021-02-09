@@ -28,7 +28,6 @@ from typing import Iterable, Dict, Sequence, Set, Tuple
 
 import requests
 
-import remote
 import settings
 
 # URL = 'http://uffront01.shef.ac.uk/uflobin/ufdex'
@@ -207,7 +206,12 @@ class UrbanFlowsQuery:
 
     @staticmethod
     def stream_ssh(*args, params: dict = None, **kwargs) -> iter:
+        # Import here so dependencies aren't mandatory
+        import remote
+
         params = params or dict()
+        # Quiet output
+        params['unittest'] = 's'
         # Generate arguments for command-line version of udex
         args = ' '.join(("'{}={}'".format(key, value) for key, value in params.items()))
 
