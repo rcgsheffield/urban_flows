@@ -40,7 +40,13 @@ python . --verbose --profile_id 26 --area_type_id 201 --parent_area_type_id 6 --
 
 ## CSV headers
 
-TODO
+To print the CSV headers, run the query with the `--write_header` flag:
+
+```bash
+python . --verbose --indicator_id 90366 --area_type_id 201 --parent_area_type_id 6 --write_header
+```
+
+
 
 ## Metadata
 

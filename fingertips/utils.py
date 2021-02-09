@@ -81,6 +81,7 @@ def write_csv(rows: Iterable[dict], buffer=None, write_header: bool = False):
             writer = csv.DictWriter(buffer or sys.stdout, fieldnames=row.keys(), dialect=UrbanDialect)
             if write_header:
                 writer.writeheader()
+                return
         writer.writerow(row)
         row_count += 1
 
