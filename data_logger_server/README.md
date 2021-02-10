@@ -63,6 +63,8 @@ $ cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
 #$ rm /etc/nginx/sites-enabled/default
 ```
 
+Access is restricted using [HTTP Basic Authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+
 # Operation
 
 The server is designed to run as a `systemd` service.
