@@ -98,7 +98,7 @@ The following is a Curl command for HTTP POST:
 
 ```bash
 # Send specified file via HTTP POST method
-curl -X POST -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
+curl -X POST -u username:password -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
 ```
 
 ### Authentication
