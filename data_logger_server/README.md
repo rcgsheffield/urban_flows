@@ -23,47 +23,35 @@ I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-
 Install the basic required software:
 
 ```bash
-$ apt update
-$ apt install python3-dev python3-venv
-$ apt install git
+apt update
+apt install python3-dev python3-venv
+apt install git
 ```
 
 Create a virtual environment with the required packages:
 
 ```bash
-$ git clone <REPO_URL>
-$ cd ~/data_logger_server
-$ python3 -m venv dl_srv_env
-$ source dl_srv_env/bin/activate
-$ pip install wheel
-$ pip install -r requirements.txt
+git clone <REPO_URL>
+cd ~/data_logger_server
+python3 -m venv dl_srv_env
+source dl_srv_env/bin/activate
+pip install wheel
+pip install -r requirements.txt
 ```
 
 To configure the web server as a service, install the configuration file as follows:
 
 ```bash
-$ cp data_logger_server.service /etc/systemd/system/
+cp data_logger_server.service /etc/systemd/system/
 ```
 
-Ensure the service will run as a non-privileged user and is a member of the
-specified group.
+Ensure the service will run as a non-privileged user and is a member of the specified group.
 
-The configuration, code and socket files must all be pointed to correctly by each
-configuration file.
+The configuration, code and socket files must all be pointed to correctly by each configuration file.
 
 ## Web server
 
-Install the configuration file and create a symbolic link to enable this virtual host.
-
-```bash
-$ cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
-
-# Enable NGINX site:
-#$ ln -s /etc/nginx/sites-available/data_logger_server /etc/nginx/sites-enabled
-#$ rm /etc/nginx/sites-enabled/default
-```
-
-Access is restricted using [HTTP Basic Authentication](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+Install the configuration files to set up the web services. Run `nginx -t` to check the configuration is valid.
 
 # Operation
 
@@ -71,57 +59,61 @@ The server is designed to run as a `systemd` service.
 
 ## WSGI service
 
-Control the service using `systemctl` as follows:
+The web application may be controlled via the service using `systemctl` as follows:
 
 ```bash
-$ systemctl start data_logger_server
-$ systemctl stop data_logger_server
-$ systemctl restart data_logger_server
-$ systemctl status data_logger_server
-$ journalctl -u data_logger_server
+systemctl start data_logger_server
+systemctl stop data_logger_server
+systemctl restart data_logger_server
+systemctl status data_logger_server
+journalctl -u data_logger_server
 
 # View uWSGI logs
-$ tail /var/log/uwsgi/uwsgi.log
+tail /var/log/uwsgi/uwsgi.log
 ```
 
 It's also possible to run the WSGI service in isolation as follows:
 
 ```bash
-$ uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
+uwsgi --socket 0.0.0.0:5000 --protocol=http -w wsgi:app
 ```
 
 ## Web server
 
 ```bash
-$ systemctl restart nginx
-$ tail /var/log/nginx/error.log
-# View access logs live
-$ tail -f /var/log/nginx/access.log
+systemctl restart nginx
 ```
 
-## Testing
+View logs:
+
+```bash
+tail /var/log/nginx/error.log
+# View access logs live
+tail --follow /var/log/nginx/access.log
+```
+
+### Testing
 
 The following is a Curl command for HTTP POST:
 
 ```bash
 # Send specified file via HTTP POST method
-$ curl -X POST -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
+curl -X POST -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
 ```
 
-# Authentication
+### Authentication
 
-NGINX HTTP [Basic Authentication documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+Access is restricted using NGINX HTTP [Basic Authentication documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
 
 ```bash
 # Install htpasswd
-$ yum install httpd-tools
-# Create a new password file and a first user (only use -c the first time)
-$ htpasswd -c /etc/nginx/.htpasswd dl001
-# Add a new user (omit -c flag)
-$ htpasswd /etc/nginx/.htpasswd dl002
+yum install httpd-tools
+# Create a new password file and a first user
+# (only use -c the first time to create a new file)
+htpasswd -c /etc/nginx/.htpasswd dl001
+# Add a new user or change existing password (omit -c flag)
+htpasswd /etc/nginx/.htpasswd dl002
 ```
-
-
 
 # Appendix A: Centos installation
 
@@ -130,53 +122,53 @@ See `install.sh`.
 I performed these steps in my own user area then copied the files to `/home/uflo/`.
 
 ```bash
-$ yum install git nginx python3-devel gcc
-$ useradd uflo
+yum install git nginx python3-devel gcc
+useradd uflo
 # Install /home/uflo/.ssh/authorized_keys
-$ cd ~/data_logger_server
+cd ~/data_logger_server
 
 # Python virtual environment
-$ python3 -m venv dl_srv_env
-$ source dl_srv_env/bin/activate
-$ pip install --upgrade pip
-$ pip install wheel  # requires python3-devel to compile
-$ pip install -r requirements.txt
+python3 -m venv dl_srv_env
+source dl_srv_env/bin/activate
+pip install --upgrade pip
+pip install wheel  # requires python3-devel to compile
+pip install -r requirements.txt
 
 # Install WGSI as a service
-$ cp data_logger_server.service /etc/systemd/system/
-$ systemctl enable data_logger_server
+cp data_logger_server.service /etc/systemd/system/
+systemctl enable data_logger_server
 
 # Copy files to uflo user home directory
-$ cp data_logger_server/ /home/uflo/ --recursive
-$ chown uflo:uflo /home/uflo/data_logger_server --recursive
+cp data_logger_server/ /home/uflo/ --recursive
+chown uflo:uflo /home/uflo/data_logger_server --recursive
 
 # The web server user must also have access to the WSGI socket
-$ usermod -aG nginx uflo
-$ usermod -aG nginx nginx
+usermod -aG nginx uflo
+usermod -aG nginx nginx
 
 # Create a shared directory to store the socket file
-$ mkdir /run/dlsrv
-$ chown uflo:nginx /run/dlsrv
-$ chmod 770 /run/dlsrv
-$ chmod g+s /run/dlsrv # new files inherit group ownership
+mkdir /run/dlsrv
+chown uflo:nginx /run/dlsrv
+chmod 770 /run/dlsrv
+chmod g+s /run/dlsrv # new files inherit group ownership
 
 # Install NGINX configuration files
-$ cp nginx/nginx.conf /etc/nginx/
-$ cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
+cp nginx/nginx.conf /etc/nginx/
+cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
 ```
 
 Restart services (or reboot) to implement changes.
 
 ```bash
-$ systemctl restart data_logger_server
-$ systemctl restart nginx
+systemctl restart data_logger_server
+systemctl restart nginx
 ```
 
 Useful commands:
 
 ```bash
 # View NGINX error logs
-$ tail /var/log/nginx/error.log
+tail /var/log/nginx/error.log
 ```
 
 # Appendix B: Generating a self-signed certificate
@@ -187,13 +179,13 @@ This will generate a CSR, private and public keys (with the default 30-day expir
 
 ```bash
 # Generate Certificate Signing Requests (CSR)
-$ openssl req \
+openssl req \
        -newkey rsa:2048 -nodes -keyout ufdlsrv01.shef.ac.uk.key \
        -out ufdlsrv01.shef.ac.uk.csr \
 	   -subj "/C=GB/ST=England/L=Sheffield/O=The University of Sheffield/CN=ufdlsrv01.shef.ac.uk"
 
 # Generate a self-signed certificate from private key and CSR
-$ openssl x509 \
+openssl x509 \
        -signkey ufdlsrv01.shef.ac.uk.key \
        -in ufdlsrv01.shef.ac.uk.csr \
        -req -out ufdlsrv01.shef.ac.uk.crt
@@ -208,4 +200,3 @@ The following directories and configuration files are present:
 * `requirements.txt`  is the dependencies for this Python package
 * `nginx/` contains NGINX configuration files
 * `transmission_test` A script to test sending data via HTTP POST to the server (similar to `curl`)
-

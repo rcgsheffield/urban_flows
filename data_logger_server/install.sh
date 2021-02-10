@@ -1,9 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-SRC_DIR=/home/sa_cs1jsth/data_logger_server
 DEST_DIR=/home/uflo/data_logger_server
-
-cd $SRC_DIR
 
 echo "Installing web server..."
 
@@ -13,11 +10,11 @@ systemctl enable data_logger_server
 
 # Copy files to uflo user home directory
 mkdir --parents $DEST_DIR
-cp * $DEST_DIR --recursive
-chown uflo:uflo $DEST_DIR --recursive
+cp --recursive * $DEST_DIR
+chown --recursive uflo:uflo $DEST_DIR
 
 # Install machine-specific settings
-mv $DEST_DIR/data_logger_server/settings_prod.py $DEST_DIR/data_logger_server/settings_local.py --force
+mv --force $DEST_DIR/data_logger_server/settings_prod.py $DEST_DIR/data_logger_server/settings_local.py
 
 # Create a shared directory to store the socket file
 echo "Installing WSGI configuration..."
@@ -29,8 +26,7 @@ chown uflo:root /var/log/uwsgi
 
 # Install NGINX configuration files
 echo "Installing NGINX configuration..."
-cp nginx/nginx.conf /etc/nginx/
-cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
+cp --recursive --verbose nginx /etc
 
 # The web server user must also have access to the WSGI socket
 usermod -aG nginx uflo
