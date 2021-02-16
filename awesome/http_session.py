@@ -5,6 +5,7 @@ HTTP transport layer for the Awesome portal
 import logging
 import pathlib
 import json
+import http
 
 import requests
 import settings
@@ -60,8 +61,10 @@ class PortalSession(requests.Session):
             response.raise_for_status()
 
         # Log HTTP error codes
-        except requests.HTTPError:
-            LOGGER.error(response.text)
+        except requests.HTTPError as exc:
+            # Don't log rate limiter messages
+            if exc.response.status_code != http.HTTPStatus.TOO_MANY_REQUESTS:
+                LOGGER.error(response.text)
             raise
 
         return response

@@ -77,3 +77,7 @@ To execute the automated unit tests, run this command:
 ```bash
 python -m unittest --failfast --verbose
 ```
+
+# Deployment
+
+see `install.sh`
