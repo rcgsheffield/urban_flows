@@ -4,7 +4,7 @@ import time
 import json
 import logging
 import pathlib
-from typing import Type, List, Union, Iterable
+from typing import Type, List, Union, Mapping, MutableMapping
 
 import pandas
 import requests
@@ -239,6 +239,8 @@ def sync_reading_categories(session, reading_categories: dict, reading_type_grou
         except KeyError:
             # Make new reading category
             body = objects.ReadingCategory.add(session, local_reading_category)
+
+            # Update record in memory to keep track of newly-created objects
             new_reading_category = body['data']
             reading_categories[new_reading_category['name']] = new_reading_category['id']
 
@@ -253,7 +255,8 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
-def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> dict:
+def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> Mapping[
+    str, dict]:
     """
     Map Awesome object names (case insensitive) to the object data
     """
@@ -331,3 +334,35 @@ def sync_aqi_readings(session, sites: dict, locations: dict):
         new_timestamp = data.index.max()
         if not pandas.isnull(new_timestamp):
             site_obj.latest_timestamp = new_timestamp.to_pydatetime()
+
+
+def sync_families(session, families: Mapping[str, dict], sensor_types: MutableMapping[str, dict]):
+    """
+    Synchronise UFO sensor families to Awesome sensor types.
+
+    :param session: HTTP session for Awesome portal
+    :param families: UFO objects, map of family name to family info
+    :param sensor_types: Awesome portal objects, map of sensor type name to sensor type metadata
+    """
+    # Iterate over UFO families and ensure a sensor type record exists for each one
+    for family_name, family in families.items():
+        LOGGER.debug("Syncing family '%s'", family_name)
+
+        sensor_type = objects.SensorType.new(**maps.family_to_sensor_type(family_name=family_name))
+
+        if family_name not in sensor_types:
+
+            try:
+                remote_sensor_type = sensor_types[family_name.upper()]
+                # Update existing sensor type
+                response = objects.SensorType(remote_sensor_type['id']).update(session, sensor_type)
+                new_sensor_type = response.json()['data']
+                LOGGER.info("Updated sensor type %s", new_sensor_type)
+
+            except KeyError:
+                # Add new item
+                new_sensor_type = objects.SensorType.add(session, sensor_type)['data']
+                LOGGER.info("Added sensor type %s", new_sensor_type)
+
+            # Update record to keep track of newly-created objects
+            sensor_types[family_name] = new_sensor_type

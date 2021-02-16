@@ -18,7 +18,8 @@ LOGGING = dict(
 BULK_READINGS_CHUNK_SIZE = 100
 
 # Awesome portal API URL
-BASE_URL = 'https://portal.urbanflows.ac.uk/api/'
+# BASE_URL = 'https://portal.urbanflows.ac.uk/api/'
+BASE_URL = 'http://ufportal.shef.ac.uk/api/'
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
@@ -79,3 +80,8 @@ READING_TYPE_GROUPS = [
         ]
     }
 ]
+
+# The quality score for each UFO sensor family
+FAMILY_RATING = dict(
+    AMfixed=1,
+)

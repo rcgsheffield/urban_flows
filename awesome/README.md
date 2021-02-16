@@ -44,25 +44,17 @@ The result is a time-averaged AQI score as a function of time for each location 
 
 # Glossary
 
-The metadata used to describe the sensor readings on each system is defined by a collection of objects. There are loose mappings between the two metadata systems.
+The metadata used to describe the sensor readings on each system is defined by a collection of objects. There are loose mappings between the two metadata systems, where the left-hand side is for the original UFO database and the right-hand side is the new Awesome system.
 
-## Urban Flows Observatory
+The code to convert between object types is in `maps.py`.
 
-* Site: geographical location
-  * Sensor: a collection of detectors that may exist at one site at a time
-    * Detector: a data channel with a certain type1 of measurement
-* Pair: one sensor at a location for a certain time period
-
-## Awesome Portal
-
-* Location
-  * Sensor
+* Site: geographical location -> Location
+* Sensor: a collection of detectors that may exist at one site at a time
+  * Detector: a data channel with a certain type of measurement
+  * Family -> Sensor type
 * Reading Category: a group of reading types
-  * Reading Type: a physical phenomenon
-
-## Maps
-
-* 
+  * Reading Type: a physical phenomenon or metric
+* Pair: one sensor at a location for a certain time period
 
 # Awesome API
 
@@ -83,6 +75,6 @@ python -m unittest --failfast --verbose
 see `install.sh`
 
 ```bash
-sudo -u uflo /home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --error /home/uflo/logs/awesome-error.log
+sudo -u uflo /home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --error /home/uflo/logs/awesome-error.log --verbose --token /home/uflo/configs/awesome_token.txt
 ```
 

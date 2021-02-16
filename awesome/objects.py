@@ -222,11 +222,14 @@ class ReadingType(AwesomeObject):
 
 
 class SensorType(AwesomeObject):
-    """A Sensor Type represents a type of device. This could be based on model number, brand etc."""
+    """
+    A Sensor Type represents a type, or "family", of physical device. This could be based on model number, brand etc. of
+    the asset.
+    """
     edge = 'sensor-types'
 
     @staticmethod
-    def new(name: str, manufacturer: str, rating: int):
+    def new(name: str, manufacturer: str, rating: float):
         return dict(
             name=name,
             manufacturer=manufacturer,

@@ -8,6 +8,7 @@ from typing import List
 import pandas
 
 import objects
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -160,3 +161,19 @@ def is_object_different(local_object: dict, remote_object: dict) -> bool:
 
     # No differences were found
     return False
+
+
+def family_to_sensor_type(family_name: str, default_rating: float = 0.) -> dict:
+    """
+    Map a UFO sensor family to an Awesome sensor type
+
+    :param family_name: The family name on the UFO system
+    :param default_rating: The quality score value to use if none is configured for that family
+    """
+    return dict(
+        # Convert to upper case so the strings are case insensitive
+        name=family_name.upper(),
+        manufacturer=family_name,
+        # Quality score
+        rating=settings.FAMILY_RATING.get(family_name, default_rating)
+    )
