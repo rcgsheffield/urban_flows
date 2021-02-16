@@ -81,3 +81,8 @@ python -m unittest --failfast --verbose
 # Deployment
 
 see `install.sh`
+
+```bash
+sudo -u uflo /home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --error /home/uflo/logs/awesome-error.log
+```
+

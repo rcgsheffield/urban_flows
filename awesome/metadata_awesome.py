@@ -25,7 +25,7 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help='Show more logging information')
     parser.add_argument('-t', '--token', type=pathlib.Path, help='Path of file containing access token',
-                        default=ufportal.settings.DEFAULT_TOKEN_PATH)
+                        default=settings.DEFAULT_TOKEN_PATH)
     parser.add_argument('-l', '--locations', help="Show locations", action='store_true')
     parser.add_argument('-s', '--sensors', help="Show sensors", action='store_true')
     parser.add_argument('-c', '--sensor_categories', help="Show sensor categories", action='store_true')
