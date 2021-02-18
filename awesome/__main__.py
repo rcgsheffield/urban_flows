@@ -46,15 +46,14 @@ def main():
         sensor_types = sync.build_awesome_object_map(session, objects.SensorType)
 
         # Sync metadata
-        # LOGGER.info('Syncing air quality standards...')
-        # sync.sync_aqi_standards(session)
-        #
-        # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-        # sync.sync_sites(session, sites, locations=locations)
+        LOGGER.info('Syncing air quality standards...')
+        sync.sync_aqi_standards(session)
+
+        LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+        sync.sync_sites(session, sites, locations=locations)
 
         LOGGER.info('Syncing families...')
         sync.sync_families(session, families=families, sensor_types=sensor_types)
-        exit()
 
         LOGGER.info('Syncing sensors...')
         sync.sync_sensors(session, sensors, awesome_sensors=awesome_sensors, locations=locations)

@@ -24,7 +24,7 @@ LOGGER = logging.getLogger(__name__)
 Path = Union[pathlib.Path, str]
 
 
-def sync_readings(session, sensors: dict, awesome_sensors: dict, reading_types: dict):
+def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_types: Mapping):
     """
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
@@ -82,7 +82,7 @@ def sync_readings(session, sensors: dict, awesome_sensors: dict, reading_types: 
                             raise
 
 
-def sync_sites(session: http_session.PortalSession, sites: dict, locations: dict):
+def sync_sites(session: http_session.PortalSession, sites: Mapping, locations: Mapping):
     """
     Convert UFO sites into Awesome locations.
 
@@ -110,7 +110,7 @@ def sync_sites(session: http_session.PortalSession, sites: dict, locations: dict
             locations[new_location['name']] = new_location['id']
 
 
-def sync_sensors(session: http_session.PortalSession, sensors: dict, awesome_sensors: dict, locations: dict):
+def sync_sensors(session: http_session.PortalSession, sensors: Mapping, awesome_sensors: Mapping, locations: Mapping):
     """
     Either update (if changed) or create a new Awesome sensor for each Urban Flows sensor. For each sensor, if no
     changes have been made to the UFO sensor metadata then do nothing.
@@ -151,8 +151,8 @@ def sync_sensors(session: http_session.PortalSession, sensors: dict, awesome_sen
             sen.update(session, local_sensor)
 
 
-def sync_reading_types(session: http_session.PortalSession, detectors: dict, reading_types: dict,
-                       remote_reading_category_ids: dict, reading_type_groups: list):
+def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, reading_types: Mapping,
+                       remote_reading_category_ids: Mapping, reading_type_groups: list):
     """
     Map local Urban Flows Observatory "detectors" to remote "reading types" on the Awesome Portal.
 
@@ -214,7 +214,7 @@ def sync_reading_types(session: http_session.PortalSession, detectors: dict, rea
             reading_type.remove_reading_category(session, reading_category_id)
 
 
-def sync_reading_categories(session, reading_categories: dict, reading_type_groups: list):
+def sync_reading_categories(session, reading_categories: Mapping, reading_type_groups: list):
     """
     Sync reading categories (e.g. "Air Quality" is a category containing reading types PM 1, PM 2.5, PM 10.)
 
@@ -255,7 +255,7 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
-def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> Mapping[
+def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> MutableMapping[
     str, dict]:
     """
     Map Awesome object names (case insensitive) to the object data
@@ -293,7 +293,7 @@ def sync_aqi_standards(session):
             raise
 
 
-def sync_aqi_readings(session, sites: dict, locations: dict):
+def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
     """
     Upload air quality index data to the remote system.
 
