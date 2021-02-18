@@ -31,8 +31,12 @@ def main():
     args = get_args()
     utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
 
+    # Load access token
+    with args.token.open() as file:
+        token = file.readline()
+
     # Connect to Awesome portal
-    with http_session.PortalSession(token_path=args.token) as session:
+    with http_session.PortalSession(token=token) as session:
         # Get UFO metadata
         sites, families, pairs, sensors, detectors = sync.get_urban_flows_metadata()
 
