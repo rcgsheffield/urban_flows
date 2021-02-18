@@ -1,6 +1,8 @@
 import datetime
 import pathlib
 
+from settings_local import *
+
 # Authentication token
 CONFIG_PATH = pathlib.Path.home().joinpath('configs')
 DEFAULT_TOKEN_PATH = CONFIG_PATH.joinpath('awesome_token.txt')
@@ -16,10 +18,6 @@ LOGGING = dict(
 
 # The maximum number of readings to upload at once to /api/reading/bulk. The limit is 100.
 BULK_READINGS_CHUNK_SIZE = 100
-
-# Awesome portal API URL
-# BASE_URL = 'https://portal.urbanflows.ac.uk/api/'
-BASE_URL = 'http://ufportal.shef.ac.uk/api/'
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
