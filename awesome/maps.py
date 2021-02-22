@@ -3,6 +3,7 @@ Map Urban Flows assets to Awesome portal objects.
 """
 
 import logging
+import datetime
 from typing import List, Mapping
 
 import pandas
@@ -85,8 +86,8 @@ def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], readi
     :return: Generate readings
     """
 
-    # Get detector name e.g. "data.airtemp" => "AIRTEMP"
-    _, _, detector_name = reading['name'].upper().partition('.')
+    # Get detector name e.g. "TRAFF_FLOW" or "AQ_PM10"
+    detector_name = reading['description']
 
     return objects.Reading.new(
         sensor_id=awesome_sensors[reading['sensor.id']]['id'],
@@ -96,7 +97,8 @@ def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], readi
     )
 
 
-def aqi_readings(air_quality_index: pandas.Series, aqi_standard_id: int, location_id: int) -> List[dict]:
+def aqi_readings(air_quality_index: Mapping[datetime.datetime, int], aqi_standard_id: int, location_id: int) -> List[
+    dict]:
     """
     Convert Air Quality Index values (calculated locally) to AQI Readings for the Awesome portal.
     """

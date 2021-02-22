@@ -77,7 +77,7 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
                         # HTTP status code 429 too many requests (server-side rate limit)
                         if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
                             # Wait until the system is ready to accept further requests
-                            time.sleep(exc.response.headers['retry-after'])  # seconds
+                            time.sleep(int(exc.response.headers['retry-after']))  # seconds
                         else:
                             raise
 
