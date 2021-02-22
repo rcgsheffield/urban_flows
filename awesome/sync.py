@@ -35,7 +35,7 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
     for sensor_id, sensor in sensors.items():
         awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
-        LOGGER.info("Syncing UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
+        LOGGER.info("Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
 
         # Get the most recent reading for this sensor on the remote database
         latest_awesome_reading = objects.Sensor(awesome_sensor_id).latest_reading(session)

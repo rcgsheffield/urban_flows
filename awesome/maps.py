@@ -3,7 +3,7 @@ Map Urban Flows assets to Awesome portal objects.
 """
 
 import logging
-from typing import List
+from typing import List, Mapping
 
 import pandas
 
@@ -75,7 +75,7 @@ def detector_to_reading_type(detector: dict) -> dict:
     )
 
 
-def reading_to_reading(reading: dict, awesome_sensors: dict, reading_types: dict) -> iter:
+def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], reading_types: Mapping[str, dict]):
     """
     Convert a row of UFO data into multiple Awesome portal readings.
 
