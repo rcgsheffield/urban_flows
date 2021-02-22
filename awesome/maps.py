@@ -86,8 +86,8 @@ def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], readi
     :return: Generate readings
     """
 
-    # Get detector name e.g. "TRAFF_FLOW" or "AQ_PM10"
-    detector_name = reading['description']
+    # Get detector name e.g. "TRAFF_FLOW" or "MET_AP"
+    detector_name = reading['UCD']
 
     return objects.Reading.new(
         sensor_id=awesome_sensors[reading['sensor.id']]['id'],
@@ -113,7 +113,7 @@ def aqi_readings(air_quality_index: Mapping[datetime.datetime, int], aqi_standar
     ]
 
 
-def reading_type_to_reading_categories(reading_type_groups: list, awesome_reading_categories: dict) -> dict:
+def reading_type_to_reading_categories(reading_type_groups: list, awesome_reading_categories: Mapping) -> dict:
     """
     Map reading type names to Awesome reading category identifier
 

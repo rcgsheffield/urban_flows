@@ -151,7 +151,7 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping, awesome_
             sen.update(session, local_sensor)
 
 
-def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, reading_types: Mapping,
+def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, reading_types: MutableMapping,
                        remote_reading_category_ids: Mapping, reading_type_groups: list):
     """
     Map local Urban Flows Observatory "detectors" to remote "reading types" on the Awesome Portal.

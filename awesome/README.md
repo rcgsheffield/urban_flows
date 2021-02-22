@@ -53,7 +53,7 @@ The code to convert between object types is in `maps.py`.
   * Detector: a data channel with a certain type of measurement
   * Family -> Sensor type
 * Reading Category: a group of reading types
-  * Reading Type: a physical phenomenon or metric
+  * Reading Type: a physical phenomenon or metric (detector)
 * Pair: one sensor at a location for a certain time period
 
 # Awesome API
