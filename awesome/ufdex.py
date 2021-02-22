@@ -267,7 +267,7 @@ class UrbanFlowsQuery:
                     # Column_3 / data.CO / ppm / AQ_CO / Carbon Monoxide / float / -32768
 
                     # Skip "Column_n"
-                    col_labels = (s.strip() for s in line[2:].split('/')[1:])
+                    col_labels = line[2:].split(' / ')[1:]
 
                     columns.append(dict(itertools.zip_longest(col_desc, col_labels)))
 
