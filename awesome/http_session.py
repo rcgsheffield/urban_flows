@@ -15,23 +15,15 @@ class PortalSession(requests.Session):
 
     def __init__(self, token: str):
         super().__init__()
-
-        self.token = token
-        self.headers.update(self.extra_headers)
-
-    @property
-    def extra_headers(self):
-        return {
-            'Authorization': 'Bearer ' + self.token,
+        self.headers.update({
+            'Authorization': 'Bearer ' + token,
             'Accept-Language': self.LANGUAGE,
-        }
+        })
 
     def request(self, *args, **kwargs):
         """Make a HTTP request to the API and parse the response"""
 
-        headers = {
-            'Accept': 'application/json',
-        }
+        headers = {'Accept': 'application/json'}
         headers.update(kwargs.pop('headers', dict()))
 
         # Debug log request payload

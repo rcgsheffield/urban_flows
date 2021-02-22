@@ -33,7 +33,7 @@ def main():
 
     # Load access token
     with args.token.open() as file:
-        token = file.readline()
+        token = file.readline().rstrip('\n')
 
     # Connect to Awesome portal
     with http_session.PortalSession(token=token) as session:
