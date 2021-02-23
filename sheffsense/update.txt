@@ -7,9 +7,11 @@ cd ~/ClimateMonitorV2
 git pull
 
 # Install updated app code
-sudo cp -a ClimateMonitorV2/. /opt/sheffsense/
+sudo cp --archive --verbose ClimateMonitorV2/. /opt/sheffsense/
 
 # Update javascript libraries
 cd /opt/sheffsense
 sudo npm update
 sudo npm audit fix
+
+# Then restart the service

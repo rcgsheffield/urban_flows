@@ -1,6 +1,6 @@
-# SheffSense web app
+# SheffSense Climate Monitor
 
-[SheffSense](https://github.com/dambem/ClimateMonitorV2) Sheffield Climate Monitor Github repository.
+[SheffSense](https://github.com/dambem/ClimateMonitorV2) Sheffield Climate Monitor is a Node.js web application.
 
 # Installation
 
@@ -10,7 +10,7 @@ See: Digital Ocean [How To Set Up a Node.js Application for Production on Ubuntu
 
 ## Maintenance
 
-Regular security patches must be applied. See `update.txt`.
+Regular security patches must be applied. See [update.txt](update.txt).
 
 # Usage
 
@@ -44,4 +44,3 @@ $ sudo tail /var/log/nginx/error.log
 # Restart service
 $ sudo systemctl restart nginx
 ```
-
