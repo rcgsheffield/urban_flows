@@ -16,22 +16,13 @@ The web server will forward web requests via a socket to the web application usi
 
 # Installation
 
+I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04). (Assuming NGINX is installed.) Ensure the system is up-to-date and install the basic required software (`python3-dev` `python3-venv`).
+
 See `install.sh`.
-
-I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04). (Assuming NGINX is installed.)
-
-Install the basic required software:
-
-```bash
-apt update
-apt install python3-dev python3-venv
-apt install git
-```
 
 Create a virtual environment with the required packages:
 
 ```bash
-git clone <REPO_URL>
 cd ~/data_logger_server
 python3 -m venv dl_srv_env
 source dl_srv_env/bin/activate
@@ -58,9 +49,17 @@ Install the configuration files to set up the web services. Run `nginx -t` to ch
 ```bash
 # CentOS 8 systems are automatically patched
 
-# Update Python packages
-cd /home/uflo/data_logger_server/
+# View out-of-date packages
+/home/uflo/data_logger_server/dl_srv_env/bin/pip list --outdated
 
+# Update pip
+/home/sa_cs1jsth/data_logger_server/dl_srv_env/bin/python3 -m pip install --upgrade pip
+
+# Update Python packages
+/home/uflo/data_logger_server/dl_srv_env/bin/pip install -r /home/uflo/data_logger_server/requirements.txt --upgrade
+
+# Restart service
+systemctl restart data_logger_server
 ```
 
 # Operation
@@ -72,9 +71,12 @@ The server is designed to run as a `systemd` service.
 The web application may be controlled via the service using `systemctl` as follows:
 
 ```bash
+# Control
 systemctl start data_logger_server
 systemctl stop data_logger_server
 systemctl restart data_logger_server
+
+# View status
 systemctl status data_logger_server
 journalctl -u data_logger_server
 
