@@ -53,6 +53,16 @@ The configuration, code and socket files must all be pointed to correctly by eac
 
 Install the configuration files to set up the web services. Run `nginx -t` to check the configuration is valid.
 
+# Maintenance
+
+```bash
+# CentOS 8 systems are automatically patched
+
+# Update Python packages
+cd /home/uflo/data_logger_server/
+
+```
+
 # Operation
 
 The server is designed to run as a `systemd` service.
