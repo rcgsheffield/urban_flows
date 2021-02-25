@@ -30,9 +30,12 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
     duplication.
     """
+    # Count the number of readings uploaded for all the sensors
+    total_reading_count = 0
+    for sensor_name, sensor in sensors.items():
+        # Count the number of readings uploaded per sensor
+        reading_count = 0
 
-    # TODO iterate over sensor families to optimise query on UFO
-    for sensor_id, sensor in sensors.items():
         awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
         LOGGER.info("Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
@@ -80,6 +83,12 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
                             time.sleep(int(exc.response.headers['retry-after']))  # seconds
                         else:
                             raise
+
+                reading_count += len(chunk)
+
+        LOGGER.info('synced %s readings for sensor "%s"', reading_count, sensor_name)
+        total_reading_count += reading_count
+    LOGGER.info("synced %s readings")
 
 
 def sync_sites(session: http_session.PortalSession, sites: Mapping, locations: Mapping):
