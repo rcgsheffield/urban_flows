@@ -89,7 +89,7 @@ class AwesomeObject(abc.ABC):
             return dict()
 
     def update(self, session, obj, **kwargs):
-        LOGGER.info('Updating %s', self)
+        LOGGER.debug('Updating %s', self)
         return session.patch(self.url, json=obj, **kwargs)
 
     def delete(self, session, **kwargs):
