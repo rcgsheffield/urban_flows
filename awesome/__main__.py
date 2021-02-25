@@ -20,7 +20,8 @@ def get_args():
 
     parser.add_argument('-v', '--verbose', action='store_true', help='Show more logging information')
     parser.add_argument('-d', '--debug', action='store_true')
-    parser.add_argument('-e', '--error', type=pathlib.Path, help='Error log file')
+    parser.add_argument('-e', '--error', type=pathlib.Path, help='Error log file path')
+    parser.add_argument('-i', '--info', type=pathlib.Path, help='Info log file path')
     parser.add_argument('-t', '--token', type=pathlib.Path, help='Path of file containing access token',
                         default=settings.DEFAULT_TOKEN_PATH)
 
@@ -29,7 +30,7 @@ def get_args():
 
 def main():
     args = get_args()
-    utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error)
+    utils.configure_logging(verbose=args.verbose, debug=args.debug, error=args.error, info=args.info)
 
     # Load access token
     with args.token.open() as file:
