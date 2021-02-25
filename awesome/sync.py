@@ -132,7 +132,7 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping, awesome_
 
     # Iterate over UFO sensors
     for sensor_id, sensor in sensors.items():
-        LOGGER.info('Sensor %s', sensor_id)
+        LOGGER.debug('Sensor %s', sensor_id)
 
         # Convert to Awesome object
         local_sensor = maps.sensor_to_sensor(sensor, locations)
@@ -180,7 +180,7 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, 
     # Iterate over UF detectors
     for detector_name, detector in detectors.items():
 
-        LOGGER.info("DETECTOR %s %s", detector_name, detector)
+        LOGGER.debug("DETECTOR %s %s", detector_name, detector)
 
         local_reading_type = maps.detector_to_reading_type(detector)
 
@@ -366,7 +366,7 @@ def sync_families(session, families: Mapping[str, dict], sensor_types: MutableMa
                 # Update existing sensor type
                 response = objects.SensorType(remote_sensor_type['id']).update(session, sensor_type)
                 new_sensor_type = response.json()['data']
-                LOGGER.info("Updated sensor type %s", new_sensor_type)
+                LOGGER.debug("Updated sensor type %s", new_sensor_type)
 
             except KeyError:
                 # Add new item
