@@ -1,0 +1,8 @@
+[Unit]
+Description=Data bridge from UFO to Awesome portal
+Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
+
+[Timer]
+# This timer will target databridge.service by default (default for unspecified Unit=)
+# Wait x minutes (monotonic timer) between runs
+OnUnitInactiveSec=5min

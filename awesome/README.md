@@ -72,9 +72,10 @@ python -m unittest --failfast --verbose
 
 # Deployment
 
-see `install.sh`
+See `install.sh`
+
+The service is controlled using `systemd` and is defined in `databridge.service`. To view the timer status:
 
 ```bash
-sudo -u uflo /home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --error /home/uflo/logs/awesome-error.log --verbose --token /home/uflo/configs/awesome_token.txt
+systemctl list-timers --all
 ```
-

@@ -1,0 +1,14 @@
+# This systemd unit is used to control the data bridge service
+[Unit]
+Description=Data bridge from UFO to Awesome portal
+Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+User=uflo
+ExecStartPre=mkdir --parents /home/uflo/logs
+ExecStart=/home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --verbose --error /home/uflo/logs/awesome-error.log --info /home/uflo/logs/awesome.log --token /home/uflo/configs/awesome_token.txt
+# Don't restart because this service will be triggered on a schedule
+Restart=no
