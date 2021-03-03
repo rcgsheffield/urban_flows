@@ -1,4 +1,4 @@
-crontab -user uflo crontab.txt
+crontab -u uflo crontab.txt
 
 echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
