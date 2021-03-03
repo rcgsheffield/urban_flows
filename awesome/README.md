@@ -72,10 +72,15 @@ python -m unittest --failfast --verbose
 
 # Deployment
 
-See `install.sh`. Use `systemctl daemon-reload` to load any changes to `systemd` units.
+Use `install.sh` to copy the relevant files.
 
-The service is controlled using `systemd` and is defined in `databridge.service`. To view the timer status:
+The service is controlled using `systemd` and is defined in `databridge.service`. To control the timer:
 
 ```bash
+# load any changes to systemd units. 
+systemctl daemon-reload
+# Enable the timer
+systemctl enable databridge.timer
+# View all timers
 systemctl list-timers --all
 ```
