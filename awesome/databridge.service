@@ -12,3 +12,6 @@ ExecStartPre=mkdir --parents /home/uflo/logs
 ExecStart=/home/uflo/venv/bin/python /home/uflo/awesome/__main__.py --verbose --error /home/uflo/logs/awesome-error.log --info /home/uflo/logs/awesome.log --token /home/uflo/configs/awesome_token.txt
 # Don't restart because this service will be triggered on a schedule
 Restart=no
+
+[Install]
+WantedBy=multi-user.target

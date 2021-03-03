@@ -77,10 +77,10 @@ Use `install.sh` to copy the relevant files.
 The service is controlled using `systemd` and is defined in `databridge.service`. To control the timer:
 
 ```bash
-# load any changes to systemd units. 
-systemctl daemon-reload
+# load any changes to systemd units
+sudo systemctl daemon-reload
 # Enable the timer
-systemctl enable databridge.timer
+sudo systemctl enable databridge.timer
 # View all timers
 systemctl list-timers --all
 ```

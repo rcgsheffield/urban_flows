@@ -6,7 +6,3 @@ Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
 # This timer will target databridge.service by default (default for unspecified Unit=)
 # Wait x minutes (monotonic timer) between runs
 OnUnitInactiveSec=5min
-
-# Run when system is in normal runlevel
-[Install]
-WantedBy=multi-user.target
