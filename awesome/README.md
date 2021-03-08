@@ -58,7 +58,37 @@ The code to convert between object types is in `maps.py`.
 
 # Awesome API
 
-Readings by sensor `/sensors/{id}/readings`
+This API consists of Python objects that map to objects on the remote system.
+
+## HTTP session
+
+The remote system is accessed by establishing a HTTP session:
+
+```python
+import http_session
+
+session = http_session.PortalSession(token='My API access token')
+```
+
+This session is passed to the Python objects that inherit from `objects.AwesomeObject` that represent the classes of object on the remote system. These objects use this system to perform read/write operations on that database. See the Awesome API documentation for more details of these objects.
+
+To list all the objects of a certain type, pass the HTTP session to the `AwesomeObject.list` class method, which will generate an iterable collection of objects.
+
+```python
+import objects
+
+for sensor_type in objects.SensorType.list_iter(session):
+    pass
+```
+
+To retrieve the data for a single object, pass its identifier number into the constructor:
+
+```python
+sensor_type = objects.SensorType(1)
+data = sensor_type.get(session)
+```
+
+Some classes have behaviour specific to that type of object, such as `Sensor.add_sensor_category` etc.
 
 # Development
 
@@ -84,3 +114,4 @@ sudo systemctl enable databridge.timer
 # View all timers
 systemctl list-timers --all
 ```
+
