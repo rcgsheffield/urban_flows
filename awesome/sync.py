@@ -29,10 +29,18 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
     duplication.
+
+    :param session: HTTP session for Awesome portal
+    :param sensors: UFO sensors
+    :param awesome_sensors: Awesome portal sensors
+    :param reading_types: Awesome portal reading types
     """
     # Count the number of readings uploaded for all the sensors
     total_reading_count = 0
+
+    # Iterate over UFO sensors
     for sensor_name, sensor in sensors.items():
+
         # Count the number of readings uploaded per sensor
         reading_count = 0
 
@@ -48,13 +56,16 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
             start_time = utils.parse_timestamp(latest_awesome_reading['created'])
         # No timestamp found
         except TypeError:
-            # Default earliest time
+            # Default to earliest time
             start_time = settings.TIME_START
+
+        # Get all data up to the present time
+        end_time = datetime.datetime.now(datetime.timezone.utc)
 
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(
             sensors={sensor['name']},
-            time_period=[start_time, datetime.datetime.now(datetime.timezone.utc)]
+            time_period=[start_time, end_time]
         )
         readings = query()
 

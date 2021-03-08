@@ -17,6 +17,7 @@ import utils
 
 LOGGER = logging.getLogger(__name__)
 
+# http://ufdev.shef.ac.uk/uflobin/ufdexF1?aktion=json_META
 METADATA_URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 

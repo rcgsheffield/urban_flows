@@ -149,7 +149,10 @@ class Location(AwesomeObject):
 
 
 class Sensor(AwesomeObject):
-    """A Sensor represents a device which takes measurements/readings"""
+    """
+    A Sensor typically represents a physical device or "pod" which takes measurements/readings for a number of metrics
+    (social or natural phenomena). Usually this means multiple channels of quantitative, time-based data.
+    """
     edge = 'sensors'
 
     def add_sensor_category(self, session, sensor_category_id: int):
