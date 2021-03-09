@@ -12,13 +12,18 @@ import assets
 
 logger = logging.getLogger(__name__)
 
-if __name__ == '__main__':
 
-    # Command line args
+def get_args():
+    """
+    Command line arguments
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('-v', '--verbose', action='store_true')
-    args = parser.parse_args()
+    return parser.parse_args()
 
+
+if __name__ == '__main__':
+    args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
     sites, families, pairs, sensors = assets.get_metadata()
@@ -26,7 +31,7 @@ if __name__ == '__main__':
     # CSV output
     writer = None
 
-    for site in sites:
+    for site_id, site in sites.items():
 
         logger.debug(json.dumps(site))
 
@@ -34,7 +39,6 @@ if __name__ == '__main__':
         activity = site['activity'][-1]
         row = dict(
             name=site['name'],
-            site=site['site'],
             latitude=site['latitude'],
             longitude=site['longitude'],
             activity_stAdd=activity['stAdd'],

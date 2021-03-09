@@ -83,3 +83,12 @@ READING_TYPE_GROUPS = [
 FAMILY_RATING = dict(
     AMfixed=1,
 )
+
+# Urban Flows connection details
+# Hostname used for SSH connection
+HOST = 'ufdev.shef.ac.uk'
+# URL built using same host
+URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
+
+# yyyy-MM-dd HH:mm:ss
+AWESOME_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'

@@ -29,10 +29,7 @@ from typing import Iterable, Dict, Sequence, Set, Tuple
 import requests
 
 import settings
-
-# URL = 'http://uffront01.shef.ac.uk/uflobin/ufdex'
-HOST = 'ufdev.shef.ac.uk'
-URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
+from settings import HOST, URL
 
 LOGGER = logging.getLogger(__name__)
 

@@ -14,11 +14,9 @@ import arrow.parser
 
 import settings
 import utils
+from settings import URL
 
 LOGGER = logging.getLogger(__name__)
-
-# http://ufdev.shef.ac.uk/uflobin/ufdexF1?aktion=json_META
-METADATA_URL = 'http://ufdev.shef.ac.uk/uflobin/ufdexF1'
 
 
 class BookmarkMixin:
@@ -101,7 +99,7 @@ def _get_metadata() -> dict:
     The returned document has the following keys: dict_keys(['sites', 'families', 'pairs', 'sensors'])
     """
     with requests.Session() as session:
-        response = session.get(METADATA_URL, params=dict(aktion='json_META'))
+        response = session.get(URL, params=dict(aktion='json_META'))
         response.raise_for_status()
         metadata = response.json()
 

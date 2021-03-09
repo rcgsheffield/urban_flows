@@ -118,14 +118,14 @@ class Location(AwesomeObject):
     """A location represents a collection on sensors at set of co-ordinates."""
     edge = 'locations'
 
-    def readings(self, session, start: datetime.datetime, end: datetime.datetime, interval: datetime.timedelta):
+    def readings(self, session, from_: datetime.datetime, to: datetime.datetime, interval: datetime.timedelta):
         url = self.urljoin('readings')
         params = {
-            'to': start.isoformat(),
-            'from': end.isoformat(),
+            'from': Reading.strftime(from_),
+            'to': Reading.strftime(to),
             'interval': Reading.interval(interval)
         }
-        return session.get_iter(url, params=params)
+        return session.get(url, params=params)
 
     def readings_by_sensor(self, *args, **kwargs):
         return self.readings(*args, *kwargs)
@@ -252,18 +252,28 @@ class SensorCategory(AwesomeObject):
 
 
 class Reading(AwesomeObject):
-    """A reading represents a measurement taken by a Sensor/Device at a point in time."""
+    """
+    A reading represents a measurement taken by a Sensor/Device at a point in time.
+    """
     edge = 'readings'
 
     @staticmethod
+    def strftime(time: datetime.datetime) -> str:
+        return time.strftime(settings.AWESOME_DATE_FORMAT)
+
+    @staticmethod
     def interval(interval: datetime.timedelta) -> str:
-        """Convert time difference into a portal time interval e.g. '5m'"""
+        """
+        Convert time difference into a portal time interval in string format e.g. '5m'
+        """
         minutes = int(interval.total_seconds() / 60)
-        return '{}m'.format(minutes)
+        return '{minutes}m'.format(minutes=minutes)
 
     @classmethod
     def store_bulk(cls, session, readings) -> dict:
-        """Bulk Store up to 100 Readings"""
+        """
+        Bulk Store up to 100 Readings
+        """
         url = cls.build_url('bulk')
         try:
             return session.call(url, method='post', json=dict(readings=readings))
@@ -283,11 +293,11 @@ class Reading(AwesomeObject):
         )
 
     @classmethod
-    def delete_bulk(cls, session, start: datetime.datetime, end: datetime.datetime, reading_type_id: int):
+    def delete_bulk(cls, session, from_: datetime.datetime, to: datetime.datetime, reading_type_id: int):
         url = cls.build_url('bulk/delete')
         body = {
-            'from': start.isoformat(),
-            'to': end.isoformat(),
+            'from': cls.strftime(from_),
+            'to': cls.strftime(to),
             'reading_type_id': reading_type_id,
         }
         return session.post(url, json=body)
