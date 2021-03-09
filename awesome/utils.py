@@ -63,10 +63,11 @@ def add_handler(filename: pathlib.Path, level: int) -> logging.Handler:
 
 def configure_logging(verbose: bool = False, debug: bool = False, error: pathlib.Path = None,
                       info: pathlib.Path = None):
-    logging.basicConfig(level=logging.DEBUG if debug else logging.INFO if verbose else logging.WARN, **settings.LOGGING)
+    level = logging.DEBUG if debug else logging.INFO if verbose else logging.WARN
+    logging.basicConfig(level=level, **settings.LOGGING)
 
     if error:
-        add_handler(filename=error, level=logging.WARNING)
+        add_handler(filename=error, level=logging.ERROR)
 
     if info:
-        add_handler(filename=info, level=logging.INFO)
+        add_handler(filename=info, level=level)
