@@ -2,10 +2,13 @@ import pathlib
 import logging
 import itertools
 import datetime
+import sys
 
 import arrow
 
 import settings
+
+LOGGER = logging.getLogger(__name__)
 
 
 def parse_timestamp(timestamp: str) -> datetime.datetime:
@@ -61,8 +64,8 @@ def add_handler(filename: pathlib.Path, level: int) -> logging.Handler:
     return handler
 
 
-def configure_logging(verbose: bool = False, debug: bool = False, error: pathlib.Path = None,
-                      info: pathlib.Path = None):
+def configure_logging(verbose: bool = False, debug: bool = False,
+                      error: pathlib.Path = None, info: pathlib.Path = None):
     level = logging.DEBUG if debug else logging.INFO if verbose else logging.WARN
     logging.basicConfig(level=level, **settings.LOGGING)
 
@@ -71,3 +74,21 @@ def configure_logging(verbose: bool = False, debug: bool = False, error: pathlib
 
     if info:
         add_handler(filename=info, level=level)
+
+    # Log uncaught exceptions
+    sys.excepthook = handle_exception
+
+
+def handle_exception(exc_type, exc_value, exc_traceback):
+    """
+    Log exceptions
+    """
+    # Origin: https://stackoverflow.com/a/16993115/8634200
+
+    # Don't log keyboard interrupts
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+
+    LOGGER.exception("Uncaught exception",
+                     exc_info=(exc_type, exc_value, exc_traceback))

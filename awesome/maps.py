@@ -6,7 +6,7 @@ import logging
 import datetime
 from typing import List, Mapping
 
-import pandas
+#import pandas
 
 import objects
 import settings
@@ -33,20 +33,20 @@ def site_to_location(site: dict) -> dict:
     )
 
 
-def sensor_latest_deployment(sensor: dict) -> dict:
+def sensor_latest_deployment(sensor: Mapping) -> dict:
     """
     Get latest site deployment
     """
 
     # Sort by deployment date (ascending)
-    pairs = sorted(sensor['attachedTo'], key=lambda p: p['from'])
+    pairs = sorted(sensor['attachedTo'], key=lambda _pair: _pair['from'])
 
     pair = pairs[0]
 
     return pair
 
 
-def sensor_to_sensor(sensor: dict, locations: dict) -> dict:
+def sensor_to_sensor(sensor: Mapping, locations: Mapping) -> dict:
     """
     Map an Urban Flows sensor to an Awesome sensor
     """

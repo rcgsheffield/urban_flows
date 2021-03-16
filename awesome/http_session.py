@@ -49,8 +49,8 @@ class PortalSession(requests.Session):
 
         # Log HTTP error codes
         except requests.HTTPError as exc:
-            LOGGER.error(response.headers)
-            LOGGER.error(response.text)
+            LOGGER.error(exc.response.headeres)
+            LOGGER.error(exc.response.text)
             raise
 
         return response
@@ -63,8 +63,8 @@ class PortalSession(requests.Session):
             return response.json()
 
         # Log invalid JSON responses
-        except json.JSONDecodeError as e:
-            LOGGER.error(e)
+        except json.JSONDecodeError as exc:
+            LOGGER.error(exc)
             LOGGER.error(response.text)
             raise
 

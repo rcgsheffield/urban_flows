@@ -24,7 +24,8 @@ LOGGER = logging.getLogger(__name__)
 Path = Union[pathlib.Path, str]
 
 
-def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_types: Mapping):
+def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
+                  reading_types: Mapping):
     """
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
@@ -46,14 +47,18 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
 
         awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
-        LOGGER.info("Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s", sensor['name'], awesome_sensor_id)
+        LOGGER.info(
+            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s",
+            sensor['name'], awesome_sensor_id)
 
         # Get the most recent reading for this sensor on the remote database
-        latest_awesome_reading = objects.Sensor(awesome_sensor_id).latest_reading(session)
+        latest_awesome_reading = objects.Sensor(
+            awesome_sensor_id).latest_reading(session)
 
         # Start syncing after the time of this most recent data point
         try:
-            start_time = utils.parse_timestamp(latest_awesome_reading['created'])
+            start_time = utils.parse_timestamp(
+                latest_awesome_reading['created'])
         # No timestamp found
         except TypeError:
             # Default to earliest time
@@ -70,13 +75,19 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
         readings = query()
 
         # Convert from UFO readings to Awesome readings
-        readings = (maps.reading_to_reading(reading, reading_types=reading_types, awesome_sensors=awesome_sensors) for
-                    reading in readings)
+        readings = (
+            maps.reading_to_reading(reading, reading_types=reading_types,
+                                    awesome_sensors=awesome_sensors)
+            for reading in readings
+        )
 
         # TODO filter null readings?
 
-        # Iterate over data chunks because the Awesome portal API accepts a maximum number of rows per call.
-        for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+        # Iterate over data chunks because the Awesome portal API accepts a
+        # maximum number of rows per call.
+        for chunk in utils.iter_chunks(
+                readings,
+                chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
             if chunk:
                 # Loop to retry if rate limit exceeded
                 while True:
@@ -88,21 +99,27 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping, reading_t
                         break
                     # HTTP error
                     except requests.HTTPError as exc:
-                        # HTTP status code 429 too many requests (server-side rate limit)
+                        # HTTP status code 429 too many requests
+                        # (server-side rate limit)
                         if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
-                            # Wait until the system is ready to accept further requests
-                            time.sleep(int(exc.response.headers['retry-after']))  # seconds
+                            # Wait until the system is ready to accept
+                            # further requests
+                            retry_after = int(
+                                exc.response.headers['retry-after'])
+                            time.sleep(retry_after)  # seconds
                         else:
                             raise
 
                 reading_count += len(chunk)
 
-        LOGGER.info('synced %s readings for sensor "%s"', reading_count, sensor_name)
+        LOGGER.info('synced %s readings for sensor "%s"', reading_count,
+                    sensor_name)
         total_reading_count += reading_count
     LOGGER.info("synced %s readings")
 
 
-def sync_sites(session: http_session.PortalSession, sites: Mapping, locations: Mapping):
+def sync_sites(session: http_session.PortalSession, sites: Mapping,
+               locations: MutableMapping):
     """
     Convert UFO sites into Awesome locations.
 
@@ -130,7 +147,8 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping, locations: M
             locations[new_location['name']] = new_location['id']
 
 
-def sync_sensors(session: http_session.PortalSession, sensors: Mapping, awesome_sensors: Mapping, locations: Mapping):
+def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
+                 awesome_sensors: MutableMapping, locations: Mapping):
     """
     Either update (if changed) or create a new Awesome sensor for each Urban Flows sensor. For each sensor, if no
     changes have been made to the UFO sensor metadata then do nothing.
@@ -171,8 +189,10 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping, awesome_
             sen.update(session, local_sensor)
 
 
-def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, reading_types: MutableMapping,
-                       remote_reading_category_ids: Mapping, reading_type_groups: list):
+def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
+                       reading_types: MutableMapping,
+                       remote_reading_category_ids: Mapping,
+                       reading_type_groups: list):
     """
     Map local Urban Flows Observatory "detectors" to remote "reading types" on the Awesome Portal.
 
@@ -213,28 +233,34 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping, 
 
         # Reading categories
         try:
-            remote_reading_category_ids = {rc['id'] for rc in reading_type.get(session)['reading_categories']}
+            remote_reading_category_ids = {rc['id'] for rc in
+                                           reading_type.get(session)[
+                                               'reading_categories']}
         except KeyError:
             LOGGER.error(reading_type.get(session))
             raise
 
         try:
-            local_reading_category_ids = reading_type_name_to_category_ids[detector_name]
+            local_reading_category_ids = reading_type_name_to_category_ids[
+                detector_name]
 
         # No reading categories are configured for this reading type
         except KeyError:
             continue
 
         # Add new reading categories to this reading type
-        for reading_category_id in set(local_reading_category_ids) - set(remote_reading_category_ids):
+        for reading_category_id in set(local_reading_category_ids) - set(
+                remote_reading_category_ids):
             reading_type.add_reading_category(session, reading_category_id)
 
         # Remove deleted items
-        for reading_category_id in set(remote_reading_category_ids) - set(local_reading_category_ids):
+        for reading_category_id in set(remote_reading_category_ids) - set(
+                local_reading_category_ids):
             reading_type.remove_reading_category(session, reading_category_id)
 
 
-def sync_reading_categories(session, reading_categories: Mapping, reading_type_groups: list):
+def sync_reading_categories(session, reading_categories: MutableMapping,
+                            reading_type_groups: list):
     """
     Sync reading categories (e.g. "Air Quality" is a category containing reading types PM 1, PM 2.5, PM 10.)
 
@@ -248,7 +274,8 @@ def sync_reading_categories(session, reading_categories: Mapping, reading_type_g
         # Case insensitive
         read_cat['name'] = read_cat['name'].upper()
 
-        local_reading_category = objects.ReadingCategory.new(name=read_cat['name'], icon_name=read_cat['icon_name'])
+        local_reading_category = objects.ReadingCategory.new(
+            name=read_cat['name'], icon_name=read_cat['icon_name'])
 
         try:
             # Update existing reading category
@@ -262,7 +289,8 @@ def sync_reading_categories(session, reading_categories: Mapping, reading_type_g
 
             # Update record in memory to keep track of newly-created objects
             new_reading_category = body['data']
-            reading_categories[new_reading_category['name']] = new_reading_category['id']
+            reading_categories[new_reading_category['name']] = \
+                new_reading_category['id']
 
 
 def get_urban_flows_metadata() -> tuple:
@@ -275,8 +303,10 @@ def get_urban_flows_metadata() -> tuple:
     return sites, families, pairs, sensors, detectors
 
 
-def build_awesome_object_map(session: http_session.PortalSession, cls: Type[objects.AwesomeObject]) -> MutableMapping[
-    str, dict]:
+def build_awesome_object_map(session: http_session.PortalSession,
+                             cls: Type[objects.AwesomeObject]) -> \
+        MutableMapping[
+            str, dict]:
     """
     Map Awesome object names (case insensitive) to the object data
     """
@@ -328,26 +358,31 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
-        LOGGER.info("Site %s AQI readings. Latest timestamp %s", site['name'], bookmark)
+        LOGGER.info("Site %s AQI readings. Latest timestamp %s", site['name'],
+                    bookmark)
 
-        data = aqi.operations.get_urban_flows_data(site_id=site['name'], start=bookmark)
+        data = aqi.operations.get_urban_flows_data(site_id=site['name'],
+                                                   start=bookmark)
 
         # Skip missing data
         if data.empty:
             continue
 
-        air_quality_index = aqi.operations.calculate_air_quality(data)['air_quality_index'].dropna()
+        air_quality_index = aqi.operations.calculate_air_quality(data)[
+            'air_quality_index'].dropna()
 
         if air_quality_index.empty:
             continue
 
         location = locations[site['name']]
 
-        readings = maps.aqi_readings(air_quality_index, aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
+        readings = maps.aqi_readings(air_quality_index,
+                                     aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
                                      location_id=location['id'])
 
         # Sync readings (The aqi readings input must have between 1 and 100 items.)
-        for chunk in utils.iter_chunks(readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+        for chunk in utils.iter_chunks(readings,
+                                       chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
             objects.AQIReading.store_bulk(session, aqi_readings=chunk)
 
         # Update bookmark on success
@@ -356,7 +391,8 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
             site_obj.latest_timestamp = new_timestamp.to_pydatetime()
 
 
-def sync_families(session, families: Mapping[str, dict], sensor_types: MutableMapping[str, dict]):
+def sync_families(session, families: Mapping[str, dict],
+                  sensor_types: MutableMapping[str, dict]):
     """
     Synchronise UFO sensor families to Awesome sensor types.
 
@@ -368,20 +404,23 @@ def sync_families(session, families: Mapping[str, dict], sensor_types: MutableMa
     for family_name, family in families.items():
         LOGGER.debug("Syncing family '%s'", family_name)
 
-        sensor_type = objects.SensorType.new(**maps.family_to_sensor_type(family_name=family_name))
+        sensor_type = objects.SensorType.new(
+            **maps.family_to_sensor_type(family_name=family_name))
 
         if family_name not in sensor_types:
 
             try:
                 remote_sensor_type = sensor_types[family_name.upper()]
                 # Update existing sensor type
-                response = objects.SensorType(remote_sensor_type['id']).update(session, sensor_type)
+                response = objects.SensorType(remote_sensor_type['id']).update(
+                    session, sensor_type)
                 new_sensor_type = response.json()['data']
                 LOGGER.debug("Updated sensor type %s", new_sensor_type)
 
             except KeyError:
                 # Add new item
-                new_sensor_type = objects.SensorType.add(session, sensor_type)['data']
+                new_sensor_type = objects.SensorType.add(session, sensor_type)[
+                    'data']
                 LOGGER.info("Added sensor type %s", new_sensor_type)
 
             # Update record to keep track of newly-created objects
