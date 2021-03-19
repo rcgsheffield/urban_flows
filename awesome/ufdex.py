@@ -108,17 +108,20 @@ class UrbanFlowsQuery:
     def format_timestamp(cls, t: datetime.datetime) -> str:
         return t.replace(microsecond=0).strftime(cls.TIME_FORMAT)
 
-    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[
-        Tuple[datetime.datetime]]:
+    @staticmethod
+    def generate_time_periods(start: datetime.datetime,
+                              end: datetime.datetime,
+                              freq: datetime.timedelta) -> \
+            Iterable[Tuple[datetime.datetime]]:
         """
         Break the time period into chunks of size `freq`
         """
-        start, end = self.time_period
+
         t0, t1 = start, start + freq
 
         while True:
 
-            if t1 > end:
+            if t1 >= end:
                 yield t0, end
                 break
             else:
@@ -127,11 +130,17 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
+    @property
+    def time_periods(self):
+        start, end = self.time_period
+        yield from self.generate_time_periods(
+            start=start, end=end,
+            freq=settings.URBAN_FlOWS_TIME_CHUNK)
+
     def stream(self, use_ssh: bool = False, **kwargs) -> Iterable[str]:
         """Retrieve raw data over HTTP"""
 
-        for start, end in self.generate_time_periods(
-                freq=settings.URBAN_FlOWS_TIME_CHUNK):
+        for start, end in self.time_periods:
 
             # Prepare query parameters
             params = dict(

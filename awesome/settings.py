@@ -16,18 +16,20 @@ LOGGING = dict(
     format="%(levelname)s %(asctime)s %(filename)s:%(lineno)d %(message)s",
 )
 
-# The maximum number of readings to upload at once to /api/reading/bulk. The limit is 100.
+# The maximum number of readings to upload at once to /api/reading/bulk.
+# The limit is 100.
 BULK_READINGS_CHUNK_SIZE = 100
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
 URBAN_FlOWS_TIME_CHUNK = datetime.timedelta(days=31)
 
-# Assume there's only one AQI standard that has this identifier on the remote server
+# Assume there's only one AQI standard that has this identifier on the remote
+# server
 AWESOME_AQI_STANDARD_ID = 62
 
-# Air quality standards configuration. By default, the first item in this list will be used and any others will be
-# ignored.
+# Air quality standards configuration. By default, the first item in this list
+# will be used and any others will be ignored.
 AQI_STANDARDS = [
     {
         "name": "Daily Air Quality Index",
