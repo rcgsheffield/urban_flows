@@ -49,7 +49,8 @@ class UrbanFlowsQuery:
         'int': int,
     }
 
-    def __init__(self, time_period: Sequence[datetime.datetime], site_ids: Set[str] = None,
+    def __init__(self, time_period: Sequence[datetime.datetime],
+                 site_ids: Set[str] = None,
                  sensors: Set[str] = None, families: Set[str] = None):
         """
         :param time_period: tuple[datetime, datetime]
@@ -67,7 +68,7 @@ class UrbanFlowsQuery:
             reading = self.transform(reading)
 
             # Filter nulls
-            if reading['value'] == float():
+            if reading['value'] is None:
                 null_count += 1
                 continue
 
@@ -75,7 +76,8 @@ class UrbanFlowsQuery:
 
             reading_count += 1
 
-        LOGGER.info("Generated %s readings (removed %s nulls)", reading_count, null_count)
+        LOGGER.info("Generated %s readings (after removing %s nulls)",
+                    reading_count, null_count)
 
     @property
     def time_period(self):
@@ -91,7 +93,8 @@ class UrbanFlowsQuery:
         if time_period[1] < time_period[0]:
             raise ValueError('End time before start time')
 
-        self._time_period = tuple((t.replace(microsecond=0) for t in time_period))
+        self._time_period = tuple(
+            (t.replace(microsecond=0) for t in time_period))
 
     @property
     def time_from(self) -> str:
@@ -105,7 +108,8 @@ class UrbanFlowsQuery:
     def format_timestamp(cls, t: datetime.datetime) -> str:
         return t.replace(microsecond=0).strftime(cls.TIME_FORMAT)
 
-    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[Tuple[datetime.datetime]]:
+    def generate_time_periods(self, freq: datetime.timedelta) -> Iterable[
+        Tuple[datetime.datetime]]:
         """
         Break the time period into chunks of size `freq`
         """
@@ -123,10 +127,11 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    def stream(self, use_ssh: bool = False) -> Iterable[str]:
+    def stream(self, use_ssh: bool = False, **kwargs) -> Iterable[str]:
         """Retrieve raw data over HTTP"""
 
-        for start, end in self.generate_time_periods(freq=settings.URBAN_FlOWS_TIME_CHUNK):
+        for start, end in self.generate_time_periods(
+                freq=settings.URBAN_FlOWS_TIME_CHUNK):
 
             # Prepare query parameters
             params = dict(
@@ -137,7 +142,8 @@ class UrbanFlowsQuery:
                 tok='generic',
             )
 
-            # Build filters via HTTP query parameters e.g. "byFamily=AMfixed,luftdaten"
+            # Build filters via HTTP query parameters
+            # e.g. "byFamily=AMfixed,luftdaten"
             filters = {
                 'bySensor': self.sensors,
                 'bySite': self.site_ids,
@@ -148,33 +154,35 @@ class UrbanFlowsQuery:
                     params[query] = ','.join(values)
 
             if use_ssh:
-                yield from self.stream_ssh(params=params)
+                func = self.stream_ssh
             else:
-                yield from self.stream_http(params=params)
+                func = self.stream_http
+            yield from func(params=params, **kwargs)
 
     @staticmethod
     def stream_http(**kwargs) -> Iterable[str]:
         with requests.Session() as session:
             # Streaming Requests
-            # https://requests.readthedocs.io/en/master/user/advanced/#streaming-requests
-            response = session.get(URL, stream=True, **kwargs)
+            with session.get(URL, stream=True, **kwargs) as response:
 
-            # Raise HTTP errors
-            try:
-                response.raise_for_status()
-            except requests.HTTPError:
-                LOGGER.error(response.text)
-                raise
+                # Raise HTTP errors
+                try:
+                    response.raise_for_status()
+                except requests.HTTPError:
+                    LOGGER.error(response.text)
+                    raise
 
-            # Provide a fallback encoding in the event the server doesn't provide one
-            if not response.encoding:
-                response.encoding = 'utf-8'
+                # Provide a fallback encoding in the event the server doesn't
+                # provide one
+                if not response.encoding:
+                    response.encoding = 'utf-8'
 
-            # Generate lines of data
-            yield from response.iter_lines(decode_unicode=True)
+                # Generate lines of data
+                yield from response.iter_lines(decode_unicode=True)
 
     @staticmethod
-    def readlines(data: Iterable[bytes], sep: str = '\n', encoding: str = 'utf-8') -> Iterable[str]:
+    def readlines(data: Iterable[bytes], sep: str = '\n',
+                  encoding: str = 'utf-8') -> Iterable[str]:
         """
         Read a stream of bytes and yield one string per line
         """
@@ -183,7 +191,8 @@ class UrbanFlowsQuery:
 
         # Iterate over chunks of binary data
         for chunk in data:
-            # Decode chunk of data into a string, which may contain line break(s)
+            # Decode chunk of data into a string, which may contain
+            # line break(s)
             # Iterate over characters
             for c in chunk.decode(encoding):
                 # Is this a line break?
@@ -197,7 +206,8 @@ class UrbanFlowsQuery:
                     # Concatenate character onto the string
                     line += c
 
-        # Yield the last line if anything remains in the buffer and no finishing line break was found
+        # Yield the last line if anything remains in the buffer and no
+        # finishing line break was found
         if line:
             yield line
 
@@ -210,7 +220,8 @@ class UrbanFlowsQuery:
         # Quiet output
         params['unittest'] = 's'
         # Generate arguments for command-line version of udex
-        args = ' '.join(("'{}={}'".format(key, value) for key, value in params.items()))
+        args = ' '.join(
+            ("'{}={}'".format(key, value) for key, value in params.items()))
 
         LOGGER.debug(args)
 
@@ -220,7 +231,8 @@ class UrbanFlowsQuery:
 
         username = input('Enter username for {host}: '.format(host=HOST))
         with remote.RemoteHost(host=HOST, username=username) as remote_host:
-            yield from UrbanFlowsQuery.readlines((remote_host.execute(command)))
+            yield from UrbanFlowsQuery.readlines(
+                (remote_host.execute(command)))
 
     @staticmethod
     def parse(lines: Iterable[str]) -> Iterable[Dict]:
@@ -266,13 +278,16 @@ class UrbanFlowsQuery:
                     # Skip "Column_n"
                     col_labels = line[2:].split(' / ')[1:]
 
-                    columns.append(dict(itertools.zip_longest(col_desc, col_labels)))
+                    columns.append(
+                        dict(itertools.zip_longest(col_desc, col_labels)))
 
                 elif line.startswith('# End CSV table'):
 
                     # Check row count
                     if n_rows != number_of_points:
-                        raise ValueError('Unexpected row count, expected %s but got %s' % number_of_points, n_rows)
+                        raise ValueError(
+                            'Unexpected row count, expected %s but got %s' % number_of_points,
+                            n_rows)
 
                 # Other metadata
                 elif line.startswith('# sensor') or line.startswith('# site'):
@@ -325,7 +340,8 @@ class UrbanFlowsQuery:
         try:
             reading['value'] = data_type(reading['value'])
             reading['no-data-value'] = data_type(reading['no-data-value'])
-            reading['time'] = datetime.datetime.utcfromtimestamp(int(reading['time']))
+            reading['time'] = datetime.datetime.utcfromtimestamp(
+                int(reading['time']))
         except (TypeError, ValueError):
             LOGGER.error(data_type)
             LOGGER.error(reading)
@@ -334,7 +350,15 @@ class UrbanFlowsQuery:
         return reading
 
     @classmethod
+    def convert_null(cls, reading: dict) -> dict:
+        if reading['value'] == reading['no-data-value']:
+            reading['value'] = None
+        return reading
+
+    @classmethod
     def transform(cls, reading: dict) -> dict:
+
         reading = cls.parse_data_types(reading)
+        reading = cls.convert_null(reading)
 
         return reading
