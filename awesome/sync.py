@@ -26,6 +26,7 @@ Path = Union[pathlib.Path, str]
 
 def sync_readings(session, families: Mapping[str, dict],
                   awesome_sensors: Mapping, reading_types: Mapping,
+                  start_time: datetime.datetime = None,
                   end_time: datetime.datetime = None):
     """
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
@@ -36,6 +37,7 @@ def sync_readings(session, families: Mapping[str, dict],
     :param families: UFO families, key-value pairs of family names and metadata
     :param awesome_sensors: Awesome portal sensors
     :param reading_types: Awesome portal reading types
+    :param start_time: Retrieve data created since this time
     :param end_time: Retrieve data up until this time
     """
     # Get all data up to the present time (when this function first runs)
@@ -73,7 +75,7 @@ def sync_readings(session, families: Mapping[str, dict],
 
         # Begin where we left off, or go back to the beginning of time
         start_time = assets.Family(
-            family_name).latest_timestamp or settings.TIME_START
+            family_name).latest_timestamp or start_time or settings.TIME_START
 
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(families={family_name},

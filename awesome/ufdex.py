@@ -24,7 +24,7 @@ Usage:
 import datetime
 import itertools
 import logging
-from typing import Iterable, Dict, Sequence, Set, Tuple
+from typing import Iterable, Dict, List, Sequence, Set, Tuple
 
 import requests
 
@@ -50,16 +50,20 @@ class UrbanFlowsQuery:
     }
 
     def __init__(self, time_period: Sequence[datetime.datetime],
-                 site_ids: Set[str] = None,
-                 sensors: Set[str] = None, families: Set[str] = None):
+                 site_ids: Set[str] = None, sensors: Set[str] = None,
+                 families: Set[str] = None, freq: datetime.timedelta = None):
         """
         :param time_period: tuple[datetime, datetime]
         :param site_ids: Filter locations
+        :param sensors: UFO sensor ids
+        :param families: UFO sensor family names
+        :param freq: Query chunk size
         """
         self.time_period = time_period
         self.site_ids = set(site_ids or set())
         self.sensors = set(sensors or set())
         self.families = set(families or set())
+        self.freq = freq or settings.URBAN_FlOWS_TIME_CHUNK
 
     def __call__(self, *args, **kwargs):
         reading_count = 0
@@ -135,7 +139,7 @@ class UrbanFlowsQuery:
         start, end = self.time_period
         yield from self.generate_time_periods(
             start=start, end=end,
-            freq=settings.URBAN_FlOWS_TIME_CHUNK)
+            freq=self.freq)
 
     def stream(self, **kwargs) -> Iterable[str]:
         """
@@ -219,18 +223,20 @@ class UrbanFlowsQuery:
             yield line
 
     @staticmethod
-    def parse(lines: Iterable[str]) -> Iterable[Dict]:
+    def parse(lines: Iterable[str]) -> Iterable[dict]:
         """
         Process raw data and generate one dictionary per reading
         """
         # Count the total number of tables retrieved to validate
-        table_count = 0  # current progress
-        total_table_count = None
+        table_count = 0
+        total_table_count = 0
+        col_desc = tuple()  # type: Tuple[str]
 
         # One item for each column
-        columns = list()
-        meta = dict()
-        n_rows = 0
+        columns = list()  # type: List[dict]
+        meta = dict()  # type: Dict[str,str]
+        row_count = 0
+        number_of_points = 0
 
         for line in lines:
 
@@ -243,6 +249,8 @@ class UrbanFlowsQuery:
 
                 if line.startswith('# Number of tables shown'):
                     total_table_count = int(line[26:])
+                    # Reset counter
+                    table_count = 0
 
                 # New data set for each sensor
                 elif line.startswith('# Begin CSV table'):
@@ -251,23 +259,20 @@ class UrbanFlowsQuery:
                     # Reset variables
                     meta = dict()
                     columns = list()
-                    number_of_points = None
-                    n_rows = 0
+                    number_of_points = 0
+                    row_count = 0
 
+                # Expected total row count
                 elif line.startswith('# number of points:'):
                     number_of_points = int(line.partition(': ')[2])
 
-                # ColDescription: name / units / UCD / description / type / no-data-value
+                # Column descriptions
                 elif line.startswith('# ColDescription'):
                     _, _, desc_str = line.partition(':')
                     col_desc = tuple((s.strip() for s in desc_str.split('/')))
 
                 # Get column meta-data
                 elif line.startswith('# Column_'):
-                    # Column_1 / data.time / s / TIME_UTC_UNIX / Time in seconds since 1970.0, or UNIX time / utime / -32768
-                    # Column_2 / data.sensor /  / ID_MAIN / Sensor ID (numerical values) / int / -32768
-                    # Column_3 / data.CO / ppm / AQ_CO / Carbon Monoxide / float / -32768
-
                     # Skip "Column_n"
                     col_labels = line[2:].split(' / ')[1:]
 
@@ -277,36 +282,39 @@ class UrbanFlowsQuery:
                 elif line.startswith('# End CSV table'):
 
                     # Check row count
-                    if n_rows != number_of_points:
-                        raise ValueError(
-                            'Unexpected row count, expected %s but got %s' % number_of_points,
-                            n_rows)
+                    if row_count != number_of_points:
+                        msg = 'Unexpected row count, expected {}' \
+                              ' but got {}'.format(number_of_points, row_count)
+                        raise ValueError(msg)
 
                 # Other metadata
                 elif line.startswith('# sensor') or line.startswith('# site'):
                     key, _, value = line[2:].partition(': ')
                     meta[key] = value
 
+            # Skip HTML
+            elif line.startswith('<'):
+                continue
+
             # Skip blank lines
             elif line:
+                # Parse a row of data
+                row_count += 1
                 time = None
-
-                # Skip HTML
-                if line.startswith('<'):
-                    continue
 
                 # Build dictionary
                 values = line.split(',')
 
                 # Check column count
                 if len(values) != len(columns):
-                    for col in columns:
-                        LOGGER.error(col)
+                    LOGGER.error(columns)
                     LOGGER.error(values)
                     raise ValueError('Unexpected number of data values')
 
-                for i, value in enumerate(values):
-                    reading = columns[i].copy()
+                # Generate a reading for each value on this row
+                for column, value in zip(columns, values):
+                    # Build dimensions
+                    reading = column.copy()
                     reading.update(meta)
                     reading['value'] = value
 
@@ -315,14 +323,13 @@ class UrbanFlowsQuery:
                     elif reading['name'] == 'data.sensor':
                         pass
                     else:
-                        assert time
+                        if not time:
+                            raise ValueError('time is %s' % time)
                         reading['time'] = time
                         yield reading
 
-                n_rows += 1
-
-        LOGGER.info("Retrieved %s rows", n_rows)
         LOGGER.info("Retrieved %s tables", table_count)
+        LOGGER.info("Retrieved %s rows", row_count)
 
         if table_count != total_table_count:
             raise ValueError('Unexpected table count')
@@ -383,7 +390,9 @@ class UrbanFlowsQuerySSH(UrbanFlowsQuery):
         LOGGER.debug(args)
 
         # Example command:
-        # /home/uflo/www/cgi-bin/ufdexF1 'Tfrom=2021-01-07T09:39:57' 'Tto=2021-01-07T12:39:57' 'aktion=json_META' 'freqInMin=5' 'tok=generic' 'unittest=s'
+        # /home/uflo/www/cgi-bin/ufdexF1 'Tfrom=2021-01-07T09:39:57'
+        # 'Tto=2021-01-07T12:39:57' 'aktion=json_META' 'freqInMin=5'
+        # 'tok=generic' 'unittest=s'
         command = '/home/uflo/www/cgi-bin/ufdexF1 {args}'.format(args=args)
 
         username = input('Enter username for {host}: '.format(host=HOST))

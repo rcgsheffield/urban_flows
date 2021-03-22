@@ -28,6 +28,10 @@ def get_args():
     parser.add_argument('-t', '--token', type=pathlib.Path,
                         help='Path of file containing access token',
                         default=settings.DEFAULT_TOKEN_PATH)
+    parser.add_argument('-s', '--start', type=utils.parse_timestamp,
+                        help='Earliest time to sync from')
+    parser.add_argument('-n', '--end', type=utils.parse_timestamp,
+                        help='Late time to sync to')
 
     return parser.parse_args()
 

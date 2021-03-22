@@ -12,11 +12,11 @@ class UrbanFlowsDataExtractorTestCase(unittest.TestCase):
         logging.basicConfig(level=logging.WARNING)
         now = datetime.datetime.now()
         self.query = ufdex.UrbanFlowsQuery(
-            time_period=[now - datetime.timedelta(days=2), now, ],
+            time_period=[now - datetime.timedelta(days=1), now],
             sensors={'20926'})
 
     def test_query(self):
-        for row in self.query(use_http=True):
+        for row in self.query():
             LOGGER.debug(row)
 
     def test_time_periods(self):
@@ -26,9 +26,8 @@ class UrbanFlowsDataExtractorTestCase(unittest.TestCase):
         end = start + n_periods * freq
 
         time_period_count = 0
-        for t0, t1 in ufdex.UrbanFlowsQuery.generate_time_periods(start=start,
-                                                                  end=end,
-                                                                  freq=freq):
+        for t0, t1 in ufdex.UrbanFlowsQuery.generate_time_periods(
+                start=start, end=end, freq=freq):
             time_period_count += 1
             LOGGER.debug("%s %s", t0, t1)
 

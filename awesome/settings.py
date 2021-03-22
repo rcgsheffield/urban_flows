@@ -1,7 +1,10 @@
 import datetime
 import pathlib
+import os
 
-from settings_local import *
+import settings_local
+
+BASE_URL = os.getenv('AWESOME_BASE_URL', settings_local.BASE_URL)
 
 # Authentication token
 CONFIG_PATH = pathlib.Path.home().joinpath('configs')
@@ -23,7 +26,8 @@ BULK_READINGS_CHUNK_SIZE = 100
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
-URBAN_FlOWS_TIME_CHUNK = datetime.timedelta(days=31)
+# UFO data is partitioned on disk by family and day
+URBAN_FlOWS_TIME_CHUNK = datetime.timedelta(days=1)
 
 # Assume there's only one AQI standard that has this identifier on the remote
 # server
