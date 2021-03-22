@@ -61,10 +61,10 @@ class UrbanFlowsQuery:
         self.sensors = set(sensors or set())
         self.families = set(families or set())
 
-    def __call__(self, *args, use_ssh: bool = False, **kwargs):
+    def __call__(self, *args, **kwargs):
         reading_count = 0
         null_count = 0
-        for reading in self.parse(self.stream(use_ssh=use_ssh)):
+        for reading in self.parse(self.stream()):
             reading = self.transform(reading)
 
             # Filter nulls
@@ -137,8 +137,10 @@ class UrbanFlowsQuery:
             start=start, end=end,
             freq=settings.URBAN_FlOWS_TIME_CHUNK)
 
-    def stream(self, use_ssh: bool = False, **kwargs) -> Iterable[str]:
-        """Retrieve raw data over HTTP"""
+    def stream(self, **kwargs) -> Iterable[str]:
+        """
+        Retrieve raw data over HTTP
+        """
 
         for start, end in self.time_periods:
 
@@ -162,14 +164,10 @@ class UrbanFlowsQuery:
                 if values:
                     params[query] = ','.join(values)
 
-            if use_ssh:
-                func = self.stream_ssh
-            else:
-                func = self.stream_http
-            yield from func(params=params, **kwargs)
+            yield from self._stream(params=params, **kwargs)
 
     @staticmethod
-    def stream_http(**kwargs) -> Iterable[str]:
+    def _stream(**kwargs) -> Iterable[str]:
         with requests.Session() as session:
             # Streaming Requests
             with session.get(URL, stream=True, **kwargs) as response:
@@ -221,33 +219,14 @@ class UrbanFlowsQuery:
             yield line
 
     @staticmethod
-    def stream_ssh(*args, params: dict = None, **kwargs) -> iter:
-        # Import here so dependencies aren't mandatory
-        import remote
-
-        params = params or dict()
-        # Quiet output
-        params['unittest'] = 's'
-        # Generate arguments for command-line version of udex
-        args = ' '.join(
-            ("'{}={}'".format(key, value) for key, value in params.items()))
-
-        LOGGER.debug(args)
-
-        # Example command:
-        # /home/uflo/www/cgi-bin/ufdexF1 'Tfrom=2021-01-07T09:39:57' 'Tto=2021-01-07T12:39:57' 'aktion=json_META' 'freqInMin=5' 'tok=generic' 'unittest=s'
-        command = '/home/uflo/www/cgi-bin/ufdexF1 {args}'.format(args=args)
-
-        username = input('Enter username for {host}: '.format(host=HOST))
-        with remote.RemoteHost(host=HOST, username=username) as remote_host:
-            yield from UrbanFlowsQuery.readlines(
-                (remote_host.execute(command)))
-
-    @staticmethod
     def parse(lines: Iterable[str]) -> Iterable[Dict]:
         """
         Process raw data and generate one dictionary per reading
         """
+        # Count the total number of tables retrieved to validate
+        table_count = 0  # current progress
+        total_table_count = None
+
         # One item for each column
         columns = list()
         meta = dict()
@@ -262,8 +241,13 @@ class UrbanFlowsQuery:
             # Metadata comments
             if line.startswith('#'):
 
+                if line.startswith('# Number of tables shown'):
+                    total_table_count = int(line[26:])
+
                 # New data set for each sensor
-                if line.startswith('# Begin CSV table'):
+                elif line.startswith('# Begin CSV table'):
+                    table_count += 1
+
                     # Reset variables
                     meta = dict()
                     columns = list()
@@ -303,6 +287,7 @@ class UrbanFlowsQuery:
                     key, _, value = line[2:].partition(': ')
                     meta[key] = value
 
+            # Skip blank lines
             elif line:
                 time = None
 
@@ -337,6 +322,10 @@ class UrbanFlowsQuery:
                 n_rows += 1
 
         LOGGER.info("Retrieved %s rows", n_rows)
+        LOGGER.info("Retrieved %s tables", table_count)
+
+        if table_count != total_table_count:
+            raise ValueError('Unexpected table count')
 
     @classmethod
     def parse_data_types(cls, reading: dict) -> dict:
@@ -371,3 +360,33 @@ class UrbanFlowsQuery:
         reading = cls.convert_null(reading)
 
         return reading
+
+
+class UrbanFlowsQuerySSH(UrbanFlowsQuery):
+    """
+    Retrieve data over SSH
+    """
+
+    @staticmethod
+    def _stream(*args, params: dict = None, **kwargs) -> iter:
+        # Override stream method
+        # Import here so dependencies aren't mandatory
+        import remote
+
+        params = params or dict()
+        # Quiet output
+        params['unittest'] = 's'
+        # Generate arguments for command-line version of udex
+        args = ' '.join(
+            ("'{}={}'".format(key, value) for key, value in params.items()))
+
+        LOGGER.debug(args)
+
+        # Example command:
+        # /home/uflo/www/cgi-bin/ufdexF1 'Tfrom=2021-01-07T09:39:57' 'Tto=2021-01-07T12:39:57' 'aktion=json_META' 'freqInMin=5' 'tok=generic' 'unittest=s'
+        command = '/home/uflo/www/cgi-bin/ufdexF1 {args}'.format(args=args)
+
+        username = input('Enter username for {host}: '.format(host=HOST))
+        with remote.RemoteHost(host=HOST, username=username) as remote_host:
+            yield from UrbanFlowsQuery.readlines(
+                (remote_host.execute(command)))

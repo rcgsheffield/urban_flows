@@ -14,6 +14,7 @@ import requests
 
 import settings
 import exceptions
+import utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,7 +55,8 @@ class AwesomeObject(abc.ABC):
 
         # Make sure this isn't a paginated response
         if 'links' in body:
-            raise ValueError('Unexpected pagination metadata, use list_iter instead')
+            raise ValueError(
+                'Unexpected pagination metadata, use list_iter instead')
 
         return body['data']
 
@@ -118,7 +120,8 @@ class Location(AwesomeObject):
     """A location represents a collection on sensors at set of co-ordinates."""
     edge = 'locations'
 
-    def readings(self, session, from_: datetime.datetime, to: datetime.datetime, interval: datetime.timedelta):
+    def readings(self, session, from_: datetime.datetime,
+                 to: datetime.datetime, interval: datetime.timedelta):
         url = self.urljoin('readings')
         params = {
             'from': Reading.strftime(from_),
@@ -158,12 +161,14 @@ class Sensor(AwesomeObject):
     def add_sensor_category(self, session, sensor_category_id: int):
         """Add a Sensor to a Sensor Category"""
         url = self.urljoin('add-sensor-category')
-        return session.post(url, json=dict(sensor_category_id=sensor_category_id))
+        return session.post(url,
+                            json=dict(sensor_category_id=sensor_category_id))
 
     def remove_sensor_category(self, session, sensor_category_id: int):
         """Remove a Sensor from a Sensor Category"""
         url = self.urljoin('remove-sensor-category')
-        return session.post(url, json=dict(sensor_category_id=sensor_category_id))
+        return session.post(url,
+                            json=dict(sensor_category_id=sensor_category_id))
 
     @staticmethod
     def new(name: str, location_id: int, sensor_type_id: int, active: bool):
@@ -175,14 +180,29 @@ class Sensor(AwesomeObject):
         )
 
     def readings(self, session) -> dict:
-        """Undocumented endpoint giving the latest reading for this sensor"""
+        """
+        Undocumented endpoint giving the latest reading for this sensor
+        """
         return session.call(self.urljoin('readings'))
 
     def latest_reading(self, session) -> dict:
         try:
             return self.readings(session)['data'][0]
         except IndexError:
+            # No readings found so return None
             pass
+
+    def latest_timestamp(self, session) -> datetime.datetime:
+        """
+        Get the timestamp of the most recent reading for this sensor
+        """
+        latest_reading = self.latest_reading(session=session)
+        try:
+            return utils.parse_timestamp(latest_reading['created'])
+        except TypeError:
+            # If no readings exist for this sensor then return null
+            if latest_reading is not None:
+                raise
 
 
 class ReadingCategory(AwesomeObject):
@@ -204,15 +224,19 @@ class ReadingType(AwesomeObject):
 
     def add_reading_category(self, session, reading_category_id: int):
         """Add a Reading Type to a Reading Category"""
-        LOGGER.info("Adding reading category id %s to %s", reading_category_id, self)
+        LOGGER.info("Adding reading category id %s to %s", reading_category_id,
+                    self)
         url = self.urljoin('add-reading-category')
-        return session.post(url, json=dict(reading_category_id=int(reading_category_id)))
+        return session.post(url, json=dict(
+            reading_category_id=int(reading_category_id)))
 
     def remove_reading_category(self, session, reading_category_id: int):
         """Remove a Reading Type from a Reading Category"""
-        LOGGER.info("Removing reading category id %s from %s", reading_category_id, self)
+        LOGGER.info("Removing reading category id %s from %s",
+                    reading_category_id, self)
         url = self.urljoin('remove-reading-category')
-        return session.post(url, json=dict(reading_category_id=reading_category_id))
+        return session.post(url,
+                            json=dict(reading_category_id=reading_category_id))
 
     @staticmethod
     def new(name: str, min_value: float, max_value: float, unit: str):
@@ -276,7 +300,8 @@ class Reading(AwesomeObject):
         """
         url = cls.build_url('bulk')
         try:
-            return session.call(url, method='post', json=dict(readings=readings))
+            return session.call(url, method='post',
+                                json=dict(readings=readings))
         except requests.HTTPError:
             if not readings:
                 raise exceptions.EmptyValueError
@@ -284,7 +309,8 @@ class Reading(AwesomeObject):
                 raise
 
     @classmethod
-    def new(cls, value: float, created: str, reading_type_id: int, sensor_id: int) -> dict:
+    def new(cls, value: float, created: str, reading_type_id: int,
+            sensor_id: int) -> dict:
         return dict(
             value=value,
             created=created,
@@ -293,7 +319,8 @@ class Reading(AwesomeObject):
         )
 
     @classmethod
-    def delete_bulk(cls, session, from_: datetime.datetime, to: datetime.datetime, reading_type_id: int):
+    def delete_bulk(cls, session, from_: datetime.datetime,
+                    to: datetime.datetime, reading_type_id: int):
         url = cls.build_url('bulk/delete')
         body = {
             'from': cls.strftime(from_),
@@ -342,7 +369,8 @@ class AQIReading(AwesomeObject):
     edge = 'aqi-readings'
 
     @classmethod
-    def new(cls, location_id: int, created: str, value: int, aqi_standard_id: int):
+    def new(cls, location_id: int, created: str, value: int,
+            aqi_standard_id: int):
         return dict(
             location_id=location_id,
             created=created,
@@ -360,4 +388,5 @@ class AQIReading(AwesomeObject):
         :return:
         """
         url = cls.build_url('bulk')
-        return session.call(url, method='post', json=dict(aqi_readings=list(aqi_readings)))
+        return session.call(url, method='post',
+                            json=dict(aqi_readings=list(aqi_readings)))

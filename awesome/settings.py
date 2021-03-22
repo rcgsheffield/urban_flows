@@ -6,7 +6,8 @@ from settings_local import *
 # Authentication token
 CONFIG_PATH = pathlib.Path.home().joinpath('configs')
 DEFAULT_TOKEN_PATH = CONFIG_PATH.joinpath('awesome_token.txt')
-SITE_BOOKMARK_PATH = CONFIG_PATH.joinpath('site_bookmarks.json')
+# This will create files with bak,
+BOOKMARK_PATH_PREFIX = CONFIG_PATH.joinpath('awesome_bookmarks')
 
 # The beginning of data collection
 TIME_START = datetime.datetime(2019, 1, 1, tzinfo=datetime.timezone.utc)

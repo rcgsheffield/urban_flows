@@ -88,7 +88,7 @@ def main():
         # Sync data (readings and AQI analysis)
         LOGGER.info('Syncing readings...')
         sync.sync_readings(session=session, reading_types=reading_types,
-                           sensors=sensors, awesome_sensors=awesome_sensors)
+                           families=families, awesome_sensors=awesome_sensors)
 
         LOGGER.info('Syncing AQI readings...')
         sync.sync_aqi_readings(session, sites=sites, locations=locations)

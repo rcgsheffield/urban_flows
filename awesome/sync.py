@@ -24,55 +24,65 @@ LOGGER = logging.getLogger(__name__)
 Path = Union[pathlib.Path, str]
 
 
-def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
-                  reading_types: Mapping):
+def sync_readings(session, families: Mapping[str, dict],
+                  awesome_sensors: Mapping, reading_types: Mapping,
+                  end_time: datetime.datetime = None):
     """
     Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
     portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
     duplication.
 
     :param session: HTTP session for Awesome portal
-    :param sensors: UFO sensors
+    :param families: UFO families, key-value pairs of family names and metadata
     :param awesome_sensors: Awesome portal sensors
     :param reading_types: Awesome portal reading types
+    :param end_time: Retrieve data up until this time
     """
+    # Get all data up to the present time (when this function first runs)
+    end_time = end_time or datetime.datetime.now(datetime.timezone.utc)
+
     # Count the number of readings uploaded for all the sensors
     total_reading_count = 0
 
-    # Iterate over UFO sensors
-    for sensor_name, sensor in sensors.items():
+    # For each sensor id, track the timestamp of the newest record on the
+    # remote system
+    latest_awesome_timestamps = dict()
 
-        # Count the number of readings uploaded per sensor
+    def reading_is_new(t: datetime.datetime, sensor_id: str) -> bool:
+        nonlocal latest_awesome_timestamps
+
+        # Get the time of the newest reading on the remote system
+        latest_timestamp = latest_awesome_timestamps.setdefault(
+            sensor_id,
+            objects.Sensor(sensor_id).latest_timestamp(session))
+
+        try:
+            return t > latest_timestamp
+        except TypeError:
+            if latest_timestamp is None:
+                return True
+            else:
+                raise
+
+    # Iterate over UFO sensor families
+    for family_name, family in families.items():
+        LOGGER.debug("Starting sync for family '%s'", family_name)
+
+        # Count the number of readings uploaded per family
         reading_count = 0
 
-        awesome_sensor_id = awesome_sensors[sensor['name']]['id']
-
-        LOGGER.info(
-            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s",
-            sensor['name'], awesome_sensor_id)
-
-        # Get the most recent reading for this sensor on the remote database
-        latest_awesome_reading = objects.Sensor(
-            awesome_sensor_id).latest_reading(session)
-
-        # Start syncing after the time of this most recent data point
-        try:
-            start_time = utils.parse_timestamp(
-                latest_awesome_reading['created'])
-        # No timestamp found
-        except TypeError:
-            # Default to earliest time
-            start_time = settings.TIME_START
-
-        # Get all data up to the present time
-        end_time = datetime.datetime.now(datetime.timezone.utc)
+        # Begin where we left off, or go back to the beginning of time
+        start_time = assets.Family(
+            family_name).latest_timestamp or settings.TIME_START
 
         # Query UFO database
-        query = ufdex.UrbanFlowsQuery(
-            sensors={sensor['name']},
-            time_period=[start_time, end_time]
-        )
+        query = ufdex.UrbanFlowsQuery(families={family_name},
+                                      time_period=[start_time, end_time])
+        # Load results into memory (don't hold open stream because this
+        # can time out due to long running operations below)
         readings = tuple(query())
+        LOGGER.debug("Family %s: Retrieved %s readings", family_name,
+                     len(readings))
 
         # Convert from UFO readings to Awesome readings
         readings = (maps.reading_to_reading(reading=reading,
@@ -80,11 +90,17 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
                                             awesome_sensors=awesome_sensors)
                     for reading in readings)
 
+        # Filter by date based on remote sensor
+        readings = tuple((
+            reading for reading in readings
+            if reading_is_new(reading['created'], reading['sensor_id'])))
+
+        LOGGER.info('Family %s: %s new readings to sync', len(readings))
+
         # Iterate over data chunks because the Awesome portal API accepts a
         # maximum number of rows per call.
         for chunk in utils.iter_chunks(
-                readings,
-                chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+                readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
             if chunk:
                 # Loop to retry if rate limit exceeded
                 while True:
@@ -107,12 +123,12 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
                         else:
                             raise
 
-                reading_count += len(chunk)
+            reading_count += len(chunk)
 
-        LOGGER.info('synced %s readings for sensor "%s"', reading_count,
-                    sensor_name)
+        LOGGER.info('synced %s readings for family "%s"', reading_count,
+                    family_name)
         total_reading_count += reading_count
-    LOGGER.info("synced %s readings")
+    LOGGER.info("Synced %s readings for %s families", len(families))
 
 
 def sync_sites(session: http_session.PortalSession, sites: Mapping,
@@ -293,11 +309,12 @@ def sync_reading_categories(session, reading_categories: MutableMapping,
 def get_urban_flows_metadata() -> tuple:
     """Retrieve all Urban Flows metadata"""
 
-    sites, families, pairs, sensors = assets.get_metadata()
+    metadata = assets.get_metadata()
 
-    detectors = assets.get_detectors_from_sensors(sensors)
+    detectors = assets.Sensor.get_detectors_from_sensors(metadata['sensors'])
 
-    return sites, families, pairs, sensors, detectors
+    return metadata['sites'], metadata['families'], metadata['pairs'], \
+           metadata['sensors'], detectors
 
 
 def build_awesome_object_map(session: http_session.PortalSession,
@@ -349,9 +366,11 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
     :param locations: A map of UFO sites to Awesome locations
     """
 
-    # Iterate over sites because there may be multiple relevant sensor families at one location
+    # Iterate over sites because there may be multiple relevant sensor families
+    # at one location
     for site_id, site in sites.items():
-        # Get the latest timestamp that was successfully synced (or the default start date)
+        # Get the latest timestamp that was successfully synced (or the default
+        # start date)
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
