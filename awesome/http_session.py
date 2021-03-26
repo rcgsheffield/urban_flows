@@ -26,13 +26,6 @@ class PortalSession(requests.Session):
         headers = {'Accept': 'application/json'}
         headers.update(kwargs.pop('headers', dict()))
 
-        # Debug log request payload
-        for key in ('data', 'json', 'params'):
-            try:
-                LOGGER.debug("REQUEST %s: %s", key, kwargs[key])
-            except KeyError:
-                pass
-
         # Make the request
         response = super().request(*args, headers=headers, **kwargs)
 

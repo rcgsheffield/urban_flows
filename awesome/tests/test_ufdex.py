@@ -16,8 +16,8 @@ class UrbanFlowsDataExtractorTestCase(unittest.TestCase):
             sensors={'20926'})
 
     def test_query(self):
-        for row in self.query():
-            LOGGER.debug(row)
+        for _ in self.query():
+            pass
 
     def test_time_periods(self):
         n_periods = 3
