@@ -121,6 +121,7 @@ def sync_readings(session, families: Mapping[str, dict],
                             # further requests
                             retry_after = int(
                                 exc.response.headers['retry-after'])
+                            LOGGER.info('Sleeping for %s seconds', retry_after)
                             time.sleep(retry_after)  # seconds
                         else:
                             raise
