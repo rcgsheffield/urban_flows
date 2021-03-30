@@ -1,4 +1,7 @@
-# This simulates the environment on the production machines
+# This Conda environment simulates the environment on the
+# production machines.
+# Usage:
+# conda env create -f environment.yml
 
 name: uflo
 channels:
