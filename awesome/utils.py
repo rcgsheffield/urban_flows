@@ -85,10 +85,5 @@ def handle_exception(exc_type, exc_value, exc_traceback):
     """
     # Origin: https://stackoverflow.com/a/16993115/8634200
 
-    # Don't log keyboard interrupts
-    if issubclass(exc_type, KeyboardInterrupt):
-        sys.__excepthook__(exc_type, exc_value, exc_traceback)
-        return
-
     LOGGER.exception("Uncaught exception",
                      exc_info=(exc_type, exc_value, exc_traceback))
