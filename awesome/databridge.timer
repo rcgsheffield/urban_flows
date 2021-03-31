@@ -1,5 +1,5 @@
 [Unit]
-Description=Data bridge from UFO to Awesome portal
+Description=Awesome data bridge
 Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
 
 [Timer]
