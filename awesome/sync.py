@@ -69,14 +69,14 @@ def sync_readings(session, families: Mapping[str, dict],
                 raise
 
     # Iterate over UFO sensor families
-    for family_name, family in families.items():
+    for family_name, family_data in families.items():
+        family = assets.Family(family_name)
 
         # Count the number of readings uploaded per family
         reading_count = 0
 
         # Begin where we left off, or go back to the beginning of time
-        start_time = assets.Family(
-            family_name).latest_timestamp or start_time or settings.TIME_START
+        start_time = family.latest_timestamp or start_time or settings.TIME_START
 
         LOGGER.info("Syncing readings for UFO family '%s' starting at %s",
                     family_name, start_time.isoformat())
@@ -133,9 +133,13 @@ def sync_readings(session, families: Mapping[str, dict],
 
             reading_count += len(chunk)
 
+        # Family sync success
         LOGGER.info('synced %s readings for family "%s"', reading_count,
                     family_name)
         total_reading_count += reading_count
+        # Update bookmark
+        family.latest_timestamp = end_time
+
     LOGGER.info("Synced %s readings for %s families", len(families))
 
 
