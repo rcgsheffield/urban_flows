@@ -27,8 +27,9 @@ Path = Union[pathlib.Path, str]
 def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
                   reading_types: Mapping):
     """
-    Bulk store readings by iterating over sensors on the Urban Flows platform and uploading readings to the Awesome
-    portal using the bulk upload API endpoint. Each sensor sync should proceed from the newest reading to avoid
+    Bulk store readings by iterating over sensors on the Urban Flows platform
+    and uploading readings to the Awesome portal using the bulk upload API
+    endpoint. Each sensor sync should proceed from the newest reading to avoid
     duplication.
 
     :param session: HTTP session for Awesome portal
@@ -120,8 +121,8 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
     """
     Convert UFO sites into Awesome locations.
 
-    Create a new location for each site if it doesn't already exist. Locations cannot be updated.
-    then do nothing.
+    Create a new location for each site if it doesn't already exist.
+    Locations cannot be updated then do nothing.
 
     :param session: Awesome portal HTTP session
     :param sites: UFO sites
@@ -147,8 +148,9 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
 def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
                  awesome_sensors: MutableMapping, locations: Mapping):
     """
-    Either update (if changed) or create a new Awesome sensor for each Urban Flows sensor. For each sensor, if no
-    changes have been made to the UFO sensor metadata then do nothing.
+    Either update (if changed) or create a new Awesome sensor for each Urban
+    Flows sensor. For each sensor, if no changes have been made to the UFO
+    sensor metadata then do nothing.
 
     :param session: Awesome portal HTTP session
     :param sensors: UFO sensors
@@ -191,13 +193,16 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
                        remote_reading_category_ids: Mapping,
                        reading_type_groups: list):
     """
-    Map local Urban Flows Observatory "detectors" to remote "reading types" on the Awesome Portal.
+    Map local Urban Flows Observatory "detectors" to remote "reading types" on
+    the Awesome Portal.
 
     :param session: Awesome portal HTTP connection
     :param detectors: UFO metrics
     :param reading_types: Awesome metrics
-    :param remote_reading_category_ids: Map of reading types to reading categories
-    :param reading_type_groups: The local configuration for groups of reading types
+    :param remote_reading_category_ids: Map of reading types to reading
+                                        categories
+    :param reading_type_groups: The local configuration for groups of reading
+                                types
     """
     # Map reading types to reading categories from local configuration file
     # This is the desired end-state configuration to sync to the remote server
@@ -259,10 +264,12 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
 def sync_reading_categories(session, reading_categories: MutableMapping,
                             reading_type_groups: list):
     """
-    Sync reading categories (e.g. "Air Quality" is a category containing reading types PM 1, PM 2.5, PM 10.)
+    Sync reading categories (e.g. "Air Quality" is a category containing
+    reading types PM 1, PM 2.5, PM 10.)
 
     :param session: Awesome portal HTTP session
-    :param reading_categories: Map existing Awesome reading category names to their object data
+    :param reading_categories: Map existing Awesome reading category names to
+                               their object data
     :param reading_type_groups: Locally configured groups to be synced
     """
     LOGGER.debug("READING CATEGORIES: %s", reading_categories)
@@ -349,9 +356,11 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
     :param locations: A map of UFO sites to Awesome locations
     """
 
-    # Iterate over sites because there may be multiple relevant sensor families at one location
+    # Iterate over sites because there may be multiple relevant sensor
+    # families at one location
     for site_id, site in sites.items():
-        # Get the latest timestamp that was successfully synced (or the default start date)
+        # Get the latest timestamp that was successfully synced (or the default
+        # start date)
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
@@ -377,7 +386,7 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
                                      aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
                                      location_id=location['id'])
 
-        # Sync readings (The aqi readings input must have between 1 and 100 items.)
+        # Sync readings (The aqi readings input must be chunked)
         for chunk in utils.iter_chunks(readings,
                                        chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
             objects.AQIReading.store_bulk(session, aqi_readings=chunk)
@@ -395,9 +404,10 @@ def sync_families(session, families: Mapping[str, dict],
 
     :param session: HTTP session for Awesome portal
     :param families: UFO objects, map of family name to family info
-    :param sensor_types: Awesome portal objects, map of sensor type name to sensor type metadata
+    :param sensor_types: Awesome portal objects, map of sensor type name to
+                        sensor type metadata
     """
-    # Iterate over UFO families and ensure a sensor type record exists for each one
+    # Iterate over UFO families and ensure a sensor type record exists for each
     for family_name, family in families.items():
         LOGGER.debug("Syncing family '%s'", family_name)
 

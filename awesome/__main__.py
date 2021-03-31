@@ -1,3 +1,14 @@
+#!/usr/bin/env python3
+
+"""
+Awesome Data Bridge
+
+This program synchronises metadata and data from the Urban Flows Observatory
+database to the Awesome portal databases.
+
+See README.md
+"""
+
 import argparse
 import logging
 import pathlib
