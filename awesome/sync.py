@@ -54,11 +54,11 @@ def sync_readings(session, families: Mapping[str, dict],
     def reading_is_new(t: datetime.datetime, sensor_id: str) -> bool:
         nonlocal latest_awesome_timestamps
 
-        # Get the time of the newest reading on the remote system
-        latest_timestamp = latest_awesome_timestamps.setdefault(
-            sensor_id,
-            objects.Sensor(sensor_id).latest_timestamp(session))
+        # Get the most recent reading for this sensor on the remote database
+        latest_awesome_reading = objects.Sensor(
+            awesome_sensor_id).latest_reading(session)
 
+        # Start syncing after the time of this most recent data point
         try:
             return t > latest_timestamp
         except TypeError:
@@ -77,6 +77,11 @@ def sync_readings(session, families: Mapping[str, dict],
         # Begin where we left off, or go back to the beginning of time
         start_time = assets.Family(
             family_name).latest_timestamp or start_time or settings.TIME_START
+
+        LOGGER.info(
+            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s "
+            "starting at %s", sensor['name'], awesome_sensor_id,
+            start_time.isoformat())
 
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(families={family_name},
