@@ -6,7 +6,7 @@ echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
 
 echo "Installing data bridge into $TARGET_DIR..."
-mkdir -v $TARGET_DIR
+mkdir -pv $TARGET_DIR
 sudo cp -rv * $TARGET_DIR
 
 echo "Installing systemd units..."
