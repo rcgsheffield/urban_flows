@@ -83,6 +83,11 @@ def sync_readings(session, families: Mapping[str, dict],
             "starting at %s", sensor['name'], awesome_sensor_id,
             start_time.isoformat())
 
+        LOGGER.info(
+            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s "
+            "starting at %s", sensor['name'], awesome_sensor_id,
+            start_time.isoformat())
+
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(families={family_name},
                                       time_period=[start_time, end_time])
