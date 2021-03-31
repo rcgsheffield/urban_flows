@@ -48,10 +48,6 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
 
         awesome_sensor_id = awesome_sensors[sensor['name']]['id']
 
-        LOGGER.info(
-            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s",
-            sensor['name'], awesome_sensor_id)
-
         # Get the most recent reading for this sensor on the remote database
         latest_awesome_reading = objects.Sensor(
             awesome_sensor_id).latest_reading(session)
@@ -67,6 +63,11 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
 
         # Get all data up to the present time
         end_time = datetime.datetime.now(datetime.timezone.utc)
+
+        LOGGER.info(
+            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s "
+            "starting at %s", sensor['name'], awesome_sensor_id,
+            start_time.isoformat())
 
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(
