@@ -105,6 +105,8 @@ def sync_readings(session, sensors: Mapping, awesome_sensors: Mapping,
                             # further requests
                             retry_after = int(
                                 exc.response.headers['retry-after'])
+                            LOGGER.info('Rate limit: sleeping for %s seconds',
+                                        retry_after)
                             time.sleep(retry_after)  # seconds
                         else:
                             raise
