@@ -49,7 +49,7 @@ class PortalSession(requests.Session):
 
         # Log HTTP error codes
         except requests.HTTPError as exc:
-            LOGGER.error(exc.response.headeres)
+            LOGGER.error(exc.response.headers)
             LOGGER.error(exc.response.text)
             raise
 
