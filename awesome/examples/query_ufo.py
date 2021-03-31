@@ -30,7 +30,6 @@ if __name__ == '__main__':
         )
         query = ufdex.UrbanFlowsQuery(**query)
 
-        # TODO sort chronologically
         for reading in query():
             if args.verbose:
                 print(reading)

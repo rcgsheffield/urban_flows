@@ -6,7 +6,7 @@ import logging
 import datetime
 from typing import List, Mapping
 
-#import pandas
+# import pandas
 
 import objects
 import settings
@@ -76,7 +76,8 @@ def detector_to_reading_type(detector: dict) -> dict:
     )
 
 
-def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], reading_types: Mapping[str, dict]):
+def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict],
+                       reading_types: Mapping[str, dict]):
     """
     Convert a row of UFO data into multiple Awesome portal readings.
 
@@ -97,7 +98,8 @@ def reading_to_reading(reading: dict, awesome_sensors: Mapping[str, dict], readi
     )
 
 
-def aqi_readings(air_quality_index: Mapping[datetime.datetime, int], aqi_standard_id: int, location_id: int) -> List[
+def aqi_readings(air_quality_index: Mapping[datetime.datetime, int],
+                 aqi_standard_id: int, location_id: int) -> List[
     dict]:
     """
     Convert Air Quality Index values (calculated locally) to AQI Readings for the Awesome portal.
@@ -113,7 +115,8 @@ def aqi_readings(air_quality_index: Mapping[datetime.datetime, int], aqi_standar
     ]
 
 
-def reading_type_to_reading_categories(reading_type_groups: list, awesome_reading_categories: Mapping) -> dict:
+def reading_type_to_reading_categories(reading_type_groups: list,
+                                       awesome_reading_categories: Mapping) -> dict:
     """
     Map reading type names to Awesome reading category identifier
 
@@ -132,8 +135,10 @@ def reading_type_to_reading_categories(reading_type_groups: list, awesome_readin
             if reading_type not in reading_type_name_to_reading_category_ids.keys():
                 reading_type_name_to_reading_category_ids[reading_type] = set()
 
-            remote_reading_category = awesome_reading_categories[reading_category['name']]
-            reading_type_name_to_reading_category_ids[reading_type].add(remote_reading_category['id'])
+            remote_reading_category = awesome_reading_categories[
+                reading_category['name']]
+            reading_type_name_to_reading_category_ids[reading_type].add(
+                remote_reading_category['id'])
 
     return reading_type_name_to_reading_category_ids
 
@@ -165,7 +170,8 @@ def is_object_different(local_object: dict, remote_object: dict) -> bool:
     return False
 
 
-def family_to_sensor_type(family_name: str, default_rating: float = 0.) -> dict:
+def family_to_sensor_type(family_name: str,
+                          default_rating: float = 0.) -> dict:
     """
     Map a UFO sensor family to an Awesome sensor type
 
