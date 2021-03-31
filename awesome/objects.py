@@ -303,7 +303,6 @@ class Reading(AwesomeObject):
         return session.post(url, json=body)
 
     def readings(self, session):
-        # TODO If you use /sensors/{id}/readings you should get it's readings in descending by its created timestamp.
         url = self.urljoin('readings')
         return session.call(url)
 
