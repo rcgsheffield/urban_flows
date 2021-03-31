@@ -51,12 +51,13 @@ def sync_readings(session, families: Mapping[str, dict],
     # remote system
     latest_awesome_timestamps = dict()
 
-    def reading_is_new(t: datetime.datetime, sensor_id: str) -> bool:
+    def reading_is_new(t: datetime.datetime, awesome_sensor_id: str) -> bool:
         nonlocal latest_awesome_timestamps
 
-        # Get the most recent reading for this sensor on the remote database
-        latest_awesome_reading = objects.Sensor(
-            awesome_sensor_id).latest_reading(session)
+        # Get the time of the newest reading on the remote system
+        latest_timestamp = latest_awesome_timestamps.setdefault(
+            awesome_sensor_id,
+            objects.Sensor(awesome_sensor_id).latest_timestamp(session))
 
         # Start syncing after the time of this most recent data point
         try:
@@ -69,7 +70,6 @@ def sync_readings(session, families: Mapping[str, dict],
 
     # Iterate over UFO sensor families
     for family_name, family in families.items():
-        LOGGER.debug("Starting sync for family '%s'", family_name)
 
         # Count the number of readings uploaded per family
         reading_count = 0
@@ -78,15 +78,8 @@ def sync_readings(session, families: Mapping[str, dict],
         start_time = assets.Family(
             family_name).latest_timestamp or start_time or settings.TIME_START
 
-        LOGGER.info(
-            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s "
-            "starting at %s", sensor['name'], awesome_sensor_id,
-            start_time.isoformat())
-
-        LOGGER.info(
-            "Syncing readings for UFO Sensor '%s' => Awesome sensor ID %s "
-            "starting at %s", sensor['name'], awesome_sensor_id,
-            start_time.isoformat())
+        LOGGER.info("Syncing readings for UFO family '%s' starting at %s",
+                    family_name, start_time.isoformat())
 
         # Query UFO database
         query = ufdex.UrbanFlowsQuery(families={family_name},
@@ -103,7 +96,7 @@ def sync_readings(session, families: Mapping[str, dict],
                                             awesome_sensors=awesome_sensors)
                     for reading in readings)
 
-        # Filter by date based on remote sensor
+        # Filter by date based on remote sensor, only sync new readings
         readings = tuple((
             reading for reading in readings
             if reading_is_new(reading['created'], reading['sensor_id'])))
