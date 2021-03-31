@@ -1,10 +1,13 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
-echo "Installing crontab..."
-crontab -u uflo crontab.txt
+TARGET_DIR=/opt/awesome
 
 echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
+
+echo "Installing data bridge into $TARGET_DIR..."
+mkdir -v $TARGET_DIR
+sudo cp -rv * $TARGET_DIR
 
 echo "Installing systemd units..."
 cp --verbose databridge.service /etc/systemd/system/databridge.service
