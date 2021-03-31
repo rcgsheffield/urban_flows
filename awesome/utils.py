@@ -87,3 +87,8 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 
     LOGGER.exception("Uncaught exception",
                      exc_info=(exc_type, exc_value, exc_traceback))
+
+
+def load_file(path: pathlib.Path) -> str:
+    with pathlib.Path(path).open() as file:
+        return file.readline().rstrip('\n')
