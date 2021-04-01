@@ -6,10 +6,9 @@ import itertools
 import logging
 import requests
 import datetime
-import dbm
 import shelve
-from typing import ContextManager
-from contextlib import contextmanager
+import pathlib
+from typing import Optional
 
 import settings
 from settings import URL
@@ -21,27 +20,34 @@ class BookmarkMixin:
     """
     Serialise the latest timestamp successfully replicated from the data stream
     """
+    database = None
 
     def __init__(self):
         self.identifier = str()
 
+        if self.database is None:
+            self.database = self.open_database()
+
     @classmethod
-    @contextmanager
-    def open(cls, *args, **kwargs) -> ContextManager[shelve.Shelf]:
-        with shelve.open(str(settings.BOOKMARK_PATH_PREFIX), *args,
-                         **kwargs) as db:
-            yield db[cls.__name__]
+    def database_path(cls) -> pathlib.Path:
+        return settings.BOOKMARK_PATH_PREFIX.joinpath(cls.__name__.casefold())
+
+    @classmethod
+    def open_database(cls, *args, **kwargs):
+        # Ensure directory exists
+        cls.database_path().parent.mkdir(parents=True, exist_ok=True)
+        return shelve.open(str(cls.database_path()), *args, **kwargs)
 
     @property
-    def latest_timestamp(self) -> datetime.datetime:
+    def latest_timestamp(self) -> Optional[datetime.datetime]:
         """
-        Retrieve the latest stored timestamp for this object
+        Retrieve the latest stored timestamp for this object, or null if no
+        timestamp was stored.
         """
         try:
-            with self.open('r') as shelf:
-                return shelf[self.identifier]
-        # File doesn't exist
-        except dbm.error:
+            return self.database[self.identifier]
+        # No entry for this item
+        except KeyError:
             pass
 
     @latest_timestamp.setter
@@ -49,8 +55,7 @@ class BookmarkMixin:
         """
         Store a timestamp value associated with this object
         """
-        with self.open() as shelf:
-            shelf[self.identifier] = timestamp
+        self.database[self.identifier] = timestamp
 
 
 class Asset(BookmarkMixin):

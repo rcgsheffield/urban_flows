@@ -134,42 +134,33 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    @property
-    def time_periods(self):
-        start, end = self.time_period
-        yield from self.generate_time_periods(
-            start=start, end=end,
-            freq=self.freq)
-
     def stream(self, **kwargs) -> Iterable[str]:
         """
         Retrieve raw data over HTTP
         """
 
-        for start, end in self.time_periods:
+        # Prepare query parameters
+        params = dict(
+            Tfrom=self.format_timestamp(self.time_period[0]),
+            Tto=self.format_timestamp(self.time_period[1]),
+            aktion='CSV_show',
+            freqInMin=5,
+            tok='generic',
+        )
 
-            # Prepare query parameters
-            params = dict(
-                Tfrom=self.format_timestamp(start),
-                Tto=self.format_timestamp(end),
-                aktion='CSV_show',
-                freqInMin=5,
-                tok='generic',
-            )
+        # Build filters via HTTP query parameters
+        # e.g. "byFamily=AMfixed,luftdaten"
+        filters = {
+            'bySensor': self.sensors,
+            'bySite': self.site_ids,
+            'byFamily': self.families,
+        }
+        for query, values in filters.items():
+            if values:
+                params[query] = ','.join(values)
 
-            # Build filters via HTTP query parameters
-            # e.g. "byFamily=AMfixed,luftdaten"
-            filters = {
-                'bySensor': self.sensors,
-                'bySite': self.site_ids,
-                'byFamily': self.families,
-            }
-            for query, values in filters.items():
-                if values:
-                    params[query] = ','.join(values)
-
-            LOGGER.info("QUERY %s", params)
-            yield from self._stream(params=params, **kwargs)
+        LOGGER.info("QUERY %s", params)
+        yield from self._stream(params=params, **kwargs)
 
     @staticmethod
     def _stream(**kwargs) -> Iterable[str]:

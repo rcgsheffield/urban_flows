@@ -12,6 +12,9 @@ See README.md
 import argparse
 import logging
 import pathlib
+import warnings
+
+import arrow.factory
 
 import http_session
 import objects
@@ -24,6 +27,10 @@ LOGGER = logging.getLogger(__name__)
 DESCRIPTION = """
 API documentation: https://ufapidocs.clients.builtonawesomeness.co.uk/
 """
+
+# Ignore Arrow warnings
+# https://github.com/rcgsheffield/urban_flows/issues/28
+warnings.simplefilter('ignore', arrow.factory.ArrowParseWarning)
 
 
 def get_args():

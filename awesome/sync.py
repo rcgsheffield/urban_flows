@@ -56,9 +56,12 @@ def sync_readings(session, families: Mapping[str, dict],
 
         # Get the time of the newest reading on the remote system
         # If it's not stored in memory then retrieve from remote system
-        latest_timestamp = latest_awesome_timestamps.setdefault(
-            awesome_sensor_id,
-            objects.Sensor(awesome_sensor_id).latest_timestamp(session))
+        try:
+            latest_timestamp = latest_awesome_timestamps[awesome_sensor_id]
+        except KeyError:
+            latest_timestamp = objects.Sensor(
+                awesome_sensor_id).latest_timestamp(session)
+            latest_awesome_timestamps[awesome_sensor_id] = latest_timestamp
 
         # Start syncing after the time of this most recent data point
         try:
@@ -71,6 +74,7 @@ def sync_readings(session, families: Mapping[str, dict],
 
     # Iterate over UFO sensor families
     for family_name, family_data in families.items():
+        LOGGER.info('Family "%s"', family_name)
         family = assets.Family(family_name)
 
         # Count the number of readings uploaded per family
@@ -82,64 +86,72 @@ def sync_readings(session, families: Mapping[str, dict],
         LOGGER.info("Syncing readings for UFO family '%s' starting at %s",
                     family_name, start_time.isoformat())
 
-        # Query UFO database
-        query = ufdex.UrbanFlowsQuery(families={family_name},
-                                      time_period=[start_time, end_time])
-        # Load results into memory (don't hold open stream because this
-        # can time out due to long running operations below)
-        readings = tuple(query())
-        LOGGER.debug("Family %s: Retrieved %s readings", family_name,
-                     len(readings))
+        # Query UFO database by chunking over time periods
+        for _start, _end in ufdex.UrbanFlowsQuery.generate_time_periods(
+                start_time, end_time, freq=settings.URBAN_FlOWS_TIME_CHUNK):
+            query = ufdex.UrbanFlowsQuery(families={family_name},
+                                          time_period=[_start, _end])
+            # Load results into memory (don't hold open stream because this
+            # can time out due to long running operations below)
+            readings = tuple(query())
+            LOGGER.debug("Family %s: Retrieved %s readings", family_name,
+                         len(readings))
 
-        # Convert from UFO readings to Awesome readings
-        readings = (maps.reading_to_reading(reading=reading,
-                                            reading_types=reading_types,
-                                            awesome_sensors=awesome_sensors)
-                    for reading in readings)
+            # Convert from UFO readings to Awesome readings
+            readings = (maps.reading_to_reading(reading=reading,
+                                                reading_types=reading_types,
+                                                awesome_sensors=awesome_sensors)
+                        for reading in readings)
 
-        # Filter by date based on remote sensor, only sync new readings
-        readings = tuple((
-            reading for reading in readings
-            if reading_is_new(reading['created'], reading['sensor_id'])))
+            # Filter by date based on remote sensor, only sync new readings
+            readings = tuple((
+                reading for reading in readings
+                if reading_is_new(utils.parse_timestamp(reading['created']),
+                                  reading['sensor_id'])))
 
-        LOGGER.info('Family %s: %s new readings to sync', len(readings))
+            LOGGER.info('Family %s: %s new readings to sync', family_name, len(
+                readings))
 
-        # Iterate over data chunks because the Awesome portal API accepts a
-        # maximum number of rows per call.
-        for chunk in utils.iter_chunks(
-                readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
-            if chunk:
-                # Loop to retry if rate limit exceeded
-                while True:
-                    try:
-                        objects.Reading.store_bulk(session, readings=chunk)
-                        break
-                    # No more readings, so stop
-                    except exceptions.EmptyValueError:
-                        break
-                    # HTTP error
-                    except requests.HTTPError as exc:
-                        # HTTP status code 429 too many requests
-                        # (server-side rate limit)
-                        if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
-                            # Wait until the system is ready to accept
-                            # further requests
-                            retry_after = int(
-                                exc.response.headers['retry-after'])
-                            LOGGER.info('Rate limit: sleeping for %s seconds',
-                                        retry_after)
-                            time.sleep(retry_after)  # seconds
-                        else:
-                            raise
+            # Iterate over data chunks because the Awesome portal API accepts a
+            # maximum number of rows per call.
+            for chunk in utils.iter_chunks(
+                    readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+                if chunk:
+                    # Loop to retry if rate limit exceeded
+                    while True:
+                        try:
+                            objects.Reading.store_bulk(session, readings=chunk)
+                            break
+                        # No more readings, so stop
+                        except exceptions.EmptyValueError:
+                            break
+                        # HTTP error
+                        except requests.HTTPError as exc:
+                            # HTTP status code 429 too many requests
+                            # (server-side rate limit)
+                            if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
+                                # Wait until the system is ready to accept
+                                # further requests
+                                retry_after = int(
+                                    exc.response.headers['retry-after'])
+                                LOGGER.info(
+                                    'Rate limit: sleeping for %s seconds',
+                                    retry_after)
+                                time.sleep(retry_after)  # seconds
+                            else:
+                                raise
 
-            reading_count += len(chunk)
+                reading_count += len(chunk)
+
+            family.latest_timestamp = end_time
+            LOGGER.info('Saved bookmark for family %s at %s', family_name,
+                        end_time.isoformat())
 
         # Family sync success
         LOGGER.info('synced %s readings for family "%s"', reading_count,
                     family_name)
         total_reading_count += reading_count
         # Update bookmark
-        family.latest_timestamp = end_time
 
     LOGGER.info("Synced %s readings for %s families", len(families))
 
