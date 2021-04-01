@@ -150,6 +150,13 @@ class Location(AwesomeObject):
             elevation=elevation,
         )
 
+    def aqi_readings(self, session):
+        """
+        Get AQI readings at this location
+        """
+        # https://github.com/rcgsheffield/urban_flows/issues/14
+        return session.call(self.urljoin('aqi-readings'))
+
 
 class Sensor(AwesomeObject):
     """
