@@ -71,8 +71,8 @@ def detector_to_reading_type(detector: dict) -> dict:
         # Absolute maximum values the reading can take.
         # For example, temperature can never go below absolute zero of -273 C
         # TODO configure this on a per-reading-type basis
-        min_value=0,
-        max_value=999,
+        min_value=-999999.9,
+        max_value=999999.9,
     )
 
 

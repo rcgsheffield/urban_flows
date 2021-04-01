@@ -8,7 +8,8 @@ import requests
 import datetime
 import shelve
 import pathlib
-from typing import Optional
+from typing import Optional, ContextManager
+from contextlib import contextmanager
 
 import settings
 from settings import URL
@@ -25,18 +26,16 @@ class BookmarkMixin:
     def __init__(self):
         self.identifier = str()
 
-        if self.database is None:
-            self.database = self.open_database()
-
     @classmethod
     def database_path(cls) -> pathlib.Path:
         return settings.BOOKMARK_PATH_PREFIX.joinpath(cls.__name__.casefold())
 
     @classmethod
-    def open_database(cls, *args, **kwargs):
+    @contextmanager
+    def open_database(cls, *args, **kwargs) -> ContextManager[shelve.Shelf]:
         # Ensure directory exists
         cls.database_path().parent.mkdir(parents=True, exist_ok=True)
-        return shelve.open(str(cls.database_path()), *args, **kwargs)
+        yield shelve.open(str(cls.database_path()), *args, **kwargs)
 
     @property
     def latest_timestamp(self) -> Optional[datetime.datetime]:
@@ -44,18 +43,20 @@ class BookmarkMixin:
         Retrieve the latest stored timestamp for this object, or null if no
         timestamp was stored.
         """
-        try:
-            return self.database[self.identifier]
-        # No entry for this item
-        except KeyError:
-            pass
+        with self.open_database('r') as shelf:
+            try:
+                return shelf[self.identifier]
+            # No entry for this item
+            except KeyError:
+                pass
 
     @latest_timestamp.setter
     def latest_timestamp(self, timestamp: datetime.datetime):
         """
         Store a timestamp value associated with this object
         """
-        self.database[self.identifier] = timestamp
+        with self.open_database() as shelf:
+            shelf[self.identifier] = timestamp
 
 
 class Asset(BookmarkMixin):
