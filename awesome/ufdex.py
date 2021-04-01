@@ -168,6 +168,7 @@ class UrbanFlowsQuery:
                 if values:
                     params[query] = ','.join(values)
 
+            LOGGER.info("QUERY %s", params)
             yield from self._stream(params=params, **kwargs)
 
     @staticmethod

@@ -55,6 +55,7 @@ def sync_readings(session, families: Mapping[str, dict],
         nonlocal latest_awesome_timestamps
 
         # Get the time of the newest reading on the remote system
+        # If it's not stored in memory then retrieve from remote system
         latest_timestamp = latest_awesome_timestamps.setdefault(
             awesome_sensor_id,
             objects.Sensor(awesome_sensor_id).latest_timestamp(session))
