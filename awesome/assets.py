@@ -8,6 +8,7 @@ import requests
 import datetime
 import shelve
 import pathlib
+import dbm
 from typing import Optional, ContextManager
 from contextlib import contextmanager
 
@@ -21,7 +22,6 @@ class BookmarkMixin:
     """
     Serialise the latest timestamp successfully replicated from the data stream
     """
-    database = None
 
     def __init__(self):
         self.identifier = str()
@@ -43,12 +43,18 @@ class BookmarkMixin:
         Retrieve the latest stored timestamp for this object, or null if no
         timestamp was stored.
         """
-        with self.open_database('r') as shelf:
-            try:
-                return shelf[self.identifier]
-            # No entry for this item
-            except KeyError:
-                pass
+        try:
+            with self.open_database('r') as shelf:
+                try:
+                    return shelf[self.identifier]
+
+                # No database entry for this item
+                except KeyError:
+                    pass
+
+        # Database file doesn't exist
+        except dbm.error:
+            pass
 
     @latest_timestamp.setter
     def latest_timestamp(self, timestamp: datetime.datetime):
