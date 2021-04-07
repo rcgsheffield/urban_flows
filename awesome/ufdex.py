@@ -72,7 +72,7 @@ class UrbanFlowsQuery:
     def __call__(self, *args, **kwargs):
         reading_count = 0
         null_count = 0
-        for reading in self.parse(self.get()):
+        for reading in self.parse(self.query()):
             reading = self.transform(reading)
 
             # Filter nulls
@@ -217,7 +217,7 @@ class UrbanFlowsQuery:
             yield line
 
     @staticmethod
-    def parse(lines: Iterable[str]) -> Iterable[dict]:
+    def parse(lines: str) -> Iterable[dict]:
         """
         Process raw data and generate one dictionary per reading
         """
@@ -232,7 +232,10 @@ class UrbanFlowsQuery:
         row_count = 0
         number_of_points = 0
 
-        for line in lines:
+        for line_number, line in enumerate(lines.splitlines()):
+
+            # Remove line endings
+            line = line.rstrip('\n')
 
             # Query fail
             if line == 'mutis csvShow 0 sensors satisfy your conditions':
@@ -301,8 +304,10 @@ class UrbanFlowsQuery:
 
                 # Check column count
                 if len(values) != len(columns):
-                    LOGGER.error(columns)
-                    LOGGER.error(values)
+                    LOGGER.error("Column headers: %s", columns)
+                    LOGGER.error("Row values: %s", values)
+                    LOGGER.error("line number %s", line_number)
+                    LOGGER.debug(line)
                     raise ValueError('Unexpected number of data values')
 
                 # Generate a reading for each value on this row
