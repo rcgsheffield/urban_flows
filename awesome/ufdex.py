@@ -1,5 +1,6 @@
 """
-Retrieve data from the Urban Flows Observatory data warehouse via the Urban Flows Data Extraction tool
+Retrieve data from the Urban Flows Observatory data warehouse via the Urban
+Flows Data Extraction tool
 
 Usage:
     query = dict(
@@ -33,12 +34,15 @@ from settings import HOST, URL
 
 LOGGER = logging.getLogger(__name__)
 
+SESSION = requests.Session()
+
 NULL = -32768.0
 
 
 class UrbanFlowsQuery:
     """
-    Retrieve data from the Urban Flows Observatory data extraction tool by specifying filters.
+    Retrieve data from the Urban Flows Observatory data extraction tool by
+    specifying filters.
     """
 
     # 2020-01-23T10:20:32
@@ -68,7 +72,7 @@ class UrbanFlowsQuery:
     def __call__(self, *args, **kwargs):
         reading_count = 0
         null_count = 0
-        for reading in self.parse(self.stream()):
+        for reading in self.parse(self.get()):
             reading = self.transform(reading)
 
             # Filter nulls
@@ -134,7 +138,7 @@ class UrbanFlowsQuery:
             t0 += freq
             t1 += freq
 
-    def stream(self, **kwargs) -> Iterable[str]:
+    def query(self, **kwargs) -> str:
         """
         Retrieve raw data over HTTP
         """
@@ -160,28 +164,26 @@ class UrbanFlowsQuery:
                 params[query] = ','.join(values)
 
         LOGGER.info("QUERY %s", params)
-        yield from self._stream(params=params, **kwargs)
+        response = self.get(params=params, **kwargs)
+        return response.text
 
     @staticmethod
-    def _stream(**kwargs) -> Iterable[str]:
-        with requests.Session() as session:
-            # Streaming Requests
-            with session.get(URL, stream=True, **kwargs) as response:
+    def get(url=URL, **kwargs) -> requests.Response:
+        response = SESSION.get(url, **kwargs)
 
-                # Raise HTTP errors
-                try:
-                    response.raise_for_status()
-                except requests.HTTPError:
-                    LOGGER.error(response.text)
-                    raise
+        # Raise HTTP errors
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            LOGGER.error(response.text)
+            raise
 
-                # Provide a fallback encoding in the event the server doesn't
-                # provide one
-                if not response.encoding:
-                    response.encoding = 'utf-8'
+        # Provide a fallback encoding in the event the server doesn't
+        # provide one
+        if not response.encoding:
+            response.encoding = 'utf-8'
 
-                # Generate lines of data
-                yield from response.iter_lines(decode_unicode=True)
+        return response
 
     @staticmethod
     def readlines(data: Iterable[bytes], sep: str = '\n',
@@ -363,11 +365,11 @@ class UrbanFlowsQuery:
 
 class UrbanFlowsQuerySSH(UrbanFlowsQuery):
     """
-    Retrieve data over SSH
+    Retrieve data over SSH (experimental)
     """
 
     @staticmethod
-    def _stream(*args, params: dict = None, **kwargs) -> iter:
+    def get(*args, params: dict = None, **kwargs) -> iter:
         # Override stream method
         # Import here so dependencies aren't mandatory
         import remote
@@ -375,7 +377,7 @@ class UrbanFlowsQuerySSH(UrbanFlowsQuery):
         params = params or dict()
         # Quiet output
         params['unittest'] = 's'
-        # Generate arguments for command-line version of udex
+        # Generate arguments for command-line version of ufdex
         args = ' '.join(
             ("'{}={}'".format(key, value) for key, value in params.items()))
 

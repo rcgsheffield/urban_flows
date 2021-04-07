@@ -85,7 +85,7 @@ To retrieve the data for a single object, pass its identifier number into the co
 
 ```python
 sensor_type = objects.SensorType(1)
-data = sensor_type.get(session)
+data = sensor_type.query(session)
 ```
 
 Some classes have behaviour specific to that type of object, such as `Sensor.add_sensor_category` etc.

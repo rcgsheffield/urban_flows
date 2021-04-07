@@ -53,7 +53,7 @@ def add_handler(filename: pathlib.Path, level: int) -> logging.Handler:
 
     # Create log handler to capture records with specified formatting
     handler = logging.FileHandler(filename=str(filename))
-    formatter = logging.Formatter(fmt=settings.LOGGING.get('format'))
+    formatter = logging.Formatter(fmt=settings.LOGGING.query('format'))
     handler.setFormatter(formatter)
     handler.setLevel(level)
 

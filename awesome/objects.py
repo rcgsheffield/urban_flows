@@ -128,7 +128,7 @@ class Location(AwesomeObject):
             'to': Reading.strftime(to),
             'interval': Reading.interval(interval)
         }
-        return session.get(url, params=params)
+        return session.query(url, params=params)
 
     def readings_by_sensor(self, *args, **kwargs):
         return self.readings(*args, *kwargs)

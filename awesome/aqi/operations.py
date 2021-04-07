@@ -60,7 +60,7 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime, end: datetime.d
 
 def transform(reading: dict) -> dict:
     # Rename
-    reading['pollutant'] = aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.get(reading['UCD'])
+    reading['pollutant'] = aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.query(reading['UCD'])
 
     # Round to nearest minute because there may be multiple different sensors at a site, so merge them together
     reading['time'] = reading['time'].replace(minute=0, second=0, microsecond=0)
