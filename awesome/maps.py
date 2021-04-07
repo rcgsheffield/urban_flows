@@ -183,5 +183,5 @@ def family_to_sensor_type(family_name: str,
         name=family_name.upper(),
         manufacturer=family_name,
         # Quality score
-        rating=settings.FAMILY_RATING.query(family_name, default_rating)
+        rating=settings.FAMILY_RATING.get(family_name, default_rating)
     )
