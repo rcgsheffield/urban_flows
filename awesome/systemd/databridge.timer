@@ -1,9 +1,10 @@
 [Unit]
 Description=Awesome data bridge
 Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
+Requires=databridge.service
 
 [Timer]
-# This timer will target databridge.service by default (default for unspecified Unit=)
+Unit=databridge.service
 # Wait x minutes (monotonic timer) between runs
 OnUnitInactiveSec=60min
 

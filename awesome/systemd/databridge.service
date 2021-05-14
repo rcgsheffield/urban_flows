@@ -2,8 +2,8 @@
 [Unit]
 Description=Awesome data bridge
 Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
-Wants=network.target
 After=network.target
+Wants=databridge.timer
 
 [Service]
 Type=simple

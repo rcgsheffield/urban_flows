@@ -10,5 +10,5 @@ mkdir -pv $TARGET_DIR
 sudo cp -rv * $TARGET_DIR
 
 echo "Installing systemd units..."
-cp --verbose databridge.service /etc/systemd/system/databridge.service
-cp --verbose databridge.timer /etc/systemd/system/databridge.timer
+cp --verbose systemd/databridge.service /etc/systemd/system/databridge.service
+cp --verbose systemd/databridge.timer /etc/systemd/system/databridge.timer
