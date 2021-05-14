@@ -112,6 +112,16 @@ sudo systemctl daemon-reload
 # Enable the timer
 sudo systemctl enable databridge.timer
 # View all timers
-systemctl list-timers --all
+systemctl list-timers --all | grep databridge
 ```
 
+The logs for the `systemd` units are stored using `journalctl`.
+
+```bash
+# View logs
+journalctl -u databridge.service
+# Filter logs by time
+journalctl -u databridge.service --since "2021-04-26 00:00:00" --until "2021-04-26 01:00:00"
+```
+
+## 
