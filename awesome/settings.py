@@ -21,7 +21,7 @@ LOGGING = dict(
 )
 
 # The maximum number of readings to upload at once to /api/reading/bulk
-BULK_READINGS_CHUNK_SIZE = 200
+BULK_READINGS_CHUNK_SIZE = 100
 
 AQI_TIME_AVERAGE_FREQUENCY = '1min'
 
