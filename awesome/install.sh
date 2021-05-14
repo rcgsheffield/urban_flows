@@ -3,6 +3,9 @@
 TARGET_DIR=/opt/awesome
 VENV_DIR=$TARGET_DIR/venv
 
+# Exit immediately if a command exits with a non-zero status
+set -e
+
 echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
 
