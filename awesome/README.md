@@ -4,6 +4,28 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 
 # Installation
 
+Use `install.sh` to copy the relevant files.
+
+The service is controlled using `systemd` and is defined in `databridge.service`. To control the timer:
+
+```bash
+# load any changes to systemd units
+sudo systemctl daemon-reload
+# Enable the timer
+sudo systemctl enable databridge.timer
+# View all timers
+systemctl list-timers --all | grep databridge
+```
+
+The logs for the `systemd` units are stored using `journalctl`.
+
+```bash
+# View logs
+journalctl -u databridge.service
+# Filter logs by time
+journalctl -u databridge.service --since "2021-04-26 00:00:00" --until "2021-04-26 01:00:00"
+```
+
 By default, the authentication token used to access the Awesome portal API is stored in a text file at `~/configs/awesome_token.txt` as specified in `settings.DEFAULT_TOKEN_PATH`.
 
 # Usage
@@ -100,28 +122,3 @@ To execute the automated unit tests, run this command:
 python -m unittest --failfast --verbose
 ```
 
-# Deployment
-
-Use `install.sh` to copy the relevant files.
-
-The service is controlled using `systemd` and is defined in `databridge.service`. To control the timer:
-
-```bash
-# load any changes to systemd units
-sudo systemctl daemon-reload
-# Enable the timer
-sudo systemctl enable databridge.timer
-# View all timers
-systemctl list-timers --all | grep databridge
-```
-
-The logs for the `systemd` units are stored using `journalctl`.
-
-```bash
-# View logs
-journalctl -u databridge.service
-# Filter logs by time
-journalctl -u databridge.service --since "2021-04-26 00:00:00" --until "2021-04-26 01:00:00"
-```
-
-## 

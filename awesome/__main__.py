@@ -114,6 +114,8 @@ def main():
         LOGGER.info('Syncing AQI readings...')
         sync.sync_aqi_readings(session, sites=sites, locations=locations)
 
+        LOGGER.info('Closing')
+
 
 if __name__ == '__main__':
     main()
