@@ -114,8 +114,8 @@ def sync_readings(session, families: Mapping[str, dict],
 
             # Iterate over data chunks because the Awesome portal API accepts a
             # maximum number of rows per call.
-            for chunk in utils.iter_chunks(
-                    readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+            for i, chunk in enumerate(utils.iter_chunks(
+                    readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
                 if chunk:
                     # Loop to retry if rate limit exceeded
                     while True:
@@ -141,8 +141,12 @@ def sync_readings(session, families: Mapping[str, dict],
                             else:
                                 raise
 
+                LOGGER.debug('Bulk stored chunk %s with %s rows', i,
+                             len(chunk))
+
                 reading_count += len(chunk)
 
+            # Update bookmark
             family.latest_timestamp = end_time
             LOGGER.info('Saved bookmark for family %s at %s', family_name,
                         end_time.isoformat())
@@ -151,7 +155,6 @@ def sync_readings(session, families: Mapping[str, dict],
         LOGGER.info('synced %s readings for family "%s"', reading_count,
                     family_name)
         total_reading_count += reading_count
-        # Update bookmark
 
     LOGGER.info("Synced %s readings for %s families", len(families))
 
