@@ -42,7 +42,8 @@ class PortalSession(requests.Session):
 
         # Log HTTP error codes
         except requests.HTTPError as exc:
-            LOGGER.error(exc.response.headers)
+            for header, value in exc.response.headers.items():
+                LOGGER.error("RESPONSE HEADER %s: %s", header, value)
             LOGGER.error(exc.response.text)
             raise
 
