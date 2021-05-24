@@ -13,8 +13,11 @@ The service is controlled using `systemd` and is defined in `databridge.service`
 sudo systemctl daemon-reload
 # Enable the timer
 sudo systemctl enable databridge.timer
-# View all timers
-systemctl list-timers --all | grep databridge
+# View service status
+systemctl status databridge.timer
+systemctl status databridge.service
+# View all timers (shows next execution time)
+systemctl list-timers --all
 ```
 
 The logs for the `systemd` units are stored using `journalctl`.
