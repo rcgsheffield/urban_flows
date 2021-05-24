@@ -1,11 +1,11 @@
 # This systemd unit is used to control the data bridge service
 [Unit]
-Description=Awesome data bridge
+Description=Awesome data bridge service
 Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
 After=network.target
-Wants=databridge.timer
 
 [Service]
+# https://trstringer.com/simple-vs-oneshot-systemd-service/#summary
 Type=simple
 User=uflo
 ExecStartPre=/bin/mkdir --parents /home/uflo/logs

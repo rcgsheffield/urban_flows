@@ -4,7 +4,11 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 
 # Installation
 
-Use `install.sh` to copy the relevant files.
+Use `install.sh` to copy the relevant files:
+
+```bash
+sudo --set-home sh install.sh
+```
 
 The service is controlled using `systemd` and is defined in `databridge.service`. To control the timer:
 

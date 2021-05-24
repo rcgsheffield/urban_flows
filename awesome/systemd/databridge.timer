@@ -1,12 +1,13 @@
+# This systemd unit is used to control the data bridge service
+# https://serverfault.com/a/777558
 [Unit]
-Description=Awesome data bridge
+Description=Awesome data bridge timer
 Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
-Wants=databridge.service
 
 [Timer]
 Unit=databridge.service
 # Wait x minutes (monotonic timer) between runs
-OnUnitInactiveSec=60min
+OnUnitActiveSec=15min
 
 [Install]
 WantedBy=timers.target
