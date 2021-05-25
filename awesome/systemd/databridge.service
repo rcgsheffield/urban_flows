@@ -8,8 +8,7 @@ After=network.target
 # https://trstringer.com/simple-vs-oneshot-systemd-service/#summary
 Type=simple
 User=uflo
-ExecStartPre=/bin/mkdir --parents /home/uflo/logs
-ExecStart=/opt/awesome/venv/bin/python3 /opt/awesome/__main__.py --verbose --error /home/uflo/logs/awesome-error.log --info /home/uflo/logs/awesome.log --token /home/uflo/configs/awesome_token.txt
+ExecStart=/opt/awesome/venv/bin/python3 /opt/awesome/__main__.py --verbose --token /home/uflo/configs/awesome_token.txt
 # Don't restart because this service will be triggered on a schedule
 Restart=no
 
