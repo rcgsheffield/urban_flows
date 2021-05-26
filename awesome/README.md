@@ -17,6 +17,13 @@ The service is controlled using `systemd` and is defined in `databridge.service`
 sudo systemctl daemon-reload
 # Enable the timer
 sudo systemctl enable databridge.timer
+sudo systemctl start databridge.timer
+```
+
+To monitor:
+
+```bash
+
 # View service status
 systemctl status databridge.timer
 systemctl status databridge.service

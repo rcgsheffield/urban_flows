@@ -116,30 +116,32 @@ def sync_readings(session, families: Mapping[str, dict],
             # maximum number of rows per call.
             for i, chunk in enumerate(utils.iter_chunks(
                     readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
-                if chunk:
-                    # Loop to retry if rate limit exceeded
-                    while True:
-                        try:
-                            objects.Reading.store_bulk(session, readings=chunk)
-                            break
-                        # No more readings, so stop
-                        except exceptions.EmptyValueError:
-                            break
-                        # HTTP error
-                        except requests.HTTPError as exc:
-                            # HTTP status code 429 too many requests
-                            # (server-side rate limit)
-                            if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
-                                # Wait until the system is ready to accept
-                                # further requests
-                                retry_after = int(
-                                    exc.response.headers['retry-after'])
-                                LOGGER.info(
-                                    'Rate limit: sleeping for %s seconds',
-                                    retry_after)
-                                time.sleep(retry_after)  # seconds
-                            else:
-                                raise
+                # Log every 100 chunks
+                if i % 100 == 0:
+                    LOGGER.info('Family %s Chunk %s', family_name, i)
+                # Loop to retry if rate limit exceeded
+                while True:
+                    try:
+                        objects.Reading.store_bulk(session, readings=chunk)
+                        break
+                    # No more readings, so stop
+                    except exceptions.EmptyValueError:
+                        break
+                    # HTTP error
+                    except requests.HTTPError as exc:
+                        # HTTP status code 429 too many requests
+                        # (server-side rate limit)
+                        if exc.response.status_code == http.HTTPStatus.TOO_MANY_REQUESTS:
+                            # Wait until the system is ready to accept
+                            # further requests
+                            retry_after = int(
+                                exc.response.headers['retry-after'])
+                            LOGGER.info(
+                                'Rate limit: sleeping for %s seconds',
+                                retry_after)
+                            time.sleep(retry_after)  # seconds
+                        else:
+                            raise
 
                 LOGGER.debug('Bulk stored chunk %s with %s rows', i,
                              len(chunk))
