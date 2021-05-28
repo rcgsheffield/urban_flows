@@ -175,6 +175,7 @@ class UrbanFlowsQuery:
         try:
             response.raise_for_status()
         except requests.HTTPError:
+            LOGGER.error(response.url)
             LOGGER.error(response.text)
             raise
 
