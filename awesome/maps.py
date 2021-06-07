@@ -62,6 +62,7 @@ def sensor_to_sensor(sensor: Mapping, locations: Mapping) -> dict:
     return objects.Sensor.new(
         name=str(sensor['name']),
         location_id=locations[site_name]['id'],
+        # TODO map family to sensor type
         sensor_type_id=1,
         active=bool(sensor['isActive'])
     )
