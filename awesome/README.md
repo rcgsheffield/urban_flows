@@ -36,6 +36,8 @@ The logs for the `systemd` units are stored using `journalctl`.
 ```bash
 # View logs
 journalctl -u databridge.service
+# View logs for today
+journalctl -u databridge.service --since "$(date -I)"
 # Filter logs by time
 journalctl -u databridge.service --since "2021-04-26 00:00:00" --until "2021-04-26 01:00:00"
 ```

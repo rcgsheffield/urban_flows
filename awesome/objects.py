@@ -117,7 +117,9 @@ class AwesomeObject(abc.ABC):
 
 
 class Location(AwesomeObject):
-    """A location represents a collection on sensors at set of co-ordinates."""
+    """
+    A location represents a collection on sensors at set of co-ordinates.
+    """
     edge = 'locations'
 
     def readings(self, session, from_: datetime.datetime,
@@ -141,13 +143,17 @@ class Location(AwesomeObject):
         raise NotImplementedError
 
     @staticmethod
-    def new(name: str, lat: str, lon: str, elevation: int) -> dict:
-        """Construct a new Location object"""
+    def new(name: str, lat: str, lon: str, elevation: float,
+            description: str) -> dict:
+        """
+        Construct a new Location object
+        """
         return dict(
             name=name,
             lat=lat,
             lon=lon,
             elevation=elevation,
+            description=description,
         )
 
     def aqi_readings(self, session):

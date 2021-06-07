@@ -20,7 +20,9 @@ def awesome_coordinate(value: float) -> str:
 
 
 def site_to_location(site: dict) -> dict:
-    """Map Urban Flows site to an Awesome portal location"""
+    """
+    Map Urban Flows site to an Awesome portal location
+    """
 
     # Get latest activity
     activity = sorted(site['activity'], key=lambda act: act['t0'])[0]
@@ -29,7 +31,10 @@ def site_to_location(site: dict) -> dict:
         name=str(site['name']),
         lat=awesome_coordinate(site['latitude']),
         lon=awesome_coordinate(site['longitude']),
-        elevation=int(activity['heightAboveSL']),
+        # Height above sea level in metres
+        elevation=float(activity['heightAboveSL']),
+        # Street address
+        description=str(site['stAdd']),
     )
 
 
