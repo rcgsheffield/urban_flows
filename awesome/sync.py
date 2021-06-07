@@ -109,8 +109,8 @@ def sync_readings(session, families: Mapping[str, dict],
                 if reading_is_new(utils.parse_timestamp(reading['created']),
                                   reading['sensor_id'])))
 
-            LOGGER.info('Family %s: %s new readings to sync', family_name, len(
-                readings))
+            LOGGER.info('Family "%s": %s new readings to sync', family_name,
+                        len(readings))
 
             # Iterate over data chunks because the Awesome portal API accepts a
             # maximum number of rows per call.
@@ -149,16 +149,17 @@ def sync_readings(session, families: Mapping[str, dict],
                 reading_count += len(chunk)
 
             # Update bookmark
-            family.latest_timestamp = end_time
-            LOGGER.info('Saved bookmark for family %s at %s', family_name,
-                        end_time.isoformat())
+            family.latest_timestamp = _end
+            LOGGER.info('Saved bookmark for family "%s" at %s', family_name,
+                        _end.isoformat())
 
         # Family sync success
         LOGGER.info('synced %s readings for family "%s"', reading_count,
                     family_name)
         total_reading_count += reading_count
 
-    LOGGER.info("Synced %s readings for %s families", len(families))
+    LOGGER.info("Synced %s readings for %s families", total_reading_count,
+                len(families))
 
 
 def sync_sites(session: http_session.PortalSession, sites: Mapping,
