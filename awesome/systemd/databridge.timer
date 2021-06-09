@@ -6,6 +6,8 @@ Documentation=https://github.com/rcgsheffield/urban_flows/tree/master/awesome
 
 [Timer]
 Unit=databridge.service
+# Start automatically on system reboot
+OnBootSec=15min
 # Wait x minutes (monotonic timer) between runs
 OnUnitActiveSec=15min
 
