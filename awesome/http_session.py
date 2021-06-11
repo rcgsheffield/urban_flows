@@ -4,6 +4,7 @@ HTTP transport layer for the Awesome portal
 
 import logging
 import json
+import time
 
 import requests
 
@@ -50,7 +51,10 @@ class PortalSession(requests.Session):
         return response
 
     def call(self, *args, method: str = 'get', **kwargs) -> dict:
+        t0 = time.time()
         response = self.request(method, *args, **kwargs)
+        t1 = time.time()
+        LOGGER.debug("HTTP request took %s seconds", t1 - t0)
 
         # Parse JSON response
         try:
