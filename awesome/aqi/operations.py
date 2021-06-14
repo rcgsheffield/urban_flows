@@ -22,6 +22,14 @@ def calculate_index(row: pandas.Series) -> int:
     return _aqi.index
 
 
+def chunk_ufo_query(start, end, site_id):
+    for _start, _end in ufdex.UrbanFlowsQuery.generate_time_periods(
+            start=start, end=end, freq=datetime.timedelta(days=1)):
+        query = ufdex.UrbanFlowsQuery(time_period=[_start, _end],
+                                      site_ids={site_id})
+        yield from query()
+
+
 def get_urban_flows_data(site_id: str, start: datetime.datetime,
                          end: datetime.datetime = None) -> pandas.DataFrame:
     LOGGER.info("Getting data for Urban Flows site '%s'", site_id)
@@ -30,16 +38,15 @@ def get_urban_flows_data(site_id: str, start: datetime.datetime,
     end = end or datetime.datetime.now(datetime.timezone.utc)
 
     # Get Urban Flows data
-    query = ufdex.UrbanFlowsQuery(time_period=[start, end], site_ids={site_id})
+    ufo_readings = chunk_ufo_query(start=start, end=end, site_id=site_id)
 
     # Pre-process input data
+    readings = (transform(reading) for reading in ufo_readings)
 
     # Ensure consistent data frame shape
     data = pandas.DataFrame(
         columns=['time', 'sensor.id', 'UCD', 'value', 'pollutant', 'units',
                  'converted_value', 'converted_units'])
-
-    readings = (transform(reading) for reading in query())
 
     # Collect data
     for reading in readings:
@@ -81,8 +88,9 @@ def transform(reading: dict) -> dict:
 def convert_units(reading: dict) -> dict:
     try:
         func = \
-        aqi.daqi.DailyAirQualityIndex.CONVERSION_FACTOR[reading['pollutant']][
-            reading['units']]
+            aqi.daqi.DailyAirQualityIndex.CONVERSION_FACTOR[
+                reading['pollutant']][
+                reading['units']]
         reading['converted_value'] = func(reading['value'])
         reading['converted_units'] = aqi.daqi.DailyAirQualityIndex.UNITS[
             reading['pollutant']]
