@@ -411,8 +411,8 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
-        LOGGER.info("Site %s AQI readings. Latest timestamp %s", site['name'],
-                    bookmark)
+        LOGGER.info("Site '%s' AQI readings. Latest timestamp %s",
+                    site['name'], bookmark)
 
         data = aqi.operations.get_urban_flows_data(site_id=site['name'],
                                                    start=bookmark)
@@ -421,6 +421,7 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         if data.empty:
             continue
 
+        LOGGER.info("Calculating AQI values...")
         air_quality_index = aqi.operations.calculate_air_quality(data)[
             'air_quality_index'].dropna()
 
@@ -429,19 +430,25 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
 
         location = locations[site['name']]
 
-        readings = maps.aqi_readings(air_quality_index,
-                                     aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
-                                     location_id=location['id'])
+        LOGGER.info("Generating AQI readings for upload...")
+        readings = maps.aqi_readings(
+            air_quality_index,
+            aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
+            location_id=location['id'])
 
         # Sync readings (The aqi readings input must be chunked)
-        for chunk in utils.iter_chunks(readings,
-                                       chunk_size=settings.BULK_READINGS_CHUNK_SIZE):
+        for i, chunk in enumerate(utils.iter_chunks(
+                readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
+            LOGGER.info("Bulk store AQI chunk %s", i)
             objects.AQIReading.store_bulk(session, aqi_readings=chunk)
 
         # Update bookmark on success
         new_timestamp = data.index.max()
         if not pandas.isnull(new_timestamp):
-            site_obj.latest_timestamp = new_timestamp.to_pydatetime()
+            t = new_timestamp.to_pydatetime()
+            site_obj.latest_timestamp = t
+            LOGGER.info("Updated bookmark: site '%s' to %s", site['name'],
+                        t.isoformat())
 
 
 def sync_families(session, families: Mapping[str, dict],

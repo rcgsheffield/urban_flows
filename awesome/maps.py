@@ -108,7 +108,8 @@ def aqi_readings(air_quality_index: Mapping[datetime.datetime, int],
                  aqi_standard_id: int, location_id: int) -> List[
     dict]:
     """
-    Convert Air Quality Index values (calculated locally) to AQI Readings for the Awesome portal.
+    Convert Air Quality Index values (calculated locally) to AQI Readings for
+    the Awesome portal.
     """
     return [
         dict(
