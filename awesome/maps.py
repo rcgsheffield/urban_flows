@@ -34,7 +34,7 @@ def site_to_location(site: dict) -> dict:
         # Height above sea level in metres
         elevation=float(activity['heightAboveSL']),
         # Street address
-        description=str(site.get('stAdd', '')),
+        description=str(activity.get('stAdd', '')),
     )
 
 
