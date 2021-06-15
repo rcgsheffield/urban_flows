@@ -181,8 +181,12 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
         # Convert UFO site to Awesome object
         local_location = maps.site_to_location(site)
 
-        # Does this location exist on the Awesome portal?
-        if site['name'] not in locations.keys():
+        try:
+            # Update existing location
+            loc = objects.Location(locations[site['name']]['id'])
+            loc.update(session, local_location)
+
+        except KeyError:
             # Create new location
             body = objects.Location.add(session, local_location)
             new_location = body['data']

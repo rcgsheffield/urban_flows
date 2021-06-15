@@ -139,9 +139,6 @@ class Location(AwesomeObject):
         url = self.urljoin('sensors')
         return session.call(url)
 
-    def update(self, *args, **kwargs):
-        raise NotImplementedError
-
     @staticmethod
     def new(name: str, lat: str, lon: str, elevation: float,
             description: str) -> dict:
