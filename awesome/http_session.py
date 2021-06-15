@@ -56,6 +56,13 @@ class PortalSession(requests.Session):
         t1 = time.time()
         LOGGER.debug("HTTP request took %s seconds", t1 - t0)
 
+        # Prevent redirect
+        if response.history:
+            for r in response.history:
+                LOGGER.error(r)
+                LOGGER.error(r.url)
+            raise ValueError(response.history)
+
         # Parse JSON response
         try:
             return response.json()
