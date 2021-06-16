@@ -180,6 +180,7 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
 
         # Convert UFO site to Awesome object
         local_location = maps.site_to_location(site)
+        LOGGER.debug(local_location)
 
         try:
             # Update existing location

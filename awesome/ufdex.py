@@ -165,6 +165,8 @@ class UrbanFlowsQuery:
 
         LOGGER.info("QUERY %s", params)
         response = self.get(params=params, **kwargs)
+        LOGGER.debug("HTTP request took %s seconds",
+                     response.elapsed.total_seconds())
         return response.text
 
     @staticmethod

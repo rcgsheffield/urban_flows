@@ -86,7 +86,7 @@ class AwesomeObject(abc.ABC):
             response = session.post(url, json=obj, **kwargs)
             return response.json()
 
-        # This POST request redirects to the HTML home page, so just return empty
+        # This POST request redirects to the HTML home page
         except json.JSONDecodeError:
             return dict()
 
