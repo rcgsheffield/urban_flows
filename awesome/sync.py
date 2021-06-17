@@ -422,17 +422,11 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         data = aqi.operations.get_urban_flows_data(site_id=site['name'],
                                                    start=bookmark)
 
-        # Skip missing data
-        if data.empty:
-            continue
-
         LOGGER.info("Calculating AQI values...")
         air_quality_index = aqi.operations.calculate_air_quality(data)[
             'air_quality_index'].dropna()
 
-        if air_quality_index.empty:
-            continue
-
+        # Upload to Awesome portal
         location = locations[site['name']]
 
         LOGGER.info("Generating AQI readings for upload...")
@@ -447,7 +441,7 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
             LOGGER.info("Bulk store AQI chunk %s", i)
             objects.AQIReading.store_bulk(session, aqi_readings=chunk)
 
-        # Update bookmark on success
+        # Update bookmark so we don't check this time range again
         new_timestamp = data.index.max()
         if not pandas.isnull(new_timestamp):
             t = new_timestamp.to_pydatetime()
