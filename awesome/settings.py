@@ -13,7 +13,7 @@ DEFAULT_TOKEN_PATH = CONFIG_PATH.joinpath('awesome_token.txt')
 BOOKMARK_PATH_PREFIX = CONFIG_PATH.joinpath('awesome_bookmarks')
 
 # The beginning of data collection
-TIME_START = datetime.datetime(2019, 1, 1, tzinfo=datetime.timezone.utc)
+TIME_START = datetime.datetime(2021, 3, 1, tzinfo=datetime.timezone.utc)
 
 # Log config
 LOGGING = dict(
