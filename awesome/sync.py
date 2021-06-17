@@ -186,7 +186,6 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
 
     # Iterate over UFO sensors
     for sensor_id, sensor in sensors.items():
-        LOGGER.debug('Sensor %s', sensor_id)
 
         # Convert to Awesome object
         local_sensor = maps.sensor_to_sensor(sensor, locations)
@@ -203,6 +202,10 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
             # Store id of new sensor
             awesome_sensors[new_sensor['name']] = new_sensor['id']
 
+            LOGGER.debug('UFO Sensor "%s" => Awesome id %s', sensor_id,
+                         new_sensor['id'])
+
+            # Don't update
             continue
 
         # Have changes been made?
@@ -212,6 +215,8 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
             # Update the object on the Awesome portal
             sen = objects.Sensor(remote_sensor['id'])
             sen.update(session, local_sensor)
+            LOGGER.debug('UFO Sensor "%s" => Awesome id %s', sensor_id,
+                         remote_sensor['location_id'])
 
 
 def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
