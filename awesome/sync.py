@@ -47,31 +47,6 @@ def sync_readings(session, families: Mapping[str, dict],
     # Count the number of readings uploaded for all the sensors
     total_reading_count = 0
 
-    # For each sensor id, track the timestamp of the newest record on the
-    # remote system
-    latest_awesome_timestamps = dict()
-
-    def reading_is_new(t: datetime.datetime, awesome_sensor_id: str) -> bool:
-        nonlocal latest_awesome_timestamps
-
-        # Get the time of the newest reading on the remote system
-        # If it's not stored in memory then retrieve from remote system
-        try:
-            latest_timestamp = latest_awesome_timestamps[awesome_sensor_id]
-        except KeyError:
-            latest_timestamp = objects.Sensor(
-                awesome_sensor_id).latest_timestamp(session)
-            latest_awesome_timestamps[awesome_sensor_id] = latest_timestamp
-
-        # Start syncing after the time of this most recent data point
-        try:
-            return t > latest_timestamp
-        except TypeError:
-            if latest_timestamp is None:
-                return True
-            else:
-                raise
-
     # Iterate over UFO sensor families
     for family_name, family_data in families.items():
         LOGGER.info('Family "%s"', family_name)
@@ -88,9 +63,14 @@ def sync_readings(session, families: Mapping[str, dict],
 
         # Query UFO database by chunking over time periods
         for _start, _end in ufdex.UrbanFlowsQuery.generate_time_periods(
-                start_time, end_time, freq=settings.URBAN_FlOWS_TIME_CHUNK):
-            query = ufdex.UrbanFlowsQuery(families={family_name},
-                                          time_period=[_start, _end])
+                start=start_time,
+                end=end_time,
+                freq=settings.URBAN_FlOWS_TIME_CHUNK
+        ):
+            query = ufdex.UrbanFlowsQuery(
+                families={family_name},
+                time_period=[_start, _end]
+            )
             # Load results into memory (don't hold open stream because this
             # can time out due to long running operations below)
             readings = tuple(query())
@@ -98,19 +78,14 @@ def sync_readings(session, families: Mapping[str, dict],
                          len(readings))
 
             # Convert from UFO readings to Awesome readings
-            readings = (maps.reading_to_reading(reading=reading,
-                                                reading_types=reading_types,
-                                                awesome_sensors=awesome_sensors)
-                        for reading in readings)
-
-            # Filter by date based on remote sensor, only sync new readings
-            readings = tuple((
-                reading for reading in readings
-                if reading_is_new(utils.parse_timestamp(reading['created']),
-                                  reading['sensor_id'])))
-
-            LOGGER.info('Family "%s": %s new readings to sync', family_name,
-                        len(readings))
+            readings = (
+                maps.reading_to_reading(
+                    reading=reading,
+                    reading_types=reading_types,
+                    awesome_sensors=awesome_sensors
+                )
+                for reading in readings
+            )
 
             # Iterate over data chunks because the Awesome portal API accepts a
             # maximum number of rows per call.
