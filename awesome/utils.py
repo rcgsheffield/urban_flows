@@ -11,6 +11,10 @@ import settings
 LOGGER = logging.getLogger(__name__)
 
 
+def now() -> datetime.datetime:
+    return datetime.datetime.utcnow()
+
+
 def parse_timestamp(timestamp: str) -> datetime.datetime:
     """
     Parse ISO 8601/RFC3339 timestamp string to native Python object

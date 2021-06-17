@@ -396,6 +396,11 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         site_obj = assets.Site(site['name'])
         bookmark = site_obj.latest_timestamp or settings.TIME_START
 
+        # Allow at least 8 hours of data because some AQI calculations
+        # require an 8-hour rolling average
+        eight_hours_ago = utils.now() - datetime.timedelta(hours=8)
+        bookmark = min(bookmark, eight_hours_ago)
+
         LOGGER.info("Site '%s' AQI readings. Latest timestamp %s",
                     site['name'], bookmark)
 
