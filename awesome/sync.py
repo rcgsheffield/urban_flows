@@ -402,24 +402,30 @@ def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
         data = aqi.operations.get_urban_flows_data(site_id=site['name'],
                                                    start=bookmark)
 
-        LOGGER.info("Calculating AQI values...")
-        air_quality_index = aqi.operations.calculate_air_quality(data)[
-            'air_quality_index'].dropna()
+        try:
+            LOGGER.info("Calculating AQI values...")
+            air_quality_index = aqi.operations.calculate_air_quality(data)[
+                'air_quality_index'].dropna()
 
-        # Upload to Awesome portal
-        location = locations[site['name']]
+            # Upload to Awesome portal
+            location = locations[site['name']]
 
-        LOGGER.info("Generating AQI readings for upload...")
-        readings = maps.aqi_readings(
-            air_quality_index,
-            aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
-            location_id=location['id'])
+            LOGGER.info("Generating AQI readings for upload...")
+            readings = maps.aqi_readings(
+                air_quality_index,
+                aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
+                location_id=location['id'])
 
-        # Sync readings (The aqi readings input must be chunked)
-        for i, chunk in enumerate(utils.iter_chunks(
-                readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
-            LOGGER.info("Bulk store AQI chunk %s", i)
-            objects.AQIReading.store_bulk(session, aqi_readings=chunk)
+            # Sync readings (The aqi readings input must be chunked)
+            for i, chunk in enumerate(utils.iter_chunks(
+                    readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
+                LOGGER.info("Bulk store AQI chunk %s", i)
+                objects.AQIReading.store_bulk(session, aqi_readings=chunk)
+
+        # If no AQI readings, continue to update bookmark
+        except KeyError:
+            if not data.empty:
+                raise
 
         # Update bookmark so we don't check this time range again
         new_timestamp = data.index.max()
