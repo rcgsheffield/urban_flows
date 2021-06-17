@@ -59,6 +59,8 @@ def main():
     utils.configure_logging(verbose=args.verbose, debug=args.debug,
                             error=args.error, info=args.info)
 
+    LOGGER.info('Starting data bridge')
+
     # Load access token
     token = utils.load_file(args.token)
 
@@ -81,6 +83,7 @@ def main():
                                                      objects.SensorType)
 
         # Sync metadata
+        LOGGER.info('Syncing metadata objects')
         LOGGER.info('Syncing air quality standards...')
         sync.sync_aqi_standards(session)
 
