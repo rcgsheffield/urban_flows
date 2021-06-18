@@ -163,7 +163,7 @@ class UrbanFlowsQuery:
             if values:
                 params[query] = ','.join(values)
 
-        LOGGER.info("QUERY %s", params)
+        LOGGER.debug("QUERY %s", params)
         response = self.get(params=params, **kwargs)
         LOGGER.debug("HTTP request took %s seconds",
                      response.elapsed.total_seconds())

@@ -93,7 +93,7 @@ def sync_readings(session, families: Mapping[str, dict],
                     readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
                 # Log every 100 chunks
                 if i % 100 == 0:
-                    LOGGER.info('Family %s Chunk %s', family_id, i)
+                    LOGGER.info('Family "%s" Chunk %s', family_id, i)
                 # Loop to retry if rate limit exceeded
                 while True:
                     try:
