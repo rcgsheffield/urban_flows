@@ -5,8 +5,6 @@ import json
 import logging
 import pathlib
 from typing import Type, List, Union, Mapping, MutableMapping
-
-import pandas
 import requests
 
 import assets
@@ -48,19 +46,20 @@ def sync_readings(session, families: Mapping[str, dict],
     # Count the number of readings uploaded for all the sensors
     total_reading_count = 0
 
+    bookmarks = cache.Cache('readings')
+
     # Iterate over UFO sensor families
-    for family_name, family_data in families.items():
-        LOGGER.info('Family "%s"', family_name)
-        family = assets.Family(family_name)
+    for family_id, family in families.items():
 
         # Count the number of readings uploaded per family
         reading_count = 0
 
         # Begin where we left off, or go back to the beginning of time
-        start_time = family.latest_timestamp or start_time or settings.TIME_START
+        start_time = bookmarks.get(family_id, start_time or
+                                   settings.TIME_START)
 
         LOGGER.info("Syncing readings for UFO family '%s' starting at %s",
-                    family_name, start_time.isoformat())
+                    family_id, start_time.isoformat())
 
         # Query UFO database by chunking over time periods
         for _start, _end in ufdex.UrbanFlowsQuery.generate_time_periods(
@@ -69,13 +68,13 @@ def sync_readings(session, families: Mapping[str, dict],
                 freq=settings.URBAN_FlOWS_TIME_CHUNK
         ):
             query = ufdex.UrbanFlowsQuery(
-                families={family_name},
+                families={family_id},
                 time_period=[_start, _end]
             )
             # Load results into memory (don't hold open stream because this
             # can time out due to long running operations below)
             readings = tuple(query())
-            LOGGER.debug("Family %s: Retrieved %s readings", family_name,
+            LOGGER.debug("Family %s: Retrieved %s readings", family_id,
                          len(readings))
 
             # Convert from UFO readings to Awesome readings
@@ -94,7 +93,7 @@ def sync_readings(session, families: Mapping[str, dict],
                     readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
                 # Log every 100 chunks
                 if i % 100 == 0:
-                    LOGGER.info('Family %s Chunk %s', family_name, i)
+                    LOGGER.info('Family %s Chunk %s', family_id, i)
                 # Loop to retry if rate limit exceeded
                 while True:
                     try:
@@ -125,13 +124,13 @@ def sync_readings(session, families: Mapping[str, dict],
                 reading_count += len(chunk)
 
             # Update bookmark
-            family.latest_timestamp = _end
-            LOGGER.info('Saved bookmark for family "%s" at %s', family_name,
+            bookmarks[family_id] = _end
+            LOGGER.info('Saved bookmark for family "%s" at %s', family_id,
                         _end.isoformat())
 
         # Family sync success
         LOGGER.info('synced %s readings for family "%s"', reading_count,
-                    family_name)
+                    family_id)
         total_reading_count += reading_count
 
     LOGGER.info("Synced %s readings for %s families", total_reading_count,
