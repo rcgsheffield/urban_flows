@@ -82,37 +82,35 @@ def main():
         sensor_types = sync.build_awesome_object_map(session,
                                                      objects.SensorType)
 
-        # Sync metadata
-        # LOGGER.info('Syncing metadata objects')
-        # LOGGER.info('Syncing air quality standards...')
-        # sync.sync_aqi_standards(session)
-        #
-        # LOGGER.info('Syncing families (sensor types)...')
-        # sync.sync_families(session=session, families=families,
-        #                    sensor_types=sensor_types)
-        #
-        # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-        # sync.sync_sites(session, sites, locations=locations)
-        #
-        # LOGGER.info('Syncing sensors...')
-        # sync.sync_sensors(session=session, sensors=sensors,
-        #                   awesome_sensors=awesome_sensors, locations=locations)
-        #
-        # LOGGER.info('Syncing reading categories...')
-        # sync.sync_reading_categories(
-        #     session=session, reading_categories=reading_categories,
-        #     reading_type_groups=settings.READING_TYPE_GROUPS)
-        #
-        # LOGGER.info('Syncing reading types...')
-        # sync.sync_reading_types(
-        #     session=session, detectors=detectors, reading_types=reading_types,
-        #     remote_reading_category_ids=reading_categories,
-        #     reading_type_groups=settings.READING_TYPE_GROUPS)
+        LOGGER.info('Syncing metadata objects')
+        LOGGER.info('Syncing air quality standards...')
+        sync.sync_aqi_standards(session)
 
-        # Sync data (readings and AQI analysis)
-        # LOGGER.info('Syncing readings...')
-        # sync.sync_readings(session=session, reading_types=reading_types,
-        #                    families=families, awesome_sensors=awesome_sensors)
+        LOGGER.info('Syncing families (sensor types)...')
+        sync.sync_families(session=session, families=families,
+                           sensor_types=sensor_types)
+
+        LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+        sync.sync_sites(session, sites, locations=locations)
+
+        LOGGER.info('Syncing sensors...')
+        sync.sync_sensors(session=session, sensors=sensors,
+                          awesome_sensors=awesome_sensors, locations=locations)
+
+        LOGGER.info('Syncing reading categories...')
+        sync.sync_reading_categories(
+            session=session, reading_categories=reading_categories,
+            reading_type_groups=settings.READING_TYPE_GROUPS)
+
+        LOGGER.info('Syncing reading types...')
+        sync.sync_reading_types(
+            session=session, detectors=detectors, reading_types=reading_types,
+            remote_reading_category_ids=reading_categories,
+            reading_type_groups=settings.READING_TYPE_GROUPS)
+
+        LOGGER.info('Syncing readings...')
+        sync.sync_readings(session=session, reading_types=reading_types,
+                           families=families, awesome_sensors=awesome_sensors)
 
         LOGGER.info('Syncing AQI readings...')
         sync.sync_aqi_readings(session, families=families, locations=locations)
