@@ -222,7 +222,8 @@ class UrbanFlowsQuery:
     @staticmethod
     def parse(lines: str) -> Iterable[dict]:
         """
-        Process raw data and generate one dictionary per reading
+        Process raw data and generate one dictionary per reading (data cell
+        value.)
         """
         # Count the total number of tables retrieved to validate
         table_count = 0
@@ -234,6 +235,7 @@ class UrbanFlowsQuery:
         meta = dict()  # type: Dict[str,str]
         row_count = 0
         number_of_points = 0
+        reading_count = 0
 
         for line_number, line in enumerate(lines.splitlines()):
 
@@ -288,7 +290,7 @@ class UrbanFlowsQuery:
                         raise ValueError(msg)
 
                 # Other metadata
-                elif line.startswith('# sensor') or line.startswith('# site'):
+                elif line.startswith('# sensor') or line.startswith('# sit'):
                     key, _, value = line[2:].partition(': ')
                     meta[key] = value
 
@@ -329,9 +331,11 @@ class UrbanFlowsQuery:
                             raise ValueError('time is %s' % time)
                         reading['time'] = time
                         yield reading
+                        reading_count += 1
 
-        LOGGER.info("Retrieved %s tables", table_count)
-        LOGGER.info("Retrieved %s rows", row_count)
+        LOGGER.debug("Retrieved %s tables", table_count)
+        LOGGER.debug("Retrieved %s rows", row_count)
+        LOGGER.debug("Retrieved %s readings", reading_count)
 
         if table_count != total_table_count:
             raise ValueError('Unexpected table count')

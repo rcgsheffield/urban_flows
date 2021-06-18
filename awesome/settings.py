@@ -98,3 +98,6 @@ URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
 
 # yyyy-MM-dd HH:mm:ss
 AWESOME_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+
+AQI_TIME_BUFFER = dict(hours=24)

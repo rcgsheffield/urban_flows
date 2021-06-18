@@ -12,7 +12,10 @@ LOGGER = logging.getLogger(__name__)
 
 
 def now() -> datetime.datetime:
-    return datetime.datetime.utcnow()
+    """
+    Current timestamp with time zone info
+    """
+    return datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
 
 
 def parse_timestamp(timestamp: str) -> datetime.datetime:

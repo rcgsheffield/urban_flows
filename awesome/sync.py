@@ -18,6 +18,7 @@ import settings
 import ufdex
 import utils
 import aqi.operations
+import cache
 
 LOGGER = logging.getLogger(__name__)
 
@@ -379,66 +380,92 @@ def sync_aqi_standards(session):
             raise
 
 
-def sync_aqi_readings(session, sites: Mapping, locations: Mapping):
+def sync_aqi_readings(session, families: Mapping, locations: Mapping,
+                      end: datetime.datetime = None):
     """
     Upload air quality index data to the remote system.
 
     :param session: HTTP session for the Awesome portal
-    :param sites: A list of UFO sites
+    :param families: A list of UFO families
     :param locations: A map of UFO sites to Awesome locations
+    :param end: Time range upper bound
     """
 
-    # Iterate over sites because there may be multiple relevant sensor
-    # families at one location
-    for site_id, site in sites.items():
-        # Get the latest timestamp that was successfully synced (or the default
-        # start date)
-        site_obj = assets.Site(site['name'])
-        bookmark = site_obj.latest_timestamp or settings.TIME_START
+    # Persist progress through data set time axis
+    bookmarks = cache.Cache('aqi')
 
-        # Allow at least 8 hours of data because some AQI calculations
-        # require an 8-hour rolling average
-        eight_hours_ago = utils.now() - datetime.timedelta(hours=8)
-        bookmark = min(bookmark, eight_hours_ago)
+    # Iterate over families because of UFO database partitioning
+    for family_id, family in families.items():
 
-        LOGGER.info("Site '%s' AQI readings. Latest timestamp %s",
-                    site['name'], bookmark)
+        # Skip traffic flow data, which cannot produce AQI readings
+        if family_id == 'SCC_flow':
+            continue
 
-        data = aqi.operations.get_urban_flows_data(site_id=site['name'],
-                                                   start=bookmark)
+        bookmark = bookmarks.get(family_id,
+                                 settings.TIME_START)  # type: datetime.datetime
 
-        try:
-            LOGGER.info("Calculating AQI values...")
-            air_quality_index = aqi.operations.calculate_air_quality(data)[
-                'air_quality_index'].dropna()
+        # Allow at least x hours of data because some AQI calculations
+        # require an certain time period rolling average
+        time_buffer = utils.now() - datetime.timedelta(
+            **settings.AQI_TIME_BUFFER)
+        bookmark = min(bookmark, time_buffer)
+        # Start at beginning of day
+        bookmark = bookmark.replace(hour=0, minute=0, second=0, microsecond=0)
 
-            # Upload to Awesome portal
-            location = locations[site['name']]
+        LOGGER.info("Family '%s' AQI readings since %s", family_id,
+                    bookmark.isoformat())
 
-            LOGGER.info("Generating AQI readings for upload...")
-            readings = maps.aqi_readings(
-                air_quality_index,
-                aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
-                location_id=location['id'])
+        # sync to current time
+        end = end or datetime.datetime.now(datetime.timezone.utc)
 
-            # Sync readings (The aqi readings input must be chunked)
-            for i, chunk in enumerate(utils.iter_chunks(
-                    readings, chunk_size=settings.BULK_READINGS_CHUNK_SIZE)):
-                LOGGER.info("Bulk store AQI chunk %s", i)
-                objects.AQIReading.store_bulk(session, aqi_readings=chunk)
+        # Iterate over days (due to source database partition)
+        for _start, _end in ufdex.UrbanFlowsQuery.generate_time_periods(
+                start=bookmark, end=end, freq=datetime.timedelta(days=1)):
+            query = ufdex.UrbanFlowsQuery(time_period=[_start, _end],
+                                          families={family_id})
+            readings = query()
 
-        # If no AQI readings, continue to update bookmark
-        except KeyError:
-            if not data.empty:
-                raise
+            data = aqi.operations.transform_ufo_data(readings)
 
-        # Update bookmark so we don't check this time range again
-        new_timestamp = data.index.max()
-        if not pandas.isnull(new_timestamp):
-            t = new_timestamp.to_pydatetime()
-            site_obj.latest_timestamp = t
-            LOGGER.info("Updated bookmark: site '%s' to %s", site['name'],
-                        t.isoformat())
+            try:
+                # Iterate over sites (because AQI is specified per-site)
+                for site_id, df in data.groupby('site.id'):
+                    df = df.loc[site_id]
+
+                    aq_index = aqi.operations.calculate_air_quality(df)
+
+                    LOGGER.debug('Site "%s" AQI readings', site_id,
+                                 len(aq_index.index))
+
+                    # Upload to Awesome portal
+                    location = locations[site_id]
+
+                    aqi_readings = maps.aqi_readings(
+                        aq_index,
+                        aqi_standard_id=settings.AWESOME_AQI_STANDARD_ID,
+                        location_id=location['id'],
+                    )
+
+                    # Sync readings (The aqi readings input must be chunked)
+                    for i, chunk in enumerate(utils.iter_chunks(
+                            aqi_readings,
+                            chunk_size=settings.BULK_READINGS_CHUNK_SIZE)
+                    ):
+                        LOGGER.info(
+                            "Bulk store AQI readings chunk %s with %s readings",
+                            i, len(chunk))
+                        objects.AQIReading.store_bulk(session,
+                                                      aqi_readings=chunk)
+
+            # Skip empty data sets
+            except KeyError:
+                if not data.empty:
+                    raise
+
+            # Update bookmark so we don't check this time range again
+            bookmarks[family_id] = _end
+            LOGGER.info("Updated bookmark: family '%s' to %s", family_id,
+                        _end.isoformat())
 
 
 def sync_families(session, families: Mapping[str, dict],

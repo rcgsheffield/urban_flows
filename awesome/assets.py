@@ -5,67 +5,13 @@ Urban Flows Observatory assets
 import itertools
 import logging
 import requests
-import datetime
-import shelve
-import pathlib
-import dbm
-from typing import Optional, ContextManager
-from contextlib import contextmanager
 
-import settings
 from settings import URL
 
 LOGGER = logging.getLogger(__name__)
 
 
-class BookmarkMixin:
-    """
-    Serialise the latest timestamp successfully replicated from the data stream
-    """
-
-    def __init__(self):
-        self.identifier = str()
-
-    @classmethod
-    def database_path(cls) -> pathlib.Path:
-        return settings.BOOKMARK_PATH_PREFIX.joinpath(cls.__name__.casefold())
-
-    @classmethod
-    @contextmanager
-    def open_database(cls, *args, **kwargs) -> ContextManager[shelve.Shelf]:
-        # Ensure directory exists
-        cls.database_path().parent.mkdir(parents=True, exist_ok=True)
-        yield shelve.open(str(cls.database_path()), *args, **kwargs)
-
-    @property
-    def latest_timestamp(self) -> Optional[datetime.datetime]:
-        """
-        Retrieve the latest stored timestamp for this object, or null if no
-        timestamp was stored.
-        """
-        try:
-            with self.open_database('r') as shelf:
-                try:
-                    return shelf[self.identifier]
-
-                # No database entry for this item
-                except KeyError:
-                    pass
-
-        # Database file doesn't exist
-        except dbm.error:
-            pass
-
-    @latest_timestamp.setter
-    def latest_timestamp(self, timestamp: datetime.datetime):
-        """
-        Store a timestamp value associated with this object
-        """
-        with self.open_database() as shelf:
-            shelf[self.identifier] = timestamp
-
-
-class Asset(BookmarkMixin):
+class Asset:
     """
     Urban Flows Observatory Asset
     """
