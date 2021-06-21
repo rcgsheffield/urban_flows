@@ -28,7 +28,7 @@ class AwesomeObject(abc.ABC):
     BASE_URL = settings.BASE_URL
     edge = None
 
-    def __init__(self, identifier):
+    def __init__(self, identifier: str):
         self.identifier = identifier
         self._data = dict()
 
@@ -49,7 +49,7 @@ class AwesomeObject(abc.ABC):
         return self.build_url(self.identifier) + '/'
 
     @classmethod
-    def list(cls, session, **kwargs) -> list:
+    def list(cls, session: requests.Session, **kwargs) -> list:
         url = cls.build_url()
         body = session.call(url=url, **kwargs)
 
@@ -61,23 +61,23 @@ class AwesomeObject(abc.ABC):
         return body['data']
 
     @classmethod
-    def list_iter(cls, session, **kwargs) -> iter:
+    def list_iter(cls, session: requests.Session, **kwargs) -> iter:
         url = cls.build_url()
         yield from session.get_iter(url=url, **kwargs)
 
     @classmethod
-    def show(cls, session, identifier, **kwargs):
+    def show(cls, session: requests.Session, identifier: str, **kwargs):
         url = cls.build_url(identifier)
         return session.call(url, **kwargs)
 
-    def get(self, session) -> dict:
+    def get(self, session: requests.Session) -> dict:
         """
         Retrieve object data
         """
         return self.show(session, self.identifier)['data']
 
     @classmethod
-    def store(cls, session, obj: dict, **kwargs) -> dict:
+    def store(cls, session: requests.Session, obj: dict, **kwargs) -> dict:
 
         LOGGER.debug("Storing %s: %s", cls.__name__, obj)
 
@@ -90,21 +90,21 @@ class AwesomeObject(abc.ABC):
         except json.JSONDecodeError:
             return dict()
 
-    def update(self, session, obj, **kwargs):
+    def update(self, session: requests.Session, obj: dict, **kwargs):
         LOGGER.debug('Updating %s', self)
         return session.patch(self.url, json=obj, **kwargs)
 
     def delete(self, session, **kwargs):
         return session.delete(self.url, **kwargs)
 
-    def load(self, session):
+    def load(self, session: requests.Session):
         """Retrieve object data and set attributes"""
         obj = self.get(session)
         for name, value in obj.items():
             setattr(self, name, value)
 
     @classmethod
-    def add(cls, session, obj, **kwargs):
+    def add(cls, session: requests.Session, obj, **kwargs):
         """Create a new object in the database"""
         LOGGER.info("Adding %s: %s", cls.__name__, obj)
         _obj = cls.new(**obj)
@@ -122,7 +122,7 @@ class Location(AwesomeObject):
     """
     edge = 'locations'
 
-    def readings(self, session, from_: datetime.datetime,
+    def readings(self, session: requests.Session, from_: datetime.datetime,
                  to: datetime.datetime, interval: datetime.timedelta):
         url = self.urljoin('readings')
         params = {
