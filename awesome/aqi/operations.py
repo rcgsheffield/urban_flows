@@ -61,12 +61,9 @@ def transform(reading: dict) -> dict:
 
     # Floor to nearest five-minute interval because there may be multiple
     # different sensors at a site, so merge them together. Also, the time
-    # resolution on the Awesome portal is 5 mins
-    delta = 5  # minutes
-    reading['time'] = reading['time'].replace(
-        minute=delta * int(reading['time'].minute / delta),
-        second=0, microsecond=0
-    )
+    # resolution on the Awesome portal is 1 hour
+    reading['time'] = reading['time'].replace(minute=0, second=0,
+                                              microsecond=0)
 
     reading['value'] = float(reading['value'])
 
