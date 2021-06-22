@@ -13,6 +13,7 @@ import argparse
 import logging
 import pathlib
 import warnings
+import time
 
 import arrow.factory
 
@@ -109,11 +110,15 @@ def main():
             reading_type_groups=settings.READING_TYPE_GROUPS)
 
         LOGGER.info('Syncing readings...')
+        t0 = time.time()
         sync.sync_readings(session=session, reading_types=reading_types,
                            families=families, awesome_sensors=awesome_sensors)
+        LOGGER.debug("Reading sync completed in %s seconds", time.time() - t0)
 
         LOGGER.info('Syncing AQI readings...')
+        t0 = time.time()
         sync.sync_aqi_readings(session, families=families, locations=locations)
+        LOGGER.debug("AQI sync completed in %s seconds", time.time() - t0)
 
         LOGGER.info('Closing')
 

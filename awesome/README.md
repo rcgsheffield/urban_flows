@@ -138,3 +138,14 @@ To execute the automated unit tests, run this command:
 python -m unittest --failfast --verbose
 ```
 
+# Maintenance
+
+Clear system logs:
+
+```bash
+# View journal disk usage
+journalctl --disk-usage
+# Retain last 3 days
+journalctl --vacuum-time=3d
+```
+
