@@ -59,9 +59,9 @@ def transform(reading: dict) -> dict:
     reading['pollutant'] = aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.get(
         reading['UCD'])
 
-    # Floor to nearest five-minute interval because there may be multiple
+    # Floor to regular time interval because there may be multiple
     # different sensors at a site, so merge them together. Also, the time
-    # resolution on the Awesome portal is 1 hour
+    # resolution on the Awesome portal is finite
     reading['time'] = reading['time'].replace(minute=0, second=0,
                                               microsecond=0)
 
