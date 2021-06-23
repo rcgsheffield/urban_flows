@@ -158,9 +158,12 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
         LOGGER.debug(local_location)
 
         try:
-            # Update existing location
-            loc = objects.Location(locations[site['name']]['id'])
-            loc.update(session, local_location)
+            # Check for changes
+            remote_location = locations[site['name']]
+            if maps.is_object_different(local_location, remote_location):
+                # Update existing location
+                loc = objects.Location(locations[site['name']]['id'])
+                loc.update(session, local_location)
 
         except KeyError:
             # Create new location
@@ -341,8 +344,7 @@ def get_urban_flows_metadata() -> tuple:
 
 def build_awesome_object_map(session: http_session.PortalSession,
                              cls: Type[objects.AwesomeObject]) -> \
-        MutableMapping[
-            str, dict]:
+        MutableMapping[str, dict]:
     """
     Map Awesome object names (case insensitive) to the object data
     """

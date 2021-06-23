@@ -152,11 +152,14 @@ def reading_type_to_reading_categories(reading_type_groups: list,
 
 def is_object_different(local_object: dict, remote_object: dict) -> bool:
     """
-    Check if the local object has changes that aren't matched on the remote server.
+    Check if the local object has changes that aren't matched on the remote
+    server.
 
-    :param local_object: The local object build using a map function to look like a remote object
+    :param local_object: The local object build using a map function to look
+        like a remote object
     :param remote_object: the data of the remote object
-    :return: boolean flag to indicate whether the inspected values are different
+    :return: boolean flag to indicate whether the inspected values are
+        different
     """
     # Check only the values in the local object
     for key, local_value in local_object.items():
