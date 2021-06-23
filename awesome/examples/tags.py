@@ -9,7 +9,7 @@ if __name__ == '__main__':
     location = objects.Location(776)
 
     print(location.tags(session))
-    print(location.set_tag(session, tag='test'))
+    print(location.add_tag(session, tag='test'))
     for tag in location.tags(session):
         print(tag)
         location.delete_tag(session, tag_id=tag['id'])

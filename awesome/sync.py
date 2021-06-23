@@ -164,11 +164,15 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
                 # Update existing location
                 loc = objects.Location(locations[site['name']]['id'])
                 loc.update(session, local_location)
+                # Use family name as tag
+                loc.add_tag(session, site['dbh'])
 
         except KeyError:
             # Create new location
             body = objects.Location.add(session, local_location)
             new_location = body['data']
+            loc = objects.Location(new_location['id'])
+            loc.add_tag(session, site['dbh'])
 
             # Store id of new location
             locations[new_location['name']] = new_location['id']

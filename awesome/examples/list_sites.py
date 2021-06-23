@@ -26,7 +26,8 @@ if __name__ == '__main__':
     args = get_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO)
 
-    sites, families, pairs, sensors = assets.get_metadata()
+    metadata = assets.get_metadata()
+    sites = metadata['sites']
 
     # CSV output
     writer = None
@@ -46,7 +47,8 @@ if __name__ == '__main__':
         )
 
         if not writer:
-            writer = csv.DictWriter(sys.stdout, fieldnames=row.keys(), lineterminator='\n')
+            writer = csv.DictWriter(sys.stdout, fieldnames=row.keys(),
+                                    lineterminator='\n')
             writer.writeheader()
 
         writer.writerow(row)

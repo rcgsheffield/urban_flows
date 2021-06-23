@@ -163,7 +163,7 @@ class Location(AwesomeObject):
     def tags(self, session: requests.Session) -> List[dict]:
         return session.call(self.urljoin('tags'))['data']
 
-    def set_tag(self, session: requests.Session, tag: str):
+    def add_tag(self, session: requests.Session, tag: str):
         return session.post(self.urljoin('tags'), data=dict(name=tag)).json()
 
     def delete_tag(self, session: requests.Session, tag_id: int):
