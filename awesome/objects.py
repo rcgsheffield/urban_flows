@@ -28,7 +28,7 @@ class AwesomeObject(abc.ABC):
     BASE_URL = settings.BASE_URL
     edge = None
 
-    def __init__(self, identifier: str):
+    def __init__(self, identifier):
         self.identifier = identifier
         self._data = dict()
 
@@ -153,12 +153,21 @@ class Location(AwesomeObject):
             description=description,
         )
 
-    def aqi_readings(self, session):
+    def aqi_readings(self, session: requests.Session):
         """
         Get AQI readings at this location
         """
         # https://github.com/rcgsheffield/urban_flows/issues/14
         return session.call(self.urljoin('aqi-readings'))
+
+    def tags(self, session: requests.Session) -> List[dict]:
+        return session.call(self.urljoin('tags'))['data']
+
+    def set_tag(self, session: requests.Session, tag: str):
+        return session.post(self.urljoin('tags'), data=dict(name=tag)).json()
+
+    def delete_tag(self, session: requests.Session, tag_id: int):
+        return session.delete(self.urljoin('tags', tag_id)).json()
 
 
 class Sensor(AwesomeObject):

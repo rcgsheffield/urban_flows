@@ -433,7 +433,7 @@ def sync_aqi_readings(session, families: Mapping, locations: Mapping,
 
                     aq_index = aqi.operations.calculate_air_quality(df)
 
-                    LOGGER.debug('Site "%s" AQI readings', site_id,
+                    LOGGER.debug('Site "%s" has %s AQI readings', site_id,
                                  len(aq_index.index))
 
                     # Upload to Awesome portal

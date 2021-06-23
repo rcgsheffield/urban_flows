@@ -140,6 +140,12 @@ python -m unittest --failfast --verbose
 
 # Maintenance
 
+View reboots:
+
+```bash
+journalctl --list-boots
+```
+
 Clear system logs:
 
 ```bash
