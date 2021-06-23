@@ -173,6 +173,9 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
             # Store id of new location
             locations[new_location['name']] = new_location['id']
 
+            LOGGER.info('Created location "%s" from site "%s"',
+                        new_location['id'], site_id)
+
 
 def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
                  awesome_sensors: MutableMapping, locations: Mapping):
