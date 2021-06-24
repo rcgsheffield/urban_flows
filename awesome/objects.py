@@ -166,7 +166,8 @@ class Location(AwesomeObject):
         return session.post(self.urljoin('tags'), data=dict(name=tag)).json()
 
     def delete_tag(self, session: requests.Session, tag_id: int):
-        return session.delete(self.urljoin('tags', tag_id)).json()
+        endpoint = 'tags/{tag_id}'.format(tag_id=tag_id)
+        return session.delete(self.urljoin(endpoint)).json()
 
 
 class Sensor(AwesomeObject):
