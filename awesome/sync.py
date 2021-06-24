@@ -151,23 +151,26 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
     """
 
     for site_id, site in sites.items():
-        LOGGER.debug("SITE %s", site_id)
+        LOGGER.debug("Site '%s': %s", site_id, site)
 
         # Convert UFO site to Awesome object
         local_location = maps.site_to_location(site)
         LOGGER.debug(local_location)
 
-        try:
+        # Remote location exists
+        if site['name'] in locations:
             # Check for changes
             remote_location = locations[site['name']]
             if maps.is_object_different(local_location, remote_location):
+                activity = maps.get_latest_activity(site['activity'])
                 # Update existing location
                 loc = objects.Location(locations[site['name']]['id'])
                 loc.update(session, local_location)
                 # Use family name as tag
-                loc.add_tag(session, site['dbh'])
+                loc.add_tag(session, activity['dbh'])
 
-        except KeyError:
+        # No remote location found
+        else:
             # Create new location
             body = objects.Location.add(session, local_location)
             new_location = body['data']

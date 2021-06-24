@@ -106,7 +106,6 @@ class AwesomeObject(abc.ABC):
     @classmethod
     def add(cls, session: requests.Session, obj, **kwargs):
         """Create a new object in the database"""
-        LOGGER.info("Adding %s: %s", cls.__name__, obj)
         _obj = cls.new(**obj)
         return cls.store(session, _obj, **kwargs)
 

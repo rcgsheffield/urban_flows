@@ -14,6 +14,10 @@ import settings
 LOGGER = logging.getLogger(__name__)
 
 
+def get_latest_activity(activity: List[dict]) -> dict:
+    return sorted(activity, key=lambda act: act['t0'])[0]
+
+
 def awesome_coordinate(value: float) -> str:
     """Format a float as a ten-decimal-places string"""
     return "{:.10f}".format(value)
@@ -25,7 +29,7 @@ def site_to_location(site: dict) -> dict:
     """
 
     # Get latest activity
-    activity = sorted(site['activity'], key=lambda act: act['t0'])[0]
+    activity = get_latest_activity(site['activity'])
 
     return objects.Location.new(
         name=str(site['name']),
