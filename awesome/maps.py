@@ -36,7 +36,7 @@ def site_to_location(site: dict) -> dict:
         lat=awesome_coordinate(site['latitude']),
         lon=awesome_coordinate(site['longitude']),
         # Height above sea level in metres
-        elevation=float(activity['heightAboveSL']),
+        elevation=int(activity['heightAboveSL']),
         # Street address
         description=str(activity.get('stAdd', '')),
     )
@@ -178,6 +178,8 @@ def is_object_different(local_object: dict, remote_object: dict) -> bool:
 
         # We found a difference
         if local_value != remote_value:
+            LOGGER.debug('%s: %s != %s', key, repr(local_value),
+                         repr(remote_value))
             return True
 
     # No differences were found
