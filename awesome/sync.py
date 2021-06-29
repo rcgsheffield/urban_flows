@@ -316,22 +316,23 @@ def sync_reading_categories(session, reading_categories: MutableMapping,
                                their object data
     :param reading_type_groups: Locally configured groups to be synced
     """
-    LOGGER.debug("READING CATEGORIES: %s", reading_categories)
 
+    # Iterate over locally-configured items
     for read_cat in reading_type_groups:
-        # Case insensitive
-        read_cat['name'] = read_cat['name'].upper()
+        LOGGER.debug('Reading category: %s', read_cat)
 
+        # Build the data to populate the Awesome Reading Category
         local_reading_category = objects.ReadingCategory.new(
             name=read_cat['name'], icon_name=read_cat['icon_name'])
 
-        try:
+        # Check if this items already exists
+        if read_cat['id'] in reading_categories:
             # Update existing reading category
             reading_category = reading_categories[read_cat['name']]
             reading_category = objects.ReadingCategory(reading_category['id'])
             reading_category.update(session, obj=local_reading_category)
 
-        except KeyError:
+        else:
             # Make new reading category
             body = objects.ReadingCategory.add(session, local_reading_category)
 
