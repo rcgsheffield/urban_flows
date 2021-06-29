@@ -63,7 +63,7 @@ AQI_STANDARDS = [
     }
 ]
 
-# Configuration to group reading types into reading categories
+# Group reading types into reading categories
 READING_TYPE_GROUPS = [
     {
         "name": "Air Quality",
@@ -73,8 +73,7 @@ READING_TYPE_GROUPS = [
             "PM2.5",
             "PM1"
         ]
-    },
-    {
+    }, {
         "name": "Atmosphere",
         "icon_name": "atmos_marker.png",
         "reading_types": [
@@ -98,6 +97,5 @@ URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
 
 # yyyy-MM-dd HH:mm:ss
 AWESOME_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-
 
 AQI_TIME_BUFFER = dict(hours=24)

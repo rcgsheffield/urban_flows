@@ -279,9 +279,9 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
 
         # Reading categories
         try:
-            remote_reading_category_ids = {rc['id'] for rc in
-                                           reading_type.get(session)[
-                                               'reading_categories']}
+            remote_reading_category_ids = {
+                rc['id'] for rc
+                in reading_type.get(session)['reading_categories']}
         except KeyError:
             LOGGER.error(reading_type.get(session))
             raise
