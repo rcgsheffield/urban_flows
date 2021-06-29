@@ -14,6 +14,24 @@ The code assumes that all the data loggers are configured identically. The chann
 
 The web server will forward web requests via a socket to the web application using the WSGI specification (in this case uWSGI is used). The application is built using the Flask web framework.
 
+## Retrieve data
+
+Data are stored in the directories specified in `data_logger_server/settings.py`. The default target directory is `/home/uflo/data/rawData/dlsrv/senddata`.
+
+To view data files retrieved on a certain day:
+
+```bash
+[sa_cs1jsth@ufdlsrv01 ~]$ sudo ls -l /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
+total 1980
+-rw-------. 1 uflo uflo 44074 Oct 22  2020 0000452891_2020-10-22T00+01+06.209619
+-rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+16+06.045141
+-rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+31+02.943406
+-rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+46+06.192728
+...
+```
+
+
+
 # Installation
 
 I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04). (Assuming NGINX is installed.) Ensure the system is up-to-date and install the basic required software (`python3-dev` `python3-venv`).
