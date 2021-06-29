@@ -135,22 +135,25 @@ def reading_type_to_reading_categories(reading_type_groups: list,
     :param awesome_reading_categories: The map of Awesome reading category names to their identifiers
     :return: A map of reading type names to Awesome reading category identifiers
     """
+    LOGGER.debug(awesome_reading_categories)
+
     # Build the mapping
     reading_type_name_to_reading_category_ids = dict()
 
     # Iterate over locally-defined reading type groups
-    for reading_category in reading_type_groups:
-        for reading_type in reading_category['reading_types']:
+    for reading_type_group in reading_type_groups:
+        for reading_type in reading_type_group['reading_types']:
 
             # Initialise set
             if reading_type not in reading_type_name_to_reading_category_ids.keys():
                 reading_type_name_to_reading_category_ids[reading_type] = set()
 
             remote_reading_category = awesome_reading_categories[
-                reading_category['name']]
+                reading_type_group['name'].upper()]
             reading_type_name_to_reading_category_ids[reading_type].add(
                 remote_reading_category['id'])
 
+    LOGGER.debug(reading_type_name_to_reading_category_ids)
     return reading_type_name_to_reading_category_ids
 
 

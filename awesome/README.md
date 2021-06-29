@@ -86,13 +86,16 @@ The metadata used to describe the sensor readings on each system is defined by a
 
 The code to convert between object types is in `maps.py`.
 
-* Site: geographical location -> Location
-* Sensor: a collection of detectors that may exist at one site at a time
-  * Detector: a data channel with a certain type of measurement
+* Site -> Location: geographical place with positional coordinates
+* Sensor -> Sensor: a collection of detectors that may exist at one site at a time
+  * Detector -> Reading Type: a data channel with a certain type of measurement such as a physical phenomenon or metric.
   * Family -> Sensor type
-* Reading Category: a group of reading types
-  * Reading Type: a physical phenomenon or metric (detector)
-* Pair: one sensor at a location for a certain time period
+* Reading Category: a group of reading types e.g. "Air Quality" or "Atmosphere"
+* Pair: a deployment of one sensor at a site for a certain time period
+
+## Acronyms
+
+* UFO = Urban Flows Observatory
 
 # Awesome API
 

@@ -69,19 +69,44 @@ READING_TYPE_GROUPS = [
         "name": "Air Quality",
         "icon_name": "aq_marker.png",
         "reading_types": [
-            "PM10",
-            "PM2.5",
-            "PM1"
+            "AQ_PM10",
+            "AQ_PM25",
+            "AQ_PM1",
+            "AQ_PM4",
+            "AQ_PMSUM",
+            "AQ_NOISE",
+            "AQ_CO",
+            "AQ_NO",
+            "AQ_NO2",
+            "AQ_PART_DENSITY",
+            "AQ_O3",
+            "AQ_SO2",
         ]
     }, {
         "name": "Atmosphere",
         "icon_name": "atmos_marker.png",
         "reading_types": [
-            "AIRTEMP",
-            "RELHUM",
-            "ATMPRESS"
+            "MET_TEMP",
+            "MET_RH",
+            "MET_AP",
         ]
-    }
+    },
+    {
+        "name": "Instrument",
+        "icon_name": "inst_marker.png",
+        "reading_types": [
+            "INST_BATTERY_VOLTAGE",
+        ]
+    },
+    {
+        "name": "Traffic",
+        "icon_name": "traff_marker.png",
+        "reading_types": [
+            "TRAFF_COUNTS",
+            "TRAFF_FLOW",
+            "TRAFF_INTERVAL",
+        ]
+    },
 ]
 
 # The quality score for each UFO sensor family

@@ -234,17 +234,19 @@ def sync_sensors(session: http_session.PortalSession, sensors: Mapping,
 
 def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
                        reading_types: MutableMapping,
-                       remote_reading_category_ids: Mapping,
+                       remote_reading_categories: Mapping,
                        reading_type_groups: list):
     """
     Map local Urban Flows Observatory "detectors" to remote "reading types" on
-    the Awesome Portal.
+    the Awesome Portal e.g. "AQ_CO" or "MET_TEMP".
+
+    Reading Types are grouped into Reading Categories such as "Air Quality" or
+    "Atmosphere".
 
     :param session: Awesome portal HTTP connection
     :param detectors: UFO metrics
-    :param reading_types: Awesome metrics
-    :param remote_reading_category_ids: Map of reading types to reading
-                                        categories
+    :param reading_types: Map of UFO detectors to Awesome reading types
+    :param remote_reading_categories: Map of reading types to reading categories
     :param reading_type_groups: The local configuration for groups of reading
                                 types
     """
@@ -252,56 +254,56 @@ def sync_reading_types(session: http_session.PortalSession, detectors: Mapping,
     # This is the desired end-state configuration to sync to the remote server
     reading_type_name_to_category_ids = maps.reading_type_to_reading_categories(
         reading_type_groups=reading_type_groups,
-        awesome_reading_categories=remote_reading_category_ids)
+        awesome_reading_categories=remote_reading_categories)
 
-    # Iterate over UF detectors
+    # Iterate over UFO detectors (metrics) e.g. "AQ_NO"
     for detector_name, detector in detectors.items():
 
-        LOGGER.debug("DETECTOR %s %s", detector_name, detector)
+        LOGGER.debug("DETECTOR '%s' %s", detector_name, json.dumps(detector))
 
+        # Create the data for the Awesome Reading Type
         local_reading_type = maps.detector_to_reading_type(detector)
 
-        try:
-            # Does a reading type with this name exist in the database?
-            remote_reading_type = reading_types[detector_name]
+        # Does a reading type with this name exist in the database?
+        if detector_name in reading_types:
+            # Update an existing reading type
+            remote_reading_type_id = reading_types[detector_name]['id']
+            reading_type = objects.ReadingType(remote_reading_type_id)
+            reading_type.update(session, local_reading_type)
 
         # Doesn't exist on in Awesome database
-        except KeyError:
+        else:
             # Create new
             body = objects.ReadingType.add(session, local_reading_type)
-            new_reading_type = body['data']
-            reading_types[new_reading_type['name']] = new_reading_type
-            continue
-
-        # Add/update a reading type
-        reading_type = objects.ReadingType(remote_reading_type['id'])
-        reading_type.update(session, local_reading_type)
+            reading_type_data = body['data']
+            # Add to mapping in memory
+            reading_types[
+                reading_type_data['name'].upper()] = reading_type_data
+            reading_type = objects.ReadingType(reading_type_data['id'])
 
         # Reading categories
-        try:
-            remote_reading_category_ids = {
-                rc['id'] for rc
-                in reading_type.get(session)['reading_categories']}
-        except KeyError:
-            LOGGER.error(reading_type.get(session))
-            raise
+        remote_reading_categories = {
+            _reading_categories['id'] for _reading_categories
+            in reading_type.get(session)['reading_categories']}
+        LOGGER.debug('REMOTE READING CATEGORIES %s', remote_reading_categories)
 
-        try:
-            local_reading_category_ids = reading_type_name_to_category_ids[
-                detector_name]
-
-        # No reading categories are configured for this reading type
-        except KeyError:
-            continue
+        local_reading_category_ids = reading_type_name_to_category_ids.get(
+            detector_name.upper(), set())
+        LOGGER.debug('LOCAL READING CATEGORIES %s', local_reading_category_ids)
 
         # Add new reading categories to this reading type
-        for reading_category_id in set(local_reading_category_ids) - set(
-                remote_reading_category_ids):
+        new_reading_categories = set(local_reading_category_ids) - set(
+            remote_reading_categories)
+        LOGGER.debug('NEW READING CATEGORIES: %s', new_reading_categories)
+        for reading_category_id in new_reading_categories:
             reading_type.add_reading_category(session, reading_category_id)
 
         # Remove deleted items
-        for reading_category_id in set(remote_reading_category_ids) - set(
-                local_reading_category_ids):
+        removed_reading_categories = set(remote_reading_categories) - set(
+            local_reading_category_ids)
+        LOGGER.debug('REMOVED READING CATEGORIES: %s',
+                     removed_reading_categories)
+        for reading_category_id in removed_reading_categories:
             reading_type.remove_reading_category(session, reading_category_id)
 
 
@@ -326,9 +328,9 @@ def sync_reading_categories(session, reading_categories: MutableMapping,
             name=read_cat['name'], icon_name=read_cat['icon_name'])
 
         # Check if this items already exists
-        if read_cat['id'] in reading_categories:
+        if read_cat['name'].upper() in reading_categories:
             # Update existing reading category
-            reading_category = reading_categories[read_cat['name']]
+            reading_category = reading_categories[read_cat['name'].upper()]
             reading_category = objects.ReadingCategory(reading_category['id'])
             reading_category.update(session, obj=local_reading_category)
 

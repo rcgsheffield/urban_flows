@@ -83,21 +83,21 @@ def main():
         sensor_types = sync.build_awesome_object_map(session,
                                                      objects.SensorType)
 
-        LOGGER.info('Syncing metadata objects')
-        LOGGER.info('Syncing air quality standards...')
-        sync.sync_aqi_standards(session)
-
-        LOGGER.info('Syncing families (sensor types)...')
-        sync.sync_families(session=session, families=families,
-                           sensor_types=sensor_types)
-
-        LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
-        sync.sync_sites(session, sites, locations=locations)
-
-        LOGGER.info('Syncing sensors...')
-        sync.sync_sensors(session=session, sensors=sensors,
-                          awesome_sensors=awesome_sensors, locations=locations)
-
+        # LOGGER.info('Syncing metadata objects')
+        # LOGGER.info('Syncing air quality standards...')
+        # sync.sync_aqi_standards(session)
+        #
+        # LOGGER.info('Syncing families (sensor types)...')
+        # sync.sync_families(session=session, families=families,
+        #                    sensor_types=sensor_types)
+        #
+        # LOGGER.info('Syncing Urban Flows Sites to Awesome Locations...')
+        # sync.sync_sites(session, sites, locations=locations)
+        #
+        # LOGGER.info('Syncing sensors...')
+        # sync.sync_sensors(session=session, sensors=sensors,
+        #                   awesome_sensors=awesome_sensors, locations=locations)
+        #
         LOGGER.info('Syncing reading categories...')
         sync.sync_reading_categories(
             session=session, reading_categories=reading_categories,
@@ -106,21 +106,21 @@ def main():
         LOGGER.info('Syncing reading types...')
         sync.sync_reading_types(
             session=session, detectors=detectors, reading_types=reading_types,
-            remote_reading_category_ids=reading_categories,
+            remote_reading_categories=reading_categories,
             reading_type_groups=settings.READING_TYPE_GROUPS)
-
-        LOGGER.info('Syncing readings...')
-        t0 = time.time()
-        sync.sync_readings(session=session, reading_types=reading_types,
-                           families=families, awesome_sensors=awesome_sensors)
-        LOGGER.debug("Reading sync completed in %s seconds", time.time() - t0)
-
-        LOGGER.info('Syncing AQI readings...')
-        t0 = time.time()
-        sync.sync_aqi_readings(session, families=families, locations=locations)
-        LOGGER.debug("AQI sync completed in %s seconds", time.time() - t0)
-
-        LOGGER.info('Closing')
+        #
+        # LOGGER.info('Syncing readings...')
+        # t0 = time.time()
+        # sync.sync_readings(session=session, reading_types=reading_types,
+        #                    families=families, awesome_sensors=awesome_sensors)
+        # LOGGER.debug("Reading sync completed in %s seconds", time.time() - t0)
+        #
+        # LOGGER.info('Syncing AQI readings...')
+        # t0 = time.time()
+        # sync.sync_aqi_readings(session, families=families, locations=locations)
+        # LOGGER.debug("AQI sync completed in %s seconds", time.time() - t0)
+        #
+        # LOGGER.info('Closing')
 
 
 if __name__ == '__main__':
