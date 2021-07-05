@@ -167,7 +167,13 @@ def sync_sites(session: http_session.PortalSession, sites: Mapping,
                 loc = objects.Location(locations[site['name']]['id'])
                 loc.update(session, local_location)
                 # Use family name as tag
-                loc.add_tag(session, activity['dbh'])
+                try:
+                    loc.add_tag(session, activity['dbh'])
+                # Ignore "Tag already exists" errors
+                except requests.HTTPError as exc:
+                    if exc.response.status_code != \
+                            http.HTTPStatus.UNPROCESSABLE_ENTITY:
+                        raise
 
         # No remote location found
         else:
