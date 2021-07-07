@@ -5,6 +5,7 @@ import numpy
 import pandas
 
 import aqi.daqi
+import settings
 
 LOGGER = logging.getLogger(__name__)
 
@@ -62,7 +63,9 @@ def transform(reading: dict) -> dict:
     # Floor to regular time interval because there may be multiple
     # different sensors at a site, so merge them together. Also, the time
     # resolution on the Awesome portal is finite
-    reading['time'] = reading['time'].replace(minute=0, second=0,
+    nearest = settings.AQI_ROUND_MINUTES
+    minute = round(reading['time'] / nearest) * nearest
+    reading['time'] = reading['time'].replace(minute=minute, second=0,
                                               microsecond=0)
 
     reading['value'] = float(reading['value'])

@@ -124,3 +124,6 @@ URL = 'http://{host}/uflobin/ufdexF1'.format(host=HOST)
 AWESOME_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 AQI_TIME_BUFFER = dict(hours=24)
+
+# Smooth AQI readings over time
+AQI_ROUND_MINUTES = 15
