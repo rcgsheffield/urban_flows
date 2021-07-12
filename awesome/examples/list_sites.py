@@ -29,6 +29,8 @@ if __name__ == '__main__':
     metadata = assets.get_metadata()
     sites = metadata['sites']
 
+    logger.info('Retrieved %s sites', len(sites))
+
     # CSV output
     writer = None
 
