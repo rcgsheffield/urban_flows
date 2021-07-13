@@ -64,7 +64,8 @@ def transform(reading: dict) -> dict:
     # different sensors at a site, so merge them together. Also, the time
     # resolution on the Awesome portal is finite
     nearest = settings.AQI_ROUND_MINUTES
-    minute = round(reading['time'].minute / nearest) * nearest
+    # Minutes can't go up to 60, must be in range 0 to 59 inclusive
+    minute = max(59, round(reading['time'].minute / nearest) * nearest)
     reading['time'] = reading['time'].replace(minute=minute, second=0,
                                               microsecond=0)
 
