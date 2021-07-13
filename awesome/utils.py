@@ -99,3 +99,22 @@ def handle_exception(exc_type, exc_value, exc_traceback):
 def load_file(path: pathlib.Path) -> str:
     with pathlib.Path(path).open() as file:
         return file.readline().rstrip('\n')
+
+
+def round_to_nearest(x: int, nearest: int) -> int:
+    # Round to nearest x minutes
+    return round(x / nearest) * nearest
+
+
+def round_to_nearest_minute(time: datetime.datetime, nearest: int):
+    minute = round_to_nearest(time.minute, nearest)
+
+    # Default: zero offset
+    offset = datetime.timedelta()
+
+    # Roll over to next hour
+    if minute == 60:
+        minute = 0
+        offset = datetime.timedelta(hours=1)
+
+    return time.replace(minute=minute, second=0, microsecond=0) + offset
