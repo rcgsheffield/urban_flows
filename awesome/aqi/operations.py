@@ -55,6 +55,13 @@ def transform_ufo_data(readings: Iterable[dict]):
     return data.dropna(how='all').sort_index()
 
 
+def round_to_nearest_minute(minute: int, nearest: int) -> int:
+    # Round to nearest x minutes
+    minute = round(minute / nearest) * nearest
+    # Minutes can't go up to 60, must be in range 0 to 59 inclusive
+    return max(59, minute)
+
+
 def transform(reading: dict) -> dict:
     # Rename
     reading['pollutant'] = aqi.daqi.DailyAirQualityIndex.COLUMN_MAP.get(
@@ -63,9 +70,8 @@ def transform(reading: dict) -> dict:
     # Floor to regular time interval because there may be multiple
     # different sensors at a site, so merge them together. Also, the time
     # resolution on the Awesome portal is finite
-    nearest = settings.AQI_ROUND_MINUTES
-    # Minutes can't go up to 60, must be in range 0 to 59 inclusive
-    minute = max(59, round(reading['time'].minute / nearest) * nearest)
+    minute = round_to_nearest_minute(reading['time'].minute,
+                                     nearest=settings.AQI_ROUND_MINUTES)
     reading['time'] = reading['time'].replace(minute=minute, second=0,
                                               microsecond=0)
 
