@@ -30,12 +30,12 @@ class PortalSession(requests.Session):
         # Make the request
         response = super().request(*args, headers=headers, **kwargs)
 
-        for _response in response.history:
+        for i, _response in enumerate(response.history):
             # Log headers
             for header, value in _response.request.headers.items():
-                LOGGER.debug("REQUEST %s: %s", header, value)
+                LOGGER.debug("REQUEST %s %s: %s", i, header, value)
             for header, value in _response.headers.items():
-                LOGGER.debug("RESPONSE %s: %s", header, value)
+                LOGGER.debug("RESPONSE %s %s: %s", i, header, value)
 
         # Raise errors
         try:
@@ -44,7 +44,7 @@ class PortalSession(requests.Session):
         # Log HTTP error codes
         except requests.HTTPError as exc:
             for header, value in exc.response.headers.items():
-                LOGGER.error("RESPONSE HEADER %s: %s", header, value)
+                LOGGER.info("RESPONSE HEADER %s: %s", header, value)
             LOGGER.error(exc.response.text)
             raise
 
