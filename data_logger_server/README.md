@@ -30,7 +30,12 @@ total 1980
 ...
 ```
 
-
+Columns:
+* Data logger device identifier
+* Channel number
+* Date
+* Time
+* Measured value
 
 # Installation
 
