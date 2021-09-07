@@ -50,6 +50,13 @@ total 1980
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+46+06.192728
 ```
 
+Columns:
+* Data logger device identifier
+* Channel number
+* Date
+* Time
+* Measured value
+
 # Installation
 
 I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04). (Assuming NGINX is installed.) Ensure the system is up-to-date and install the basic required software (`python3-dev` `python3-venv`).
