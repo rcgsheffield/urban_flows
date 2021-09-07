@@ -14,23 +14,41 @@ The code assumes that all the data loggers are configured identically. The chann
 
 The web server will forward web requests via a socket to the web application using the WSGI specification (in this case uWSGI is used). The application is built using the Flask web framework.
 
+The web application sits behind a reverse proxy and listens over Hypertext Transfer Protocol Secure (HTTPS) on port 443. You can run a quick check like so:
+
+```bash
+curl --insecure --head  https://ufdlsrv01.shef.ac.uk
+```
+
+The server is configured to listen for the transmissions sent by the OTT data loggers, with the appropriate type of encryption and authentication mechanisms.
+
 ## Retrieve data
 
-Data are stored in the directories specified in `data_logger_server/settings.py`. The default target directory is `/home/uflo/data/rawData/dlsrv/senddata`.
+Data are stored in the directories specified in `data_logger_server/settings.py`. The default target directory is `/home/uflo/data/rawData/dlsrv/senddata`. This directory is owned by the `uflo` user so you may not have permission to view it without escalating to superuser privileges using `sudo`, or log in as that user:
+
+```bash
+sudo su - uflo --shell /bin/bash
+```
+
+Run this command to list the contents of this directory:
+
+```bash
+sudo ls -l /home/uflo/data/rawData/dlsrv/senddata
+```
+
+Data are stored in nested directories, one per day, in the format `<action>/YYYY/MM` where the action is `senddata` for a data transmission, for example `/home/uflo/data/rawData/dlsrv/senddata/2020/10/22`.
 
 To view data files retrieved on a certain day:
 
 ```bash
-[sa_cs1jsth@ufdlsrv01 ~]$ sudo ls -l /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
+# List data files, sort chronologically
+sudo ls -lt /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
 total 1980
 -rw-------. 1 uflo uflo 44074 Oct 22  2020 0000452891_2020-10-22T00+01+06.209619
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+16+06.045141
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+31+02.943406
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+46+06.192728
-...
 ```
-
-
 
 # Installation
 
