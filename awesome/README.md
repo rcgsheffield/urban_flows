@@ -50,6 +50,10 @@ By default, the authentication token used to access the Awesome portal API is st
 
 # Usage
 
+In production, the code is managed by `systemd` as discussed above.
+
+## Running
+
 To view the available commands, run:
 
 ```bash
