@@ -2,6 +2,10 @@
 
 This is a bridge used to put data and metadata from the Urban Flows Observatory into the [Awesome web portal](http://portal.sheffield.ac.uk/) via its API (see [Awesome Portal API Docs](https://ufapidocs.clients.builtonawesomeness.co.uk/)).
 
+# Requirements
+
+A relatively modern Linux operating system (such as Ubuntu 18.04 LTS and Python 3.6).
+
 # Installation
 
 Use `install.sh` to copy the relevant files:
@@ -133,6 +137,26 @@ Some classes have behaviour specific to that type of object, such as `Sensor.add
 
 # Development
 
+The default `settings_local.py` in this repository should configure the system to operate in the development environment.
+
+## Virtual environment
+
+You can create a virtual environment to run this code using Conda or another Python virtual environment tool such as `venv`. The instructions to do this may be found online.
+
+```bash
+# Create a virtual environment in a directory called awesome
+python -m venv awesome
+
+# Activate the environment (commands for Linux or Windows)
+#source <venv>/bin/activate
+#<venv>\Scripts\activate.bat
+
+# Install packages
+pip install -r requirements.txt
+```
+
+
+
 ## Unit tests
 
 To execute the automated unit tests, run this command:
@@ -142,6 +166,19 @@ python -m unittest --failfast --verbose
 ```
 
 # Maintenance
+
+## Upgrade packages
+
+Generic operating system upgrades should be performed regularly.
+
+```bash
+sudo apt update
+sudo apt upgrade
+```
+
+Check [PyPI](https://pypi.org/) to see if the packages listed in `requirements.txt` are outdated.
+
+## Clear logs
 
 View reboots:
 

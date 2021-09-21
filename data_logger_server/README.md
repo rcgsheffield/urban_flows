@@ -33,7 +33,7 @@ sudo su - uflo --shell /bin/bash
 Run this command to list the contents of this directory:
 
 ```bash
-sudo ls -l /home/uflo/data/rawData/dlsrv/senddata
+ls -l /home/uflo/data/rawData/dlsrv/senddata
 ```
 
 Data are stored in nested directories, one per day, in the format `<action>/YYYY/MM` where the action is `senddata` for a data transmission, for example `/home/uflo/data/rawData/dlsrv/senddata/2020/10/22`.
@@ -42,7 +42,7 @@ To view data files retrieved on a certain day:
 
 ```bash
 # List data files, sort chronologically
-sudo ls -lt /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
+ls -lt /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
 total 1980
 -rw-------. 1 uflo uflo 44074 Oct 22  2020 0000452891_2020-10-22T00+01+06.209619
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+16+06.045141

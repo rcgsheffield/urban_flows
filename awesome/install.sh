@@ -15,7 +15,7 @@ $VENV_DIR/bin/pip install --requirement requirements.txt
 
 echo "Installing data bridge into $TARGET_DIR..."
 mkdir --parents --verbose $TARGET_DIR
-sudo cp --recursive * $TARGET_DIR
+sudo cp --recursive ./* $TARGET_DIR
 
 echo "Installing systemd units..."
 cp --verbose systemd/databridge.service /etc/systemd/system/databridge.service
