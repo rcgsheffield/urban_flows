@@ -146,6 +146,7 @@ You can create a virtual environment to run this code using Conda or another Pyt
 ```bash
 # Create a virtual environment in a directory called awesome
 python -m venv awesome
+#python3 -m venv awesome
 
 # Activate the environment (commands for Linux or Windows)
 #source <venv>/bin/activate
