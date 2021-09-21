@@ -1,1 +1,4 @@
-settings_local.py
+# Local python virtual environment
+awesome
+*.log
+*.csv
