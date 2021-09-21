@@ -176,7 +176,15 @@ sudo apt update
 sudo apt upgrade
 ```
 
+### Python packages
+
 Check [PyPI](https://pypi.org/) to see if the packages listed in `requirements.txt` are outdated.
+
+To upgrade the `pip` version in the virtual environment:
+
+```bash
+sudo /opt/awesome/venv/bin/pip install --upgrade pip
+```
 
 ## Clear logs
 
