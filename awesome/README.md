@@ -6,6 +6,14 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 
 A relatively modern Linux operating system (such as Ubuntu 18.04 LTS and Python 3.6).
 
+```bash
+# Update OS packages
+sudo apt update
+sudo apt upgrade
+# Install Python 3
+sudo apt install python3 python3-pip python3-venv
+```
+
 # Installation
 
 Use `install.sh` to copy the relevant files:
