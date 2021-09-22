@@ -2,6 +2,7 @@
 
 TARGET_DIR=/opt/awesome
 VENV_DIR=$TARGET_DIR/venv
+PYTHON_BINARY=python3.9
 
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -10,7 +11,7 @@ echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
 
 echo "Installing Python packages"
-python3 -m venv $VENV_DIR
+$PYTHON_BINARY -m venv $VENV_DIR
 $VENV_DIR/bin/pip install --requirement requirements.txt
 
 echo "Installing data bridge into $TARGET_DIR..."

@@ -4,7 +4,7 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 
 # Requirements
 
-A relatively modern Linux operating system (such as Ubuntu 18.04 LTS and Python 3.6).
+A relatively modern Linux operating system (such as Ubuntu 20.04 LTS and Python 3.6).
 
 ```bash
 # Update OS packages
