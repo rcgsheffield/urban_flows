@@ -2,7 +2,7 @@
 
 TARGET_DIR=/opt/awesome
 VENV_DIR=$TARGET_DIR/venv
-PYTHON_BINARY=python3.9
+PYTHON_BINARY=$VENV_DIR/bin/python3.9
 
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -14,7 +14,7 @@ echo "Installing Python packages"
 $PYTHON_BINARY -m venv $VENV_DIR
 # Use this version of Python
 $PYTHON_BINARY -m venv $VENV_DIR --upgrade
-$VENV_DIR/bin/pip install --requirement requirements.txt
+$PYTHON_BINARY -m pip install --requirement requirements.txt
 
 echo "Installing data bridge into $TARGET_DIR..."
 mkdir --parents --verbose $TARGET_DIR
