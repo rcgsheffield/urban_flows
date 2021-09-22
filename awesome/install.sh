@@ -12,6 +12,8 @@ cp --verbose settings_prod.py settings_local.py
 
 echo "Installing Python packages"
 $PYTHON_BINARY -m venv $VENV_DIR
+# Use this version of Python
+$PYTHON_BINARY -m venv $VENV_DIR --upgrade
 $VENV_DIR/bin/pip install --requirement requirements.txt
 
 echo "Installing data bridge into $TARGET_DIR..."

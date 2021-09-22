@@ -4,14 +4,14 @@ This is a bridge used to put data and metadata from the Urban Flows Observatory 
 
 # Requirements
 
-A relatively modern Linux operating system (such as Ubuntu 20.04 LTS and Python 3.6).
+Ubuntu 20.04 LTS and Python 3.9
 
 ```bash
 # Update OS packages
 sudo apt update
 sudo apt upgrade
-# Install Python 3
-sudo apt install python3 python3-pip python3-venv
+# Install Python 3.9
+sudo apt install python3.9 python3.9-venv
 ```
 
 # Installation
