@@ -59,5 +59,5 @@ cp --recursive --verbose nginx /etc
 # Data targets
 mkdir -pv $DATA_DIR/senddata
 mkdir -pv $DATA_DIR/sendalarm
-chown www-data:www-data $DATA_DIR
-chmod 770 $DATA_DIR
+chown uflo:www-data $DATA_DIR
+chmod 775 $DATA_DIR
