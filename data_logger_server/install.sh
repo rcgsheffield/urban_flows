@@ -48,7 +48,7 @@ $VENV_DIR/bin/pip install -r requirements.txt
 mkdir --parents --verbose $DATA_DIR
 
 # Install machine-specific settings
-mv --force $DEST_DIR/data_logger_server/settings_prod.py $DEST_DIR/data_logger_server/settings_local.py
+mv --force $DEST_DIR/settings_prod.py $DEST_DIR/settings_local.py
 
 # Create a shared directory to store the socket file
 echo "Installing WSGI configuration..."
