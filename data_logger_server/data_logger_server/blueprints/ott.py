@@ -137,7 +137,7 @@ def ott_response(root_dir: str):
     return response
 
 
-@app.route('/ott/', methods=['POST'])
+@blueprint.route('/ott/', methods=['POST'])
 def ott():
     """Route request to the appropriate function"""
 
@@ -187,7 +187,7 @@ def ott_sendalarm():
     return ott_response(root_dir=settings.ALARM_DIR)
 
 
-@app.route('/ping')
+@blueprint.route('/ping')
 def ping():
     return 'pong'
 
