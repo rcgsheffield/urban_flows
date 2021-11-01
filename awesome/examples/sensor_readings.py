@@ -1,17 +1,29 @@
+"""
+This script will get some recent sensor readings
+"""
+
 import logging
 import random
 from pprint import pprint
+from getpass import getpass
 
 import objects
 import http_session
 
-logging.basicConfig(level=logging.DEBUG)
+SENSOR_COUNT = 827
 
-session = http_session.PortalSession()
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.DEBUG)
 
-sensor_id = random.choice(list(range(827)))
+    # Connect to portal API
+    session = http_session.PortalSession(token=getpass())
 
-sensor = objects.Sensor(sensor_id)
-print(repr(sensor))
+    # Get a random sensor (this might not work)
+    sensor_id = random.choice(list(range(SENSOR_COUNT)))
 
-pprint(sensor.latest_reading(session))
+    # Show sensor metadata
+    sensor = objects.Sensor(sensor_id)
+    print(repr(sensor))
+
+    # Get recent data
+    pprint(sensor.latest_reading(session))
