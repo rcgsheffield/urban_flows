@@ -14,6 +14,8 @@ The code assumes that all the data loggers are configured identically. The chann
 
 The web server will forward web requests via a socket to the web application using the WSGI specification (in this case uWSGI is used). The application is built using the Flask web framework.
 
+See this tutorial: [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-20-04)
+
 The web application sits behind a reverse proxy and listens over Hypertext Transfer Protocol Secure (HTTPS) on port 443. You can run a quick check like so:
 
 ```bash
