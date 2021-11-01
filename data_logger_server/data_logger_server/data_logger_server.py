@@ -193,15 +193,6 @@ def ott_alarm():
     return ott_response(root_dir=settings.ALARM_DIR)
 
 
-@app.route('/server-status')
-def server_status():
-    """
-    Server status endpoint for collectd
-    """
-    # Empty HTTP 200 response
-    return '', http.HTTPStatus.OK
-
-
 def main():
     app.run()
 
