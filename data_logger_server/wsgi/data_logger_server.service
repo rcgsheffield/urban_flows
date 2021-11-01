@@ -8,8 +8,8 @@ After=network.target
 User=www-data
 Group=www-data
 WorkingDirectory=/opt/data_logger_server
-EnvironmentFile=/opt/data_logger_server/wsgi/data_logger_server.env
-ExecStart=/opt/data_logger_server/venv/bin/uwsgi --ini /opt/data_logger_server/wsgi/data_logger_server.ini
+EnvironmentFile=/opt/wsgi/data_logger_server.env
+ExecStart=/opt/data_logger_server/venv/bin/uwsgi --ini /opt/wsgi/data_logger_server.ini
 
 [Install]
 WantedBy=multi-user.target
