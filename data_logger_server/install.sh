@@ -30,7 +30,8 @@ chmod 770 /run/dlsrv
 
 # Install application files
 mkdir --parents --verbose $DEST_DIR
-cp --recursive ./* $DEST_DIR
+cp --recursive ./data_logger_server $DEST_DIR
+cp --recursive ./wsgi $DEST_DIR/wsgi
 
 # Create log directory
 mkdir -p $LOG_DIR
