@@ -21,7 +21,6 @@ Authentication is handled separately by the web server (e.g. Apache or NGINX).
 """
 
 import os
-import logging.config
 import datetime
 
 import atomicwrites
@@ -29,8 +28,6 @@ import flask
 
 import settings
 import app_factory
-
-logging.config.dictConfig(settings.LOGGING_CONFIG)
 
 app = app_factory.create_app()
 

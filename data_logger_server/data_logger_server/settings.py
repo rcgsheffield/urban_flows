@@ -46,21 +46,10 @@ LOGGING_CONFIG = {
             'when': 'D',
             'filename': str(LOG_DIR.joinpath('info.log')),
             'formatter': 'standard',
-        },
-        'email': {
-            'class': 'logging.handlers.SMTPHandler',
-            'level': 'ERROR',
-            'mailhost': 'smtp.shef.ac.uk',
-            'fromaddr': 'noreply@shef.ac.uk',
-            'toaddrs': [
-                'j.heffer@sheffield.ac.uk',
-            ],
-            'subject': 'Data logger server error',
         }
     },
-    # root logger
     'root': {
         'level': 'INFO',
-        'handlers': ['file', 'file_info', 'console', 'email'],
+        'handlers': ['file', 'file_info', 'console'],
     },
 }
