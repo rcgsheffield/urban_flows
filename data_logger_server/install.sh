@@ -41,6 +41,7 @@ chown www-data:www-data $LOG_DIR
 # Create Python virtual environment
 python3.9 -m venv $VENV_DIR
 # Install Python packages
+$VENV_DIR/bin/pip install wheel
 $VENV_DIR/bin/pip install -r requirements.txt
 
 # Data destination
