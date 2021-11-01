@@ -25,8 +25,10 @@ systemctl enable data_logger_server
 # Create a directory to store the socket file
 mkdir -p /run/dlsrv
 chown www-data:www-data /run/dlsrv
-chmod 0660 /run/dlsrv
-chmod g+s /run/dlsrv # new files inherit group ownership
+chmod 660 /run/dlsrv
+# New files inherit group ownership
+# This is because the socket file will be recreated when the server starts
+chmod g+s /run/dlsrv
 
 # Install application files
 mkdir --parents --verbose $DEST_DIR
