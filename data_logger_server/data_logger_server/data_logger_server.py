@@ -18,10 +18,8 @@ Use atomic file writing to ensure that no partially-written files are
 synced downstream by the data pipeline.
 
 Authentication is handled separately by the web server (e.g. Apache or NGINX).
-
-Author: Joe Heffer <j.heffer@sheffield.ac.uk>
 """
-import http
+
 import os
 import logging.config
 import datetime
@@ -30,16 +28,11 @@ import atomicwrites
 import flask
 
 import settings
+import app_factory
 
-app = flask.Flask(__name__)
-
-# Logging
-os.makedirs(settings.LOG_DIR, exist_ok=True)
 logging.config.dictConfig(settings.LOGGING_CONFIG)
 
-# Load response template
-with open(settings.RESPONSE_TEMPLATE_PATH) as file:
-    app.config['RESPONSE_TEMPLATE'] = file.read()
+app = app_factory.create_app()
 
 
 def get_dir(root_dir: str, now: datetime.datetime) -> str:
@@ -93,16 +86,17 @@ def serialise(data: str, root_dir: str, station_id: str,
 
     path = get_path(root_dir=root_dir, station_id=station_id, now=now)
 
-    # Save to disk (open for exclusive creation, failing if the file already exists)
-    # Use atomic writes to avoid partially-written files if a sync starts mid-write.
-    # The data will be written to a named temporary file until all data is written.
+    # Save to disk (open for exclusive creation, failing if the file already
+    # exists). Use atomic writes to avoid partially-written files if a sync
+    # starts mid-write. The data will be written to a named temporary file
+    # until all data is written.
     with atomicwrites.atomic_write(path, overwrite=False,
                                    suffix=settings.TEMP_SUFFIX,
                                    dir=settings.TEMP_DIR) as file:
         app.logger.debug("Temp: %s", file.name)
         file.write(data)
 
-    app.logger.info('Wrote "%s"', path)
+    app.logger.info(f'Wrote "{path}"')
 
     return path
 
@@ -165,13 +159,16 @@ def ott_data():
     """
     OTT data app.logger server (action=senddata or OTT_Data.xsd)
 
-    The client will send a self-timed data transmission (see Description of XML Data Exchange, section 6.1)
-    The HTTP POST will be sent in XML format (using OTT_Data.xsd shown in Sec 9.4).
+    The client will send a self-timed data transmission (see Description of XML
+    Data Exchange, section 6.1). The HTTP POST will be sent in XML format
+    (using OTT_Data.xsd shown in Sec 9.4).
 
-    In response to the HTTP POST request containing the data, the server returns an acknowledge
-    message as defined by the XML schema file OTT_Response.xsd (see section 3)
+    In response to the HTTP POST request containing the data, the server
+    returns an acknowledge message as defined by the XML schema file
+    OTT_Response.xsd (see section 3)
 
-    :return: XML data received success response (OTT_Response.xsd) (see Sec. 4.2 and 9.3)
+    :return: XML data received success response (OTT_Response.xsd)
+            (see Sec. 4.2 and 9.3)
     """
 
     return ott_response(root_dir=settings.DATA_DIR)

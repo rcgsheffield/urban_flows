@@ -129,7 +129,11 @@ The web application may be controlled via the service using `systemctl` as follo
 sudo systemctl start data_logger_server
 sudo systemctl stop data_logger_server
 sudo systemctl restart data_logger_server
+```
 
+Monitoring:
+
+```bash
 # View status
 sudo systemctl status data_logger_server
 sudo journalctl -u data_logger_server --since "1 hour ago"
