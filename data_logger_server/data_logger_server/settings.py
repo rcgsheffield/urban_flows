@@ -2,7 +2,8 @@
 Web app configuration
 """
 
-import os.path
+import os
+import pathlib
 
 from settings_local import *
 
@@ -11,11 +12,13 @@ RESPONSE_TEMPLATE_PATH = 'response_template.xml'
 RESPONSE_MIME_TYPE = 'application/xml'
 
 # Directory in which to place data files received from the web
-TEMP_SUFFIX = '.tmp'  # suffix for temporary files (i.e. during write operation)
-TEMP_DIR = None  # temporary files location (defaults to the same as DATA_DIR)
+# suffix for temporary files (i.e. during write operation)
+TEMP_SUFFIX = '.tmp'
+# temporary files location (defaults to the same as DATA_DIR)
+TEMP_DIR = None
 
 # Logging configuration
-LOG_DIR = 'logs'
+LOG_DIR = pathlib.Path(os.getenv('LOG_DIR', 'logs'))
 LOGGING_CONFIG = {
     'version': 1,
     'formatters': {
@@ -34,14 +37,14 @@ LOGGING_CONFIG = {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'level': 'ERROR',
             'when': 'D',
-            'filename': os.path.join(LOG_DIR, 'error.log'),
+            'filename': str(LOG_DIR.joinpath('error.log')),
             'formatter': 'standard',
         },
         'file_info': {
             'class': 'logging.handlers.TimedRotatingFileHandler',
             'level': 'INFO',
             'when': 'D',
-            'filename': os.path.join(LOG_DIR, 'info.log'),
+            'filename': str(LOG_DIR.joinpath('info.log')),
             'formatter': 'standard',
         },
         'email': {

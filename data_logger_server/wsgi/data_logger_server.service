@@ -9,6 +9,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/opt/data_logger_server
 Environment="PATH=/opt/data_logger_server/venv/bin"
+Environment="LOG_DIR=/var/log/data_logger_server"
 ExecStart=/opt/data_logger_server/venv/bin/uwsgi --ini /opt/data_logger_server/wsgi/data_logger_server.ini
 
 [Install]

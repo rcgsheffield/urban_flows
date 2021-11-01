@@ -7,6 +7,7 @@
 DEST_DIR="/opt/data_logger_server"
 VENV_DIR="$DEST_DIR/venv"
 DATA_DIR="/home/uflo/data/rawData/dlsrv"
+LOG_DIR="/var/log/data_logger_server"
 
 # Install OS packages
 apt update
@@ -30,6 +31,10 @@ chmod 770 /run/dlsrv
 # Install application files
 mkdir --parents --verbose $DEST_DIR
 cp --recursive ./* $DEST_DIR
+
+# Create log directory
+mkdir -p $LOG_DIR
+chown www-data:www-data $LOG_DIR
 
 # Create Python virtual environment
 python3.9 -m venv $VENV_DIR

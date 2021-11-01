@@ -126,16 +126,16 @@ The web application may be controlled via the service using `systemctl` as follo
 
 ```bash
 # Control
-systemctl start data_logger_server
-systemctl stop data_logger_server
-systemctl restart data_logger_server
+sudo systemctl start data_logger_server
+sudo systemctl stop data_logger_server
+sudo systemctl restart data_logger_server
 
 # View status
-systemctl status data_logger_server
-journalctl -u data_logger_server --since "1 hour ago"
+sudo systemctl status data_logger_server
+sudo journalctl -u data_logger_server --since "1 hour ago"
 
 # View uWSGI logs
-tail /var/log/uwsgi/uwsgi.log
+sudo tail /var/log/uwsgi/uwsgi.log
 ```
 
 It's also possible to run the WSGI service in isolation as follows:
