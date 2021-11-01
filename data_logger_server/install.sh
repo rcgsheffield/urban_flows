@@ -11,7 +11,7 @@ DATA_DIR="/home/uflo/data/rawData/dlsrv"
 # Install OS packages
 apt update
 apt-get upgrade --yes
-apt-get install --yes nginx python3.9 python3.9-venv apache2-utils build-essential
+apt-get install --yes nginx python3.9 python3.9-venv python3.9-dev apache2-utils build-essential
 
 echo "Installing web server..."
 
@@ -21,7 +21,7 @@ systemctl daemon-reload
 systemctl enable data_logger_server
 
 # Create a directory to store the socket file
-mkdir /run/dlsrv
+mkdir -p /run/dlsrv
 chown www-data:www-data /run/dlsrv
 chmod 0660 /run/dlsrv
 chmod g+s /run/dlsrv # new files inherit group ownership
