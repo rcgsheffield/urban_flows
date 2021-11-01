@@ -85,20 +85,29 @@ Run `nginx -t` to check the configuration is valid.
 
 The web server is configured to run as a load balancer and reverse proxy in front of the application. The communication between the two is implemented using WSGI and a Unix socket file.
 
-# Security
-
-## Authentication
+### Authentication
 
 The NGINX web server uses basic HTTP authentication. See: [Basic Authentication documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
 
 ```bash
 # Install htpasswd
 apt install apache2-utils
+
 # Create a new password file and a first user
 # (only use -c the first time to create a new file)
-htpasswd -c /etc/nginx/.htpasswd dl001
-# Add a new user or change existing password (omit -c flag)
-htpasswd /etc/nginx/.htpasswd dl002
+sudo htpasswd -c /etc/nginx/.htpasswd dl001
+```
+
+Add a new user or change existing password (omit -c flag)
+
+```bash
+sudo htpasswd /etc/nginx/.htpasswd dl002
+```
+
+To validate a user's password:
+
+```bash
+sudo htpasswd -v /etc/nginx/.htpasswd dl001
 ```
 
 # Maintenance
@@ -151,11 +160,11 @@ tail --follow /var/log/nginx/access.log
 
 ### Testing
 
-The following is a Curl command for HTTP POST:
+The following is a command to make a HTTP POST request which sends a file to the server, simulating the action of a real data logger.
 
 ```bash
 # Send specified file via HTTP POST method
-curl -X POST -u username:password -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
+curl -X POST -u username:password -d @transmission_test/senddata.xml "https://localhost/ott/?stationid=1234&action=senddata"
 ```
 
 # Appendix: Generating a self-signed certificate

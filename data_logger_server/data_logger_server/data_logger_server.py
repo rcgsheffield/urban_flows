@@ -21,7 +21,7 @@ Authentication is handled separately by the web server (e.g. Apache or NGINX).
 
 Author: Joe Heffer <j.heffer@sheffield.ac.uk>
 """
-
+import http
 import os
 import logging.config
 import datetime
@@ -79,7 +79,8 @@ def get_path(root_dir: str, station_id: str, now: datetime.datetime) -> str:
     return os.path.join(path, filename)
 
 
-def serialise(data: str, root_dir: str, station_id: str, now: datetime.datetime) -> str:
+def serialise(data: str, root_dir: str, station_id: str,
+              now: datetime.datetime) -> str:
     """
     Save the input data as a file with a timestamp filename
 
@@ -95,7 +96,9 @@ def serialise(data: str, root_dir: str, station_id: str, now: datetime.datetime)
     # Save to disk (open for exclusive creation, failing if the file already exists)
     # Use atomic writes to avoid partially-written files if a sync starts mid-write.
     # The data will be written to a named temporary file until all data is written.
-    with atomicwrites.atomic_write(path, overwrite=False, suffix=settings.TEMP_SUFFIX, dir=settings.TEMP_DIR) as file:
+    with atomicwrites.atomic_write(path, overwrite=False,
+                                   suffix=settings.TEMP_SUFFIX,
+                                   dir=settings.TEMP_DIR) as file:
         app.logger.debug("Temp: %s", file.name)
         file.write(data)
 
@@ -188,6 +191,15 @@ def ott_alarm():
     app.logger.error(body)
 
     return ott_response(root_dir=settings.ALARM_DIR)
+
+
+@app.route('/server-status')
+def server_status():
+    """
+    Server status endpoint for collectd
+    """
+    # Empty HTTP 200 response
+    return '', http.HTTPStatus.OK
 
 
 def main():
