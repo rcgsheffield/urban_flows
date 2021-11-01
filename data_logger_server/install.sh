@@ -64,3 +64,4 @@ chown www-data:root /var/log/uwsgi
 # Install NGINX configuration files
 echo "Installing NGINX configuration..."
 cp --recursive --verbose nginx /etc
+rm -v /etc/nginx/sites-enabled/*
