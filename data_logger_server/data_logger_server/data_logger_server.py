@@ -190,6 +190,11 @@ def ott_sendalarm():
     return ott_response(root_dir=settings.ALARM_DIR)
 
 
+@app.route('/ping')
+def ping():
+    return 'pong'
+
+
 def main():
     app.run()
 
