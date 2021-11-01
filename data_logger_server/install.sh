@@ -60,3 +60,7 @@ cp wsgi/data_logger_server.conf /etc/tmpfiles.d
 # Install NGINX configuration files
 echo "Installing NGINX configuration..."
 cp --recursive --verbose nginx /etc
+
+# Data targets
+mkdir -pv $DATA_DIR/senddata
+mkdir -pv $DATA_DIR/sendalarm

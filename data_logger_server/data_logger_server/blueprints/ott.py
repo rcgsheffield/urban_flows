@@ -181,8 +181,7 @@ def ott_sendalarm():
     """
 
     # Raise the alarm
-    body = decode_request_data()
-    app.logger.error(body)
+    app.logger.error(decode_request_data())
 
     return ott_response(root_dir=settings.ALARM_DIR)
 
