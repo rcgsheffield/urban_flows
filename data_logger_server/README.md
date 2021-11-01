@@ -162,6 +162,18 @@ tail --follow /var/log/nginx/access.log
 
 ### Testing
 
+You can test that the web server is responding like so:
+
+```bash
+curl https://ufdlsrv01.shef.ac.uk/server-status
+```
+
+This will test the Flask app is responding:
+
+```bash
+curl https://ufdlsrv01.shef.ac.uk/ping
+```
+
 The following is a command to make a HTTP POST request which sends a file to the server, simulating the action of a real data logger.
 
 ```bash

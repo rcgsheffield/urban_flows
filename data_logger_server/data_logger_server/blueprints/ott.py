@@ -27,9 +27,9 @@ import atomicwrites
 import flask
 
 import settings
-import app_factory
 
-app = app_factory.create_app()
+app = flask.current_app
+blueprint = flask.Blueprint('ott', __name__)
 
 
 def get_dir(root_dir: str, now: datetime.datetime) -> str:
