@@ -11,7 +11,7 @@ DATA_DIR="/home/uflo/data/rawData/dlsrv"
 # Install OS packages
 apt update
 apt-get upgrade --yes
-apt-get install --yes nginx python3.9 python3.9-venv apache2-utils
+apt-get install --yes nginx python3.9 python3.9-venv apache2-utils build-essential
 
 echo "Installing web server..."
 
