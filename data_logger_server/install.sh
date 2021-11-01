@@ -1,13 +1,17 @@
 #!/bin/sh
 
+# Urban Flows Observatory
+# OTT Data Logger Web Server installation script
+
+# Define target directories
 DEST_DIR="/opt/data_logger_server"
 VENV_DIR="$DEST_DIR/venv"
 DATA_DIR="/home/uflo/data/rawData/dlsrv"
 
 # Install OS packages
 apt update
-apt install nginx python3.9 python3.9-venv apache2-utils
-apt upgrade
+apt-get upgrade --yes
+apt-get install --yes nginx python3.9 python3.9-venv apache2-utils
 
 echo "Installing web server..."
 

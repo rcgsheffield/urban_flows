@@ -67,9 +67,21 @@ Ensure the service will run as a non-privileged user and is a member of the spec
 
 The configuration, code and socket files must all be pointed to correctly by each configuration file.
 
+To run the installation script:
+
+```bash
+cd ~/urban_flows/data_logger_server
+sudo sh install.sh
+
+# Restart NGINX (optional)
+sudo nginx -s reload
+```
+
 ## Web server
 
 Run `nginx -t` to check the configuration is valid.
+
+The web server is configured to run as a load balancer and reverse proxy in front of the application. The communication between the two is implemented using WSGI and a Unix socket file.
 
 # Security
 
