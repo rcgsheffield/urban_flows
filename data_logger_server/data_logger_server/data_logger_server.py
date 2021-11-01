@@ -2,7 +2,8 @@
 Data Logger Web Server
 
 A simple web application to receive data from an OTT Data app.logger.
-The script will accept different actions (determined by the action URL query parameter.)
+The script will accept different actions (determined by the action URL query
+parameter.)
 
 Accepted actions:
     * senddata
