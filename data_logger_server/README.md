@@ -16,10 +16,10 @@ The web server will forward web requests via a socket to the web application usi
 
 See this tutorial: [How To Serve Flask Applications with uWSGI and Nginx on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uwsgi-and-nginx-on-ubuntu-20-04)
 
-The web application sits behind a reverse proxy and listens over Hypertext Transfer Protocol Secure (HTTPS) on port 443. You can run a quick check like so:
+The web application sits behind a reverse proxy and listens over Hypertext Transfer Protocol Secure (HTTPS) on port 443. You can run a quick check like so. (Optionally, use the `--insecure` option if the SSL certificate isn't configured yet.)
 
 ```bash
-curl --insecure --head  https://ufdlsrv01.shef.ac.uk
+curl --head  https://ufdlsrv01.shef.ac.uk
 ```
 
 The server is configured to listen for the transmissions sent by the OTT data loggers, with the appropriate type of encryption and authentication mechanisms.
@@ -177,13 +177,3 @@ openssl x509 \
        -in ufdlsrv01.shef.ac.uk.csr \
        -req -out ufdlsrv01.shef.ac.uk.crt -days 365
 ```
-
-# Appendix: File glossary
-
-The following directories and configuration files are present:
-
-* `data_logger_server` contains the Flask application
-* `data_logger_server.service` is the `systemd` configuration file
-* `requirements.txt`  is the dependencies for this Python package
-* `nginx/` contains NGINX configuration files
-* `transmission_test` A script to test sending data via HTTP POST to the server (similar to `curl`)
