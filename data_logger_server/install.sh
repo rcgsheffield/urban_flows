@@ -9,6 +9,9 @@ VENV_DIR="$DEST_DIR/venv"
 DATA_DIR="/home/uflo/data/rawData/dlsrv"
 LOG_DIR="/var/log/data_logger_server"
 
+# Exit immediately if a command exits with a non-zero status
+set -e
+
 # Install OS packages
 apt update
 apt-get upgrade --yes
