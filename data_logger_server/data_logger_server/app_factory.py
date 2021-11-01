@@ -1,11 +1,6 @@
-import logging.config
-
 import flask
 
 import settings
-
-# Configure logging
-logging.config.dictConfig(settings.LOGGING_CONFIG)
 
 
 def create_app() -> flask.Flask:

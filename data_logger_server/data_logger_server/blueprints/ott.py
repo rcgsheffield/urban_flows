@@ -132,7 +132,7 @@ def ott_response(root_dir: str):
 
     body = build_response_body(station_id=station_id, now=now)
 
-    response = flask.Response(body, mimetype=settings.RESPONSE_MIME_TYPE)
+    response = flask.Response(body, mimetype='application/xml')
 
     return response
 
