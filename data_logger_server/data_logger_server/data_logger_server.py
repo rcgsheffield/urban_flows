@@ -146,8 +146,8 @@ def ott():
 
     # Map action to handler
     handlers = dict(
-        senddata=ott_data,
-        sendalarm=ott_alarm,
+        senddata=ott_senddata,
+        sendalarm=ott_sendalarm,
     )
 
     handler = handlers[flask.request.args['action']]
@@ -155,7 +155,7 @@ def ott():
     return handler()
 
 
-def ott_data():
+def ott_senddata():
     """
     OTT data app.logger server (action=senddata or OTT_Data.xsd)
 
@@ -174,7 +174,7 @@ def ott_data():
     return ott_response(root_dir=settings.DATA_DIR)
 
 
-def ott_alarm():
+def ott_sendalarm():
     """
     Receive OTT netDL alarm signals (action=sendalarm or OTT_Alarm.xsd)
 
