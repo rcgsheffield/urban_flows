@@ -2,7 +2,9 @@
 WSGI entry point
 """
 
-from data_logger_server import app
+import app_factory
+
+app = app_factory.create_app()
 
 if __name__ == '__main__':
     app.run()
