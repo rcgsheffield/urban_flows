@@ -57,10 +57,6 @@ mv --force $DEST_DIR/settings_prod.py $DEST_DIR/settings_local.py
 echo "Installing WSGI configuration..."
 cp wsgi/data_logger_server.conf /etc/tmpfiles.d
 
-# uWSGI log file
-mkdir --parents /var/log/uwsgi
-chown www-data:root /var/log/uwsgi
-
 # Install NGINX configuration files
 echo "Installing NGINX configuration..."
 cp --recursive --verbose nginx /etc

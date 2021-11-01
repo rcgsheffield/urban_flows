@@ -115,6 +115,7 @@ sudo htpasswd -v /etc/nginx/.htpasswd dl001
 * Update OS packages
 * Update Python packages
 * SSL certificate renewal
+* Delete old logs
 
 # Operation
 
