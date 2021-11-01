@@ -157,12 +157,11 @@ You can create a virtual environment to run this code using Conda or another Pyt
 
 ```bash
 # Create a virtual environment in a directory called awesome
-python -m venv awesome
-#python3 -m venv awesome
+python3.9 -m venv awesome
 
 # Activate the environment (commands for Linux or Windows)
-#source <venv>/bin/activate
-#<venv>\Scripts\activate.bat
+#source awesome/bin/activate
+#awesome\Scripts\activate.bat
 
 # Install packages
 pip install -r requirements.txt
@@ -187,6 +186,9 @@ Generic operating system upgrades should be performed regularly.
 ```bash
 sudo apt update
 sudo apt upgrade
+
+# Update OS
+#sudo do-release-upgrade
 ```
 
 ### Python packages

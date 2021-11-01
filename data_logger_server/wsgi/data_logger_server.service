@@ -5,11 +5,11 @@ Description=Data Logger Server uWSGI service
 After=network.target
 
 [Service]
-User=uflo
-Group=uflo
-WorkingDirectory=/home/uflo/data_logger_server/data_logger_server
-Environment="PATH=/home/uflo/data_logger_server/dl_srv_env/bin"
-ExecStart=/home/uflo/data_logger_server/dl_srv_env/bin/uwsgi --ini ../wsgi/data_logger_server.ini
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/data_logger_server
+Environment="PATH=/opt/data_logger_server/venv/bin"
+ExecStart=/opt/data_logger_server/venv/bin/uwsgi --ini /opt/data_logger_server/wsgi/data_logger_server.ini
 
 [Install]
 WantedBy=multi-user.target

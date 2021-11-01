@@ -59,25 +59,9 @@ Columns:
 
 # Installation
 
-I followed [this guide](https://www.digitalocean.com/community/tutorials/how-to-serve-flask-applications-with-uswgi-and-nginx-on-ubuntu-18-04). (Assuming NGINX is installed.) Ensure the system is up-to-date and install the basic required software (`python3-dev` `python3-venv`).
-
 See `install.sh`.
 
-Create a virtual environment with the required packages:
-
-```bash
-cd ~/data_logger_server
-python3 -m venv dl_srv_env
-source dl_srv_env/bin/activate
-pip install wheel
-pip install -r requirements.txt
-```
-
-To configure the web server as a service, install the configuration file as follows:
-
-```bash
-cp data_logger_server.service /etc/systemd/system/
-```
+The encryption keys will need to be installed in the location specified in the NGINX configuration file.
 
 Ensure the service will run as a non-privileged user and is a member of the specified group.
 
@@ -85,25 +69,29 @@ The configuration, code and socket files must all be pointed to correctly by eac
 
 ## Web server
 
-Install the configuration files to set up the web services. Run `nginx -t` to check the configuration is valid.
+Run `nginx -t` to check the configuration is valid.
+
+# Security
+
+## Authentication
+
+The NGINX web server uses basic HTTP authentication. See: [Basic Authentication documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
+
+```bash
+# Install htpasswd
+apt install apache2-utils
+# Create a new password file and a first user
+# (only use -c the first time to create a new file)
+htpasswd -c /etc/nginx/.htpasswd dl001
+# Add a new user or change existing password (omit -c flag)
+htpasswd /etc/nginx/.htpasswd dl002
+```
 
 # Maintenance
 
-```bash
-# CentOS 8 systems are automatically patched
-
-# View out-of-date packages
-/home/uflo/data_logger_server/dl_srv_env/bin/pip list --outdated
-
-# Update pip
-/home/sa_cs1jsth/data_logger_server/dl_srv_env/bin/python3 -m pip install --upgrade pip
-
-# Update Python packages
-/home/uflo/data_logger_server/dl_srv_env/bin/pip install -r /home/uflo/data_logger_server/requirements.txt --upgrade
-
-# Restart service
-systemctl restart data_logger_server
-```
+* Update OS packages
+* Update Python packages
+* SSL certificate renewal
 
 # Operation
 
@@ -121,7 +109,7 @@ systemctl restart data_logger_server
 
 # View status
 systemctl status data_logger_server
-journalctl -u data_logger_server
+journalctl -u data_logger_server --since "1 hour ago"
 
 # View uWSGI logs
 tail /var/log/uwsgi/uwsgi.log
@@ -156,81 +144,11 @@ The following is a Curl command for HTTP POST:
 curl -X POST -u username:password -d @test_transmission.xml "http://localhost:80/ott/?stationid=1234&action=senddata"
 ```
 
-### Authentication
-
-Access is restricted using NGINX HTTP [Basic Authentication documentation](https://docs.nginx.com/nginx/admin-guide/security-controls/configuring-http-basic-authentication/).
-
-```bash
-# Install htpasswd
-yum install httpd-tools
-# Create a new password file and a first user
-# (only use -c the first time to create a new file)
-htpasswd -c /etc/nginx/.htpasswd dl001
-# Add a new user or change existing password (omit -c flag)
-htpasswd /etc/nginx/.htpasswd dl002
-```
-
-# Appendix A: Centos installation
-
-See `install.sh`.
-
-I performed these steps in my own user area then copied the files to `/home/uflo/`.
-
-```bash
-yum install git nginx python3-devel gcc
-useradd uflo
-# Install /home/uflo/.ssh/authorized_keys
-cd ~/data_logger_server
-
-# Python virtual environment
-python3 -m venv dl_srv_env
-source dl_srv_env/bin/activate
-pip install --upgrade pip
-pip install wheel  # requires python3-devel to compile
-pip install -r requirements.txt
-
-# Install WGSI as a service
-cp data_logger_server.service /etc/systemd/system/
-systemctl enable data_logger_server
-
-# Copy files to uflo user home directory
-cp data_logger_server/ /home/uflo/ --recursive
-chown uflo:uflo /home/uflo/data_logger_server --recursive
-
-# The web server user must also have access to the WSGI socket
-usermod -aG nginx uflo
-usermod -aG nginx nginx
-
-# Create a shared directory to store the socket file
-mkdir /run/dlsrv
-chown uflo:nginx /run/dlsrv
-chmod 770 /run/dlsrv
-chmod g+s /run/dlsrv # new files inherit group ownership
-
-# Install NGINX configuration files
-cp nginx/nginx.conf /etc/nginx/
-cp nginx/ufdlsrv01.shef.ac.uk.conf /etc/nginx/conf.d/
-```
-
-Restart services (or reboot) to implement changes.
-
-```bash
-systemctl restart data_logger_server
-systemctl restart nginx
-```
-
-Useful commands:
-
-```bash
-# View NGINX error logs
-tail /var/log/nginx/error.log
-```
-
-# Appendix B: Generating a self-signed certificate
+# Appendix: Generating a self-signed certificate
 
 Digital Ocean [OpenSSL Essentials: Working with SSL Certificates, Private Keys and CSRs](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs#generating-ssl-certificates).
 
-This will generate a CSR, private and public keys (with the default 30-day expiry time.)
+This will generate a CSR, private and public keys.
 
 ```bash
 # Generate Certificate Signing Requests (CSR)
@@ -243,10 +161,10 @@ openssl req \
 openssl x509 \
        -signkey ufdlsrv01.shef.ac.uk.key \
        -in ufdlsrv01.shef.ac.uk.csr \
-       -req -out ufdlsrv01.shef.ac.uk.crt
+       -req -out ufdlsrv01.shef.ac.uk.crt -days 365
 ```
 
-# Appendix C: File glossary
+# Appendix: File glossary
 
 The following directories and configuration files are present:
 
