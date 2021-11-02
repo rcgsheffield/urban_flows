@@ -22,6 +22,7 @@ Authentication is handled separately by the web server (e.g. Apache or NGINX).
 
 import os
 import datetime
+import pathlib
 
 import atomicwrites
 import flask
@@ -32,45 +33,50 @@ app = flask.current_app
 blueprint = flask.Blueprint('ott', __name__)
 
 
-def get_dir(root_dir: str, now: datetime.datetime) -> str:
-    """Build the target directory and ensure it exists"""
+def get_dir(root_dir: pathlib.Path, time: datetime.datetime = None) -> pathlib.Path:
+    """
+    Build the target directory and ensure it exists
+    """
 
-    path_parts = [
-        root_dir,
-        # Subdirectories for each day
-        *now.date().isoformat().split('-')
-    ]
+    root_dir = pathlib.Path(root_dir)
 
-    path = os.path.join(*path_parts)
+    # Default to current timestamp
+    time = time or datetime.datetime.utcnow()
+
+    # Subdirectories for each day
+    path = root_dir.joinpath(*time.date().isoformat().split('-'))
 
     # Create target directory
-    os.makedirs(path, exist_ok=True)
+    path.mkdir(parents=True, exist_ok=True)
 
     return path
 
 
-def get_filename(station_id, now: datetime.datetime) -> str:
-    """Build file name"""
+def get_filename(station_id, time: datetime.datetime = None) -> str:
+    """
+    Build file name
+    """
+    time = time or datetime.datetime.utcnow()
 
     # Build filename-safe timestamp
-    safe_timestamp = now.isoformat().replace(':', '+')
+    safe_timestamp = time.isoformat().replace(':', '+')
 
-    return "{}_{}".format(station_id, safe_timestamp)
+    return f"{station_id}_{safe_timestamp}"
 
 
-def get_path(root_dir: str, station_id: str, now: datetime.datetime) -> str:
+def get_path(root_dir: pathlib.Path, station_id: str, now: datetime.datetime) -> str:
     """Build target file path and create subdirectories"""
 
     # Get target directory
-    path = get_dir(root_dir=root_dir, now=now)
+    path = get_dir(root_dir=root_dir, time=now)
 
-    filename = get_filename(station_id=station_id, now=now)
+    filename = get_filename(station_id=station_id, time=now)
 
     return os.path.join(path, filename)
 
 
-def serialise(data: str, root_dir: str, station_id: str,
-              now: datetime.datetime) -> str:
+def serialise(data: str, root_dir: pathlib.Path, station_id: str,
+              now: datetime.datetime) -> None:
     """
     Save the input data as a file with a timestamp filename
 
@@ -78,7 +84,6 @@ def serialise(data: str, root_dir: str, station_id: str,
     :param root_dir: Base filesystem location to store data
     :param station_id: Data logger device identifier
     :param now: Current timestamp
-    :return: Path to written file
     """
 
     path = get_path(root_dir=root_dir, station_id=station_id, now=now)
@@ -87,19 +92,16 @@ def serialise(data: str, root_dir: str, station_id: str,
     # exists). Use atomic writes to avoid partially-written files if a sync
     # starts mid-write. The data will be written to a named temporary file
     # until all data is written.
-    with atomicwrites.atomic_write(path, overwrite=False,
+    with atomicwrites.atomic_write(str(path), overwrite=False,
                                    suffix=settings.TEMP_SUFFIX,
                                    dir=settings.TEMP_DIR) as file:
-        app.logger.debug("Temp: %s", file.name)
         file.write(data)
-
-    app.logger.info(f'Wrote "{path}"')
-
-    return path
 
 
 def build_response_body(station_id: str, now: datetime.datetime) -> str:
-    """Build a response message (OTT_Response.xsd)"""
+    """
+    Build a response message (OTT_Response.xsd)
+    """
 
     # Insert parameters into string template
     return app.config['RESPONSE_TEMPLATE'].format(
@@ -108,20 +110,20 @@ def build_response_body(station_id: str, now: datetime.datetime) -> str:
     )
 
 
-def decode_request_data():
-    """Decode string data from incoming request"""
+def decode_request_data() -> str:
+    """
+    Decode string data from incoming request
+    """
     return flask.request.get_data(as_text=True)
 
 
-def get_station_id():
-    """Get data logger identifier"""
-    return flask.request.args['stationid']
+def ott_response(root_dir: pathlib.Path):
+    """
+    Generic OTT netDL response
+    """
 
-
-def ott_response(root_dir: str):
-    """Generic OTT netDL response"""
-
-    station_id = get_station_id()
+    # Get data logger identifier
+    station_id = flask.request.args['stationid']
 
     data = decode_request_data()
 
