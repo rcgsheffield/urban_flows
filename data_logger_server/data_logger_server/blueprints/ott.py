@@ -64,29 +64,29 @@ def get_filename(station_id, time: datetime.datetime = None) -> str:
     return f"{station_id}_{safe_timestamp}"
 
 
-def get_path(root_dir: pathlib.Path, station_id: str, now: datetime.datetime) -> str:
+def get_path(root_dir: pathlib.Path, station_id: str, time: datetime.datetime) -> str:
     """Build target file path and create subdirectories"""
 
     # Get target directory
-    path = get_dir(root_dir=root_dir, time=now)
+    path = get_dir(root_dir=root_dir, time=time)
 
-    filename = get_filename(station_id=station_id, time=now)
+    filename = get_filename(station_id=station_id, time=time)
 
     return os.path.join(path, filename)
 
 
 def serialise(data: str, root_dir: pathlib.Path, station_id: str,
-              now: datetime.datetime) -> None:
+              time: datetime.datetime) -> None:
     """
     Save the input data as a file with a timestamp filename
 
     :param data: Binary data to save
     :param root_dir: Base filesystem location to store data
     :param station_id: Data logger device identifier
-    :param now: Current timestamp
+    :param time: Timestamp for filename
     """
 
-    path = get_path(root_dir=root_dir, station_id=station_id, now=now)
+    path = get_path(root_dir=root_dir, station_id=station_id, time=time)
 
     # Save to disk (open for exclusive creation, failing if the file already
     # exists). Use atomic writes to avoid partially-written files if a sync
@@ -98,7 +98,7 @@ def serialise(data: str, root_dir: pathlib.Path, station_id: str,
         file.write(data)
 
 
-def build_response_body(station_id: str, now: datetime.datetime) -> str:
+def build_response_body(station_id: str, resp_time: datetime.datetime) -> str:
     """
     Build a response message (OTT_Response.xsd)
     """
@@ -106,7 +106,7 @@ def build_response_body(station_id: str, now: datetime.datetime) -> str:
     # Insert parameters into string template
     return app.config['RESPONSE_TEMPLATE'].format(
         station_id=station_id,
-        resp_time=now.isoformat()
+        resp_time=resp_time.isoformat()
     )
 
 
@@ -130,9 +130,9 @@ def ott_response(root_dir: pathlib.Path):
     # Generate timestamp
     now = datetime.datetime.utcnow()
 
-    serialise(data, root_dir=root_dir, station_id=station_id, now=now)
+    serialise(data, root_dir=root_dir, station_id=station_id, time=now)
 
-    body = build_response_body(station_id=station_id, now=now)
+    body = build_response_body(station_id=station_id, resp_time=now)
 
     response = flask.Response(body, mimetype='application/xml')
 
