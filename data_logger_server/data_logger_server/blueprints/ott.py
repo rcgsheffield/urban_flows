@@ -65,7 +65,9 @@ def get_filename(station_id, time: datetime.datetime = None) -> str:
 
 
 def get_path(root_dir: pathlib.Path, station_id: str, time: datetime.datetime) -> str:
-    """Build target file path and create subdirectories"""
+    """
+    Build target file path and create subdirectories
+    """
 
     # Get target directory
     path = get_dir(root_dir=root_dir, time=time)
@@ -141,7 +143,9 @@ def ott_response(root_dir: pathlib.Path):
 
 @blueprint.route('/ott/', methods=['POST'])
 def ott():
-    """Route request to the appropriate function"""
+    """
+    Route request to the appropriate function
+    """
 
     # Map action to handler
     handlers = dict(
@@ -190,7 +194,10 @@ def ott_sendalarm():
 
 @blueprint.route('/ping')
 def ping():
-    return 'pong'
+    """
+    Test endpoint
+    """
+    return 'pong\n'
 
 
 def main():
