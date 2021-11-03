@@ -33,16 +33,12 @@ app = flask.current_app
 blueprint = flask.Blueprint('ott', __name__)
 
 
-def get_dir(root_dir: pathlib.Path,
-            time: datetime.datetime = None) -> pathlib.Path:
+def get_dir(root_dir: pathlib.Path, time: datetime.datetime) -> pathlib.Path:
     """
     Build the target directory and ensure it exists
     """
 
     root_dir = pathlib.Path(root_dir)
-
-    # Default to current timestamp
-    time = time or datetime.datetime.utcnow()
 
     # Subdirectories for each day
     path = root_dir.joinpath(*time.date().isoformat().split('-'))
@@ -53,11 +49,10 @@ def get_dir(root_dir: pathlib.Path,
     return path
 
 
-def get_filename(station_id, time: datetime.datetime = None) -> str:
+def get_filename(station_id, time: datetime.datetime) -> str:
     """
     Build file name
     """
-    time = time or datetime.datetime.utcnow()
 
     # Build filename-safe timestamp
     safe_timestamp = time.isoformat().replace(':', '+')
