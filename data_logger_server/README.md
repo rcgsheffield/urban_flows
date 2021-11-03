@@ -26,7 +26,9 @@ The server is configured to listen for the transmissions sent by the OTT data lo
 
 ## Retrieve data
 
-Data are stored in the directories specified in `data_logger_server/settings.py`. The default target directory is `/home/uflo/data/rawData/dlsrv/senddata`. This directory is owned by the `uflo` user so you may not have permission to view it without escalating to superuser privileges using `sudo`, or log in as that user:
+Data are stored in the directories specified in `data_logger_server/settings.py`. The default target directory is `/home/uflo/dlsrv/senddata`. This directory may be configured as a symbolic link to a network mounted volume so that the research data is stored in a separate location and not on the virtual machine running the web server.
+
+This directory is owned by the `uflo` user so you may not have permission to view it without escalating to superuser privileges using `sudo`, or log in as that user:
 
 ```bash
 sudo su - uflo --shell /bin/bash
@@ -35,7 +37,7 @@ sudo su - uflo --shell /bin/bash
 Run this command to list the contents of this directory:
 
 ```bash
-ls -l /home/uflo/data/rawData/dlsrv/senddata
+ls -l /home/uflo/dlsrv/senddata
 ```
 
 Data are stored in nested directories, one per day, in the format `<action>/YYYY/MM` where the action is `senddata` for a data transmission, for example `/home/uflo/data/rawData/dlsrv/senddata/2020/10/22`.
@@ -44,7 +46,7 @@ To view data files retrieved on a certain day:
 
 ```bash
 # List data files, sort chronologically
-ls -lt /home/uflo/data/rawData/dlsrv/senddata/2020/10/22
+ls -lt /home/uflo/dlsrv/senddata/2020/10/22
 total 1980
 -rw-------. 1 uflo uflo 44074 Oct 22  2020 0000452891_2020-10-22T00+01+06.209619
 -rw-------. 1 uflo uflo 44075 Oct 22  2020 0000452891_2020-10-22T00+16+06.045141
@@ -186,7 +188,7 @@ The following is a command to make a HTTP POST request which sends a file to the
 
 ```bash
 # Send specified file via HTTP POST method
-curl -X POST -u username:password -d @transmission_test/senddata.xml "https://localhost/ott/?stationid=1234&action=senddata"
+curl -X POST -u username:password -d @transmission_test/senddata.xml "https://ufdlsrv01/ott/?stationid=1234&action=senddata"
 ```
 
 # Appendix: Generating a self-signed certificate
