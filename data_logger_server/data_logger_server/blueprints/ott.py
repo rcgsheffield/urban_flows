@@ -66,39 +66,34 @@ def get_filename(station_id, time: datetime.datetime = None) -> str:
 
 
 def get_path(root_dir: pathlib.Path, station_id: str,
-             time: datetime.datetime) -> str:
+             time: datetime.datetime) -> pathlib.Path:
     """
     Build target file path and create subdirectories
     """
 
     # Get target directory
-    path = get_dir(root_dir=root_dir, time=time)
+    target_dir = get_dir(root_dir=root_dir, time=time)
 
     filename = get_filename(station_id=station_id, time=time)
 
-    return os.path.join(path, filename)
+    return target_dir.joinpath(filename)
 
 
-def serialise(data: str, root_dir: pathlib.Path, station_id: str,
-              time: datetime.datetime) -> None:
+def serialise(data: str, path: pathlib.Path) -> None:
     """
-    Save the input data as a file with a timestamp filename
+    Save the input data as a file
 
     :param data: Binary data to save
-    :param root_dir: Base filesystem location to store data
-    :param station_id: Data logger device identifier
-    :param time: Timestamp for filename
+    :param path: Target file path
     """
-
-    path = get_path(root_dir=root_dir, station_id=station_id, time=time)
 
     # Save to disk (open for exclusive creation, failing if the file already
     # exists). Use atomic writes to avoid partially-written files if a sync
     # starts mid-write. The data will be written to a named temporary file
     # until all data is written.
-    with atomicwrites.atomic_write(str(path), overwrite=False,
-                                   suffix=settings.TEMP_SUFFIX,
-                                   dir=settings.TEMP_DIR) as file:
+    with atomicwrites.atomic_write(
+            path=str(path), overwrite=False, suffix=settings.TEMP_SUFFIX,
+            dir=settings.TEMP_DIR) as file:
         file.write(data)
 
 
@@ -124,6 +119,9 @@ def decode_request_data() -> str:
 def ott_response(root_dir: pathlib.Path):
     """
     Generic OTT netDL response
+
+    :param root_dir: The root directory for this function type or interface
+                     e.g. senddata, sendalarm, etc.
     """
 
     # Get data logger identifier
@@ -134,7 +132,11 @@ def ott_response(root_dir: pathlib.Path):
     # Generate timestamp
     now = datetime.datetime.utcnow()
 
-    serialise(data, root_dir=root_dir, station_id=station_id, time=now)
+    # Build target file name
+    path = get_path(root_dir=root_dir, station_id=station_id, time=now)
+
+    # Save data to disk
+    serialise(data, path=path)
 
     body = build_response_body(station_id=station_id, resp_time=now)
 
@@ -148,6 +150,7 @@ def ott():
     """
 
     # Map action to handler
+    # Each handler has a different function and serialisation directory
     handlers = dict(
         senddata=ott_senddata,
         sendalarm=ott_sendalarm,
