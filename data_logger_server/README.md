@@ -113,9 +113,16 @@ sudo htpasswd -v /etc/nginx/.htpasswd dl001
 # Maintenance
 
 * Update OS packages
+  * `sudo apt update`
+  * `sudo apt upgrade`
 * Update Python packages
+  * Check for security vulnerabilities using [Safety](https://pyup.io/safety/).
+    * Install the Safety package: `sudo /opt/data_logger_server/venv/bin/pip install safety`
+    * Run the dependency check: `/opt/data_logger_server/venv/bin/safety check`
 * SSL certificate renewal
+  * Check expiration date: `cat /etc/nginx/ssl/ufdlsrv01.shef.ac.uk.crt | openssl x509 -noout -enddate`
 * Delete old logs
+  * `sudo journalctl --vacuum-size=500M`
 
 # Operation
 

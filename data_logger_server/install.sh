@@ -38,6 +38,8 @@ cp --recursive ./wsgi/* /opt/wsgi
 
 # Create Python virtual environment
 python3.9 -m venv $VENV_DIR
+# Update pip
+$VENV_DIR/bin/pip install pip --upgrade
 # Install Python packages
 $VENV_DIR/bin/pip install wheel
 $VENV_DIR/bin/pip install -r requirements.txt
