@@ -33,7 +33,8 @@ app = flask.current_app
 blueprint = flask.Blueprint('ott', __name__)
 
 
-def get_dir(root_dir: pathlib.Path, time: datetime.datetime = None) -> pathlib.Path:
+def get_dir(root_dir: pathlib.Path,
+            time: datetime.datetime = None) -> pathlib.Path:
     """
     Build the target directory and ensure it exists
     """
@@ -64,7 +65,8 @@ def get_filename(station_id, time: datetime.datetime = None) -> str:
     return f"{station_id}_{safe_timestamp}"
 
 
-def get_path(root_dir: pathlib.Path, station_id: str, time: datetime.datetime) -> str:
+def get_path(root_dir: pathlib.Path, station_id: str,
+             time: datetime.datetime) -> str:
     """
     Build target file path and create subdirectories
     """
@@ -136,9 +138,7 @@ def ott_response(root_dir: pathlib.Path):
 
     body = build_response_body(station_id=station_id, resp_time=now)
 
-    response = flask.Response(body, mimetype='application/xml')
-
-    return response
+    return flask.Response(body, mimetype='application/xml')
 
 
 @blueprint.route('/ott/', methods=['POST'])
@@ -198,11 +198,3 @@ def ping():
     Test endpoint
     """
     return 'pong\n'
-
-
-def main():
-    app.run()
-
-
-if __name__ == '__main__':
-    main()
