@@ -2,6 +2,8 @@
 
 This is a web server to receive data transmissions from OTT netDL data loggers.
 
+[Further documentation is located on Google Drive](https://drive.google.com/drive/folders/1IRdglNE6KCT73QKDvFtLjPB4bubs6hZQ?usp=sharing).
+
 This is a Flask application that receives HTTP POST requests containing XML data in the body (defined by `OTT_Data.xsd`). The HTTP request must have the correct query parameters, as expected to be sent by the data logger. The received data is saved to disk with no pre-processing. A response is sent as defined by `OTT_Response.xsd`.
 
 Files will be written to the disk in a directory specified by `settings.DATA_DIR`. Note that, in order to write to disk atomically (to avoid partial writes) temporary files will also be created in that directory with a file suffix of `settings.TEMP_SUFFIX`.
