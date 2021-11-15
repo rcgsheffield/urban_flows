@@ -7,16 +7,18 @@
 DEST_DIR="/opt/data_logger_server"
 VENV_DIR="$DEST_DIR/venv"
 DATA_DIR="/home/uflo/data/rawData/dlsrv"
+RELEASE=$(lsb_release -sc)
 
 # Exit immediately if a command exits with a non-zero status
 set -e
 
 # Install OS packages
+echo "deb https://nginx.org/packages/ubuntu/ $RELEASE nginx" > /etc/apt/sources.list.d/nginx.list
 apt update
-apt-get upgrade --yes
 apt-get install --yes nginx python3.9 python3.9-venv  apache2-utils
 # Install build tools to compile uWSGI
 apt-get install --yes python3-wheel python3.9-dev build-essential
+apt-get upgrade --yes
 
 echo "Installing web server..."
 
