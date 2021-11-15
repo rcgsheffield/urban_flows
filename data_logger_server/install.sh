@@ -8,12 +8,15 @@ DEST_DIR="/opt/data_logger_server"
 VENV_DIR="$DEST_DIR/venv"
 DATA_DIR="/home/uflo/data/rawData/dlsrv"
 RELEASE=$(lsb_release -sc)
+KEY="ABF5BD827BD9BF62"
 
 # Exit immediately if a command exits with a non-zero status
 set -e
 
 # Install OS packages
+# https://www.nginx.com/resources/wiki/start/topics/tutorials/install/#official-debian-ubuntu-packages
 echo "deb https://nginx.org/packages/ubuntu/ $RELEASE nginx" > /etc/apt/sources.list.d/nginx.list
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $KEY
 apt update
 apt-get install --yes nginx python3.9 python3.9-venv  apache2-utils
 # Install build tools to compile uWSGI
