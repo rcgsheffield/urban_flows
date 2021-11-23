@@ -1,8 +1,9 @@
 #!/usr/bin/env sh
 
+PYTHON_VERSION=python3.9
 TARGET_DIR=/opt/awesome
 VENV_DIR=$TARGET_DIR/venv
-PYTHON_BINARY=$VENV_DIR/bin/python3.9
+PYTHON_BINARY=$VENV_DIR/bin/$PYTHON_VERSION
 
 # Exit immediately if a command exits with a non-zero status
 set -e
@@ -11,7 +12,7 @@ echo "Installing production settings..."
 cp --verbose settings_prod.py settings_local.py
 
 echo "Installing Python packages"
-$PYTHON_BINARY -m venv $VENV_DIR
+/usr/bin/$PYTHON_VERSION -m venv $VENV_DIR
 # Use this version of Python
 $PYTHON_BINARY -m venv $VENV_DIR --upgrade
 $PYTHON_BINARY -m pip install --requirement requirements.txt
