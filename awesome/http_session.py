@@ -21,7 +21,7 @@ class PortalSession(requests.Session):
             'Accept-Language': self.LANGUAGE,
         })
 
-    def request(self, *args, **kwargs):
+    def request(self, *args, suppress_errors: bool = False, **kwargs):
         """Make a HTTP request to the API and parse the response"""
 
         headers = {'Accept': 'application/json'}
@@ -39,12 +39,13 @@ class PortalSession(requests.Session):
 
         # Raise errors
         try:
-            response.raise_for_status()
+            if not suppress_errors:
+                response.raise_for_status()
 
         # Log HTTP error codes
         except requests.HTTPError as exc:
             for header, value in exc.response.headers.items():
-                LOGGER.info("RESPONSE HEADER %s: %s", header, value)
+                LOGGER.error("RESPONSE HEADER %s: %s", header, value)
             LOGGER.error(exc.response.text)
             raise
 

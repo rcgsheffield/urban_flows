@@ -15,6 +15,7 @@ import requests
 import settings
 import exceptions
 import utils
+import http_session
 
 LOGGER = logging.getLogger(__name__)
 
@@ -162,8 +163,14 @@ class Location(AwesomeObject):
     def tags(self, session: requests.Session) -> List[dict]:
         return session.call(self.urljoin('tags'))['data']
 
-    def add_tag(self, session: requests.Session, tag: str):
-        return session.post(self.urljoin('tags'), data=dict(name=tag)).json()
+    def add_tag(self, session: http_session.PortalSession, tag: str):
+        """
+        Add a new tag to this location
+        """
+
+        return session.post(self.urljoin('tags'), data=dict(name=tag),
+                            # Suppress errors for already-existing tags
+                            suppress_errors=True).json()
 
     def delete_tag(self, session: requests.Session, tag_id: int):
         endpoint = 'tags/{tag_id}'.format(tag_id=tag_id)
