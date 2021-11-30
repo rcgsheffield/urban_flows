@@ -56,7 +56,8 @@ mkdir --parents --verbose $DATA_DIR
 # Install machine-specific settings
 mv --force $DEST_DIR/settings_prod.py $DEST_DIR/settings_local.py
 
-# Create a shared directory to store the socket file
+# Create a shared temporary directory to store the socket file
+# http://manpages.ubuntu.com/manpages/focal/man5/tmpfiles.d.5.html
 echo "Installing WSGI configuration..."
 cp wsgi/data_logger_server.conf /etc/tmpfiles.d
 
