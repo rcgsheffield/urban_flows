@@ -31,11 +31,6 @@ cp wsgi/data_logger_server.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable data_logger_server
 
-# Create a directory to store the socket file
-mkdir -p /run/dlsrv
-chown www-data:www-data /run/dlsrv
-chmod 770 /run/dlsrv
-
 # Install application files
 mkdir --parents --verbose $DEST_DIR
 cp --recursive ./data_logger_server/* $DEST_DIR
