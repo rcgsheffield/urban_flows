@@ -31,6 +31,11 @@ cp wsgi/data_logger_server.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable data_logger_server
 
+# Create a directory to store the socket file
+#mkdir -p /run/dlsrv
+#chown uflo:nginx /run/dlsrv
+#chmod 770 /run/dlsrv
+
 # Install application files
 mkdir --parents --verbose $DEST_DIR
 cp --recursive ./data_logger_server/* $DEST_DIR
@@ -51,11 +56,6 @@ mkdir --parents --verbose $DATA_DIR
 # Install machine-specific settings
 mv --force $DEST_DIR/settings_prod.py $DEST_DIR/settings_local.py
 
-# Create a shared temporary directory to store the socket file
-# http://manpages.ubuntu.com/manpages/focal/man5/tmpfiles.d.5.html
-echo "Installing WSGI configuration..."
-cp wsgi/data_logger_server.conf /etc/tmpfiles.d
-
 # Install NGINX configuration files
 echo "Installing NGINX configuration..."
 cp --recursive --verbose nginx /etc
@@ -63,5 +63,5 @@ cp --recursive --verbose nginx /etc
 # Data targets
 mkdir -pv $DATA_DIR/senddata
 mkdir -pv $DATA_DIR/sendalarm
-chown -R uflo:www-data $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
+chown -R uflo:nginx $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
 chmod 775 $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
