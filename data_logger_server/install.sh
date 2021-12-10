@@ -3,10 +3,10 @@
 # Urban Flows Observatory
 # OTT Data Logger Web Server installation script
 
-# Import variables from .env file
-. ./wsgi/data_logger_server.env
+# Define target directories
+DEST_DIR="/opt/data_logger_server"
 VENV_DIR="$DEST_DIR/venv"
-
+DATA_DIR="/home/uflo/data/rawData/dlsrv"
 RELEASE=$(lsb_release -sc)
 KEY="ABF5BD827BD9BF62"
 
@@ -62,5 +62,5 @@ cp --recursive --verbose nginx /etc
 # Data targets
 mkdir -pv $DATA_DIR/senddata
 mkdir -pv $DATA_DIR/sendalarm
-chown -R uflo:uflo $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
+chown -R uflo:nginx $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
 chmod 775 $DATA_DIR $DATA_DIR/senddata $DATA_DIR/sendalarm
