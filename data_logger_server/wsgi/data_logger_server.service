@@ -5,8 +5,10 @@ Description=Data Logger Server uWSGI service
 After=network.target
 
 [Service]
-User=www-data
-Group=www-data
+User=uflo
+Group=nginx
+RuntimeDirectory=dlsrv
+RuntimeDirectoryMode=0770
 WorkingDirectory=/opt/data_logger_server
 EnvironmentFile=/opt/wsgi/data_logger_server.env
 ExecStart=/opt/data_logger_server/venv/bin/uwsgi --ini /opt/wsgi/data_logger_server.ini
