@@ -4,6 +4,8 @@ authors:
 - family-names: "Heffer"
   given-names: "Joe Salvador Thornhill"
   orcid: "https://orcid.org/0000-0001-8733-1117"
+- family-names: "Wild"
+  given-names: "Christopher"
 title: "Data Logger Server"
 version: 0.0.1
 date-released: 2020-03-01
