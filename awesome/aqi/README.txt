@@ -1,1 +1,0 @@
-This module contains code to quantify air quality by calculating an "Air Quality Index", of which several methods exist.

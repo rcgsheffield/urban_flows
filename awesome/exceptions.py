@@ -1,2 +1,0 @@
-class EmptyValueError(ValueError):
-    pass
