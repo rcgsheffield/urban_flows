@@ -7,8 +7,9 @@ name: uflo
 channels:
   - defaults
 dependencies:
-  - python=3.5
-  - requests=2.24
-  - pip=9
+  - python=3.6
+  - requests=2.27
+  - pip
+  - numpy=1.21
   - pip:
-    - arrow==0.14.6
+    - arrow~=0.17
