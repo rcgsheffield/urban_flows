@@ -1,4 +1,4 @@
-numpy>=1.231
+numpy>=1.21
 pandas~=1.0
 python-dateutil~=2.8
 pytz~=2019.3
